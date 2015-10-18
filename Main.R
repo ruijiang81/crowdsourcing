@@ -5,7 +5,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 
 
 ## Setup
-DATABASE_NAME="Otto" #"Spam","Otto"
+DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced"
 
 cores_not_to_use<-0 #0 means use all cores
 p_holdout=0.3 #percentage of data in external holdout
@@ -32,24 +32,31 @@ directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
 directory
 dir.create(directory, showWarnings = FALSE, recursive = TRUE, mode = "0777")
 
-#DISABLE IN CASE OF DOMINO!!!
-#################################################################
 
-######Get the data and create a standard_name dataset######
-# #SPAM DATASET
-# #NOTE remember in other datasets to remove ID if exists....
-#  require("kernlab")  
-#  data(spam)
-#  dataset <- spam
+## Get the data
+DATABASE_NAME <- tolower(DATABASE_NAME)
+if(DATABASE_NAME=="otto"){
+    dataset <- read.csv(file.path(getwd(),'data','Otto','train.csv'), colClasses=c("integer",rep("numeric",93),"factor"))
+    dataset <- dataset[,-1] #deletes the first (ID) column 
+    dataset <- oneVsAll(dataset, positive.class=3) #customized function that assigns one positive and one negative class
+    
+} else if (DATABASE_NAME=="spam") {
+    library("kernlab")  
+    data(spam)
+    dataset <- spam
+    
+} else if (DATABASE_NAME=="synthetic_balanced") {
+    source("scripts/generate_balanced_dataset.R")
+    
+} else if (DATABASE_NAME=="synthetic_unbalanced") {
+    source("scripts/generate_unbalanced_dataset.R")
+    
+} else {
+    error("Unknow dataset")
+} # end get the data
 
-#OTTO DATASET
-### NOT USED setwd("C:\\Users\\user\\Dropbox\\economic labelling pers\\Otto")
+standard_name_dataset <- setVariablesNames(dataset)
 
-dataset <- read.csv(file.path(getwd(),'data','Otto','train.csv'), colClasses=c("integer",rep("numeric",93),"factor"))
-dataset <- dataset[,-1] #deletes the first (ID) column 
-dataset <- oneVsAll(dataset, positive.class=3) #customized function that assigns one positive and one negative class
-
-standard_name_dataset<-setVariablesNames(dataset)
 
 ###########################################################
 cl <- makeCluster(detectCores()-cores_not_to_use,outfile="") #detects the number of cores and prepares for parallel run  
