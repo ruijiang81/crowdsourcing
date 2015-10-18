@@ -1,7 +1,6 @@
+## Initialization
 cat("\014"); rm(list = ls())
-require (randomForest)
-require(ROCR)
-require(doParallel)
+source("scripts/load_libraries.R")
 
 
 ##########################################################functions####################################################
