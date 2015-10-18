@@ -1,0 +1,7 @@
+Otto-Group-Product-Classification-Challenge
+
+Kaggle description and dataset:
+https://www.kaggle.com/c/otto-group-product-classification-challenge
+
+t-sne projection for train data:
+https://www.kaggle.com/c/otto-group-product-classification-challenge/forums/t/13122/visualization/69296
