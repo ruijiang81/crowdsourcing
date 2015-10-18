@@ -24,7 +24,7 @@ packages.loader <- function(packages.list){
 packages.list = c("testthat",                                                   # Development tools for R
                   "randomForest","ROCR",                                        # Classification Algorithms
                   "doParallel","foreach",                                       # Parallel Tools
-                  "knitr","pander",                                             # Dynamic Report Generation in R
+                  #"knitr","pander",                                            # Dynamic Report Generation in R
                   "ggplot2","manipulate")                                       # Visualization tools
 
 packages.loader(packages.list)
