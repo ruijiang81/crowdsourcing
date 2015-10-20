@@ -13,3 +13,7 @@ vignettes/*.html
 vignettes/*.pdf
 *.csv
 results/stdout.txt
+
+# Domino
+domino.log
+.httr-oauth
