@@ -5,7 +5,8 @@ decide_price_per_label <- function(train,pay_criteria,
                                    payment_options,
                                    cur_instance_num,
                                    meta_data,
-                                   repeatition_num)
+                                   repeatition_num,
+                                   inducer=c("RF","GLM","J48"))
     {
     if (pay_criteria =="random"){
         set.seed(cur_instance_num*global_seed)
@@ -28,7 +29,10 @@ decide_price_per_label <- function(train,pay_criteria,
         summary_partial_model_performance <- read.table(text = "", col.names = columns_names)
         
         num_payment_options<-length(payment_options) 
-        full_model_CV_performance<-cross_validation(train,cross_validation_folds,cross_validation_reruns)
+        full_model_CV_performance<-cross_validation(train,
+                                                    cross_validation_folds,
+                                                    cross_validation_reruns,
+                                                    inducer=inducer)
         full_model_CV_performance
         for (i in 1:num_payment_options) {
             #print (i)
@@ -38,7 +42,10 @@ decide_price_per_label <- function(train,pay_criteria,
                 set.seed(cur_instance_num*global_seed+i+j*1000)
                 random_rows_to_remove_with_payment <- sample(payment_row_numbers, batch_size) 
                 randomly_remaining_instances <- train[-random_rows_to_remove_with_payment, ]; 
-                summary_partial_model_performance[j,i]<-cross_validation(randomly_remaining_instances,cross_validation_folds,cross_validation_reruns)
+                summary_partial_model_performance[j,i]<-cross_validation(randomly_remaining_instances,
+                                                                         cross_validation_folds,
+                                                                         cross_validation_reruns,
+                                                                         inducer=inducer)
             }
         }  
         partial_model_performance<-colMeans(summary_partial_model_performance, na.rm = FALSE, dims = 1) #vector with the average performance of the partial models per payment option

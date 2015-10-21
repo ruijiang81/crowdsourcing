@@ -17,6 +17,8 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
 max_total_cost<-80 #should be larger than the cost of paying for the initial training batches
 
+model_inducer = c("RF","GLM","J48")[2]
+
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
 
@@ -136,8 +138,10 @@ for  (counter_repeatitions in 1:repeatitions)
             }
         }
         
-        calculated_AUC<-predict_set(training_set,holdout_data)
-        print (calculated_AUC)
+        calculated_AUC = predict_set(training_set,
+                                     holdout_data,
+                                     inducer=model_inducer)
+        print(calculated_AUC)
     }  
     print ("finished purchasing initial training set")
     
@@ -153,7 +157,13 @@ for  (counter_repeatitions in 1:repeatitions)
         if (current_instance_num+batch_size>max_size_training_data)
         {stop ("current_instance_num+batch_size>max_size_training_data")} #sanity check that the allocation of instances according to cost doesn't exceed the number of initially available unlabelled data
         
-        pay_per_label<-decide_price_per_label(training_set,payment_selection_criteria,price_per_label_values,current_instance_num,metadata,counter_repeatitions)
+        pay_per_label = decide_price_per_label(training_set,
+                                               payment_selection_criteria,
+                                               price_per_label_values,
+                                               current_instance_num,
+                                               metadata,
+                                               counter_repeatitions,
+                                               inducer=model_inducer)
         
         for (k in 1:batch_size) {
             
@@ -179,7 +189,9 @@ for  (counter_repeatitions in 1:repeatitions)
             current_instance_num<-current_instance_num+1 #updating the counter
         }
         
-        calculated_AUC<-predict_set(training_set,holdout_data)
+        calculated_AUC<-predict_set(training_set,
+                                    holdout_data,
+                                    inducer=model_inducer)
         print (calculated_AUC)
         report[current_report_line,]<-c(metadata[current_instance_num-1,],calculated_AUC)
         current_report_line<-current_report_line+1
@@ -199,69 +211,3 @@ stopCluster(cl)
 
 stop.time<- Sys.time()
 print (stop.time)
-
-
-
-
-
-
-#########################################################################
-#NON PARALLEL IMPLEMENTATION
-# predict_set<- function(train_set,test_set){
-#   #recieves train and test set and returns AUC over the test set
-#   set.seed(global_seed)
-#   model<-randomForest(y ~ .,train_set,ntree=100)                                 
-#   set_output<-predict(model,test_set,type="prob")  
-#   predictions<-as.vector(set_output[,2])
-#   pred<-prediction(predictions,test_set$y)
-#   perf_AUC<-performance(pred,"auc") #Calculate the AUC value
-#   AUC<-perf_AUC@y.values[[1]]
-#   
-#   return(AUC)   
-# }
-# 
-# cross_validation<-function(cv_data,num_folds,num_reruns){
-#   #Returns the Average AUC for cross validation on a data set. Calls on function predict_set to calculate the AUC for each fold.
-#   num_folds #number of Folds
-#   data=cv_data  #data set used
-#   sum_avg_AUC_all_CV_runs<-0 #this is later divided by the number of reruns
-#   
-#   for (j in 1:num_reruns){
-#     set.seed(global_seed+j-1)
-#     data$row_fold <- sample(1:num_folds, nrow(data), replace = TRUE)    # sample values from 1 to k, for each row in the data
-#     #print (data$row_fold)
-#     list <- 1:num_folds
-#     sum_AUC_CV_run<-0
-#     for (i in 1:num_folds){
-#       # remove rows with row_fold i from dataframe to create training set. Select rows with row_fold i to create test set
-#       train_data <- subset(data, row_fold %in% list[-i])
-#       test_data <- subset(data, row_fold %in% c(i))
-#       calculated_AUC<-predict_set(train_data,test_data) 
-#       #print (calculated_AUC)
-#       sum_AUC_CV_run<-sum_AUC_CV_run+calculated_AUC 
-#     }
-#     avg_AUC_CV_run<-sum_AUC_CV_run/num_folds #this is the specific cross validation result
-#     #print(avg_AUC_CV_run)
-#     sum_avg_AUC_all_CV_runs<-sum_avg_AUC_all_CV_runs+avg_AUC_CV_run #adding to the sum of all cross validation reruns
-#   }
-#   return(sum_avg_AUC_all_CV_runs/num_reruns) #returning the avg of all cross validation reruns
-# }
-#this was the older version of predict set
-# predict_set<- function(train_set,test_set)
-# {
-#   # Validate assumption
-#   if(!exists("global_seed")) {global_seed <- 1992}
-#   
-#   #recieves train and test set and returns AUC over the test set
-#   set.seed(global_seed)
-#   model       <- randomForest::randomForest(y ~ ., train_set, ntree=100)                                 
-#   set_output  <- predict(model,test_set,type="prob")  
-#   predictions <- as.vector(set_output[,2])
-#   pred        <- ROCR::prediction(predictions,test_set$y)
-#   perf_AUC    <- ROCR::performance(pred,"auc") #Calculate the AUC value
-#   AUC         <- perf_AUC@y.values[[1]]
-#   
-#   return(AUC)   
-# } # end predict_set
-
-

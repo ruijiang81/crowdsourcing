@@ -4,11 +4,14 @@
 
 cross_validation <- function(cv_data, 
                              num_folds,  # Number of folds
-                             num_reruns) # Number repetition
+                             num_reruns, # Number repetition
+                             inducer=c("RF","GLM","J48"))
 {  
     # Validate assumption
     require("foreach")
     if(!exists("global_seed")) {global_seed <- 1992}
+    
+    
     ## Returns the Average AUC for cross validation on a data set. 
     ## Calls on function predict_set to calculate the AUC for each fold.
     sum_avg_AUC_all_CV_runs <- 0 #this is later divided by the number of reruns
@@ -53,7 +56,9 @@ cross_validation <- function(cv_data,
             #test_data <- subset(cv_data,(fold.df[,rep] %in% fold))
             
             ## Fit & Evaluate model
-            AUC.mdl <- predict_set(train_data, test_data)
+            AUC.mdl <- predict_set(train_data,
+                                   test_data,
+                                   inducer=inducer)
             
             return(data.frame(Repetition=rep,Fold=fold,AUC=AUC.mdl))
         } # end foreach fit model via repeated K-fold CV
