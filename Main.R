@@ -27,7 +27,7 @@ cost_function_type<-"Concave" #"Fix","Concave"',"Asymptotic"
 
 cross_validation_folds<<-8 #global10
 cross_validation_reruns<<-4 #global5
-repeatitions<-1 #10
+repeatitions <- 2 #10
 
 #GENERATING A NEW DIRECTORY FOR THE RESULTS
 directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
@@ -63,24 +63,35 @@ dataset <- setVariablesNames(dataset)
 ###########################################################
 cl <- makeCluster(detectCores()-cores_not_to_use,outfile="") #detects the number of cores and prepares for parallel run  
 registerDoParallel(cl)
+
+report_columns = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
+report = c()
+
+
+
 for(counter_repeatitions in 1:repeatitions)
 {
-    global_seed<<-initial_seed*counter_repeatitions
-    num_rows <- nrow(dataset)
+    ## Repetition setup
+    global_seed <<- initial_seed*counter_repeatitions
+    start.time   <- Sys.time()
     
-    print ("current repeatition")
-    print (counter_repeatitions) 
+    
+    ## Display repetition info
+    cat('\n', rep('#',40), 
+        '\n', "current repeatition: ", counter_repeatitions,
+        '\n', rep('#',40),
+        sep="")
     
     
     ## Split the data to 'unlabeled' and 'holdout'
     #' The holdout-set is fixed throughout the simulation
     #' The unlabeled-set is shuffled differently in each repetition
     set.seed(initial_seed)
-    index.holdout  = sample(num_rows,round(num_rows*p_holdout))
+    index.holdout  = sample(nrow(dataset), round(nrow(dataset)*p_holdout))
     holdout_data   = dataset[index.holdout,]
     set.seed(global_seed)
     unlabeled_data = dataset[-sample(index.holdout),]
-
+    
     
     max_size_training_data<-nrow(unlabeled_data) #used later for sanity check
     ###########################################################
@@ -92,11 +103,9 @@ for(counter_repeatitions in 1:repeatitions)
     metadata_columns <- c("instance_num", "pay", "change", "cost_so_far") 
     metadata <- read.table(text = "", col.names = metadata_columns)
     
-    report_columns   <- c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
-    report   <- read.table(text = "", col.names = report_columns)
+    
+    rep_report   <- read.table(text = "", col.names = report_columns)
     current_report_line=1
-    start.time<-Sys.time()
-    print (start.time)
     ###########################################################
     
     
@@ -193,21 +202,23 @@ for(counter_repeatitions in 1:repeatitions)
                                     holdout_data,
                                     inducer=model_inducer)
         print (calculated_AUC)
-        report[current_report_line,]<-c(metadata[current_instance_num-1,],calculated_AUC)
+        rep_report[current_report_line,] = c(metadata[current_instance_num-1,],calculated_AUC)
         current_report_line<-current_report_line+1
     }  
     
-    stop.time<- Sys.time()
-    
-    filename  <- paste("report",payment_selection_criteria,cost_function_type,max_total_cost,"repeat", counter_repeatitions,".csv")
-    file_path <- file.path(directory, filename)
-    
-    #filename<-paste("report",payment_selection_criteria,cost_function_type,max_number_of_training_instance,"repeat", counter_repeatitions,".csv")
-    write.table(report, file = file_path, sep = ",", col.names = NA)
+    stop.time = Sys.time()
+    rep_report$repettition = counter_repeatitions
+    report = rbind(report, rep_report)
+    #rm(rep_report)
     round(difftime(stop.time, start.time, units="mins"))
     
-} #repettitions 
-stopCluster(cl) 
+} #repettitions
 
+## Save report on hard drive
+file_name = paste("report", payment_selection_criteria, cost_function_type, max_total_cost,".csv")
+file_path = file.path(directory, file_name)
+write.csv(report, file = file_path, row.names=F)
+
+
+stopCluster(cl) 
 stop.time<- Sys.time()
-print (stop.time)
