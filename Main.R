@@ -57,32 +57,30 @@ if(DATABASE_NAME=="otto"){
     error("Unknow dataset")
 } # end get the data
 
-standard_name_dataset <- setVariablesNames(dataset)
+dataset <- setVariablesNames(dataset)
 
 
 ###########################################################
 cl <- makeCluster(detectCores()-cores_not_to_use,outfile="") #detects the number of cores and prepares for parallel run  
 registerDoParallel(cl)
-for  (counter_repeatitions in 1:repeatitions)
+for(counter_repeatitions in 1:repeatitions)
 {
     global_seed<<-initial_seed*counter_repeatitions
-    #global_seed<<-2015
+    num_rows <- nrow(dataset)
     
     print ("current repeatition")
     print (counter_repeatitions) 
     
     
-    
-    ######Split the data to 'unlabeled' and 'holdout'######
-    num_rows <- nrow(standard_name_dataset)
+    ## Split the data to 'unlabeled' and 'holdout'
+    #' The holdout-set is fixed throughout the simulation
+    #' The unlabeled-set is shuffled differently in each repetition
+    set.seed(initial_seed)
+    index.holdout  = sample(num_rows,round(num_rows*p_holdout))
+    holdout_data   = dataset[index.holdout,]
     set.seed(global_seed)
-    prob_value <- runif(num_rows) #assigns a random number to a vector prob_value
-    #Sorting the dataset according to the random probability value. this determines which data instances will be considered for unlabeled_data and holdout.
-    #It will also determine,later on, the order of labeling the data      
-    sorted_standard_name_dataset<- standard_name_dataset[order(prob_value),] 
-    first_holdout_row<-floor(num_rows-num_rows*p_holdout)
-    unlabeled_data <- sorted_standard_name_dataset[1:(first_holdout_row-1),]
-    holdout_data <- sorted_standard_name_dataset[first_holdout_row:num_rows,]
+    unlabeled_data = dataset[-sample(index.holdout),]
+
     
     max_size_training_data<-nrow(unlabeled_data) #used later for sanity check
     ###########################################################
@@ -91,11 +89,11 @@ for  (counter_repeatitions in 1:repeatitions)
     #############Additional setup########################
     
     #defining the columns of the metadata table
-    metadata_columns<- c("instance_num", "pay", "change", "cost_so_far") 
+    metadata_columns <- c("instance_num", "pay", "change", "cost_so_far") 
     metadata <- read.table(text = "", col.names = metadata_columns)
     
-    report_columns<- c("instance_num","pay", "change", "cost_so_far", "AUC_holdout") 
-    report <- read.table(text = "", col.names = report_columns)
+    report_columns   <- c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
+    report   <- read.table(text = "", col.names = report_columns)
     current_report_line=1
     start.time<-Sys.time()
     print (start.time)
@@ -131,7 +129,9 @@ for  (counter_repeatitions in 1:repeatitions)
                         change<-0
                     }
                     cost_so_far=cost_so_far+price_per_label_values[i]
-                    metadata[current_instance_num,]<-c(current_instance_num,price_per_label_values[i],change,cost_so_far)
+                    metadata[current_instance_num,]<-c(current_instance_num,
+                                                       price_per_label_values[i],
+                                                       change,cost_so_far)
                     
                     current_instance_num<-current_instance_num+1 #updating the counter
                 }
