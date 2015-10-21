@@ -41,7 +41,7 @@ cross_validation <- function(cv_data,
     ## Fit models via repeated K-fold CV
     AUC.CV <- foreach(
         i = 1:(num_folds*num_reruns),
-        .export=c("predict_set"),
+        .export=c("predict_set","setVariablesNames"),
         .combine=rbind,
         .options.multicore=list(preschedule=TRUE),
         .errorhandling='stop',#'remove',

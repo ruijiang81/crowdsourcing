@@ -18,3 +18,4 @@ results/stdout.txt
 domino.log
 .httr-oauth
 Dropbox/
+*.txt
