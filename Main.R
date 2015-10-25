@@ -12,7 +12,7 @@ p_holdout         = 0.3 #percentage of data in external holdout
 initial_seed      = 2015 #large number
 batch_size        <<-10
 number_batch_omissions<<-10
-num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
+num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
 max_total_cost<-80 #should be larger than the cost of paying for the initial training batches
@@ -27,7 +27,7 @@ cost_function_type         = "Concave" #"Fix","Concave"',"Asymptotic"
 
 cross_validation_folds<<-8 #global10
 cross_validation_reruns<<-4 #global5
-repeatitions <- 2 #10
+repeatitions <- 1 #10
 
 #GENERATING A NEW DIRECTORY FOR THE RESULTS
 directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
@@ -117,7 +117,12 @@ for(counter_repeatitions in 1:repeatitions)
         #' using random or other non algorthmic payment selection methods
         for (i in 1:num_price_per_label_values){
             for (j in 1:num_batches_per_cost_initial_training_set){
-                for (k in 1:batch_size) {
+              
+              set.seed(current_instance_num*global_seed)
+              pay_per_label<-sample(price_per_label_values,1)
+              labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
+                                                             pay_per_label)  
+              for (k in 1:batch_size) {
                     if (current_instance_num==1){
                         training_set<-unlabeled_data[1,]
                     } 
@@ -125,8 +130,11 @@ for(counter_repeatitions in 1:repeatitions)
                         training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
                     }
                     
-                    labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                                                                   price_per_label_values[i])
+                    #batch payment option                  
+                    #labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
+                    #                                               price_per_label_values[i])
+                    
+                                                                   
                     set.seed(current_instance_num*global_seed)
                     random_number <- runif(1)
                     if (random_number>labeling_accuracy){
@@ -136,7 +144,8 @@ for(counter_repeatitions in 1:repeatitions)
                     else {
                         change<-0
                     }
-                    cost_so_far=cost_so_far+price_per_label_values[i]
+                    #cost_so_far=cost_so_far+price_per_label_values[i]
+                    cost_so_far=cost_so_far+pay_per_label
                     metadata[current_instance_num,]<-c(current_instance_num,
                                                        price_per_label_values[i],
                                                        change,cost_so_far)
@@ -149,10 +158,11 @@ for(counter_repeatitions in 1:repeatitions)
         calculated_AUC = predict_set(training_set,
                                      holdout_data,
                                      inducer=model_inducer)
-    }  
-    cat('\n',"Finished purchasing initial training set")
-    cat('\n',"AUC =",calculated_AUC)
+        cat('\n',"Finished purchasing initial training set")
+        cat('\n',"AUC =",calculated_AUC)
     
+    }  
+   
     
     ############################################################################
     #' Running the rest of the simulation
