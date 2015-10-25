@@ -3,6 +3,7 @@
 #' 1. oneVsAll
 #' 2. change_level_value
 #' 3. setVariablesNames
+#' 4. create_report
 #' 
 
 
@@ -56,3 +57,17 @@ setVariablesNames <- function(fulldataset){
     colnames(fulldataset)[-Ncols]  <- paste0('X',1:(Ncols-1))
     return(fulldataset)
 } # end setVariablesNames
+
+################################################################################
+#' create_report
+#'
+#' Allocate data frame for the simulation
+create_report <- function()
+{
+    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
+    rep_report = read.table(text="", col.names=col_names)
+    return(rep_report)
+} # end create_report
+
+
+#create_report.append(report,entry)

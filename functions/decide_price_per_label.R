@@ -1,31 +1,39 @@
 #' decide_price_per_label
 #' 
 
-decide_price_per_label <- function(train,pay_criteria,
+decide_price_per_label <- function(train,
+                                   # By which rule to decide how much to pay for the next batch?
+                                   pay_criteria,
+                                   # Available costs values                                   
                                    payment_options,
+                                   # How many instances are in the model ?
                                    cur_instance_num,
+                                   # Simulation log
                                    meta_data,
+                                   # The current repetition value
                                    repeatition_num,
+                                   # What inducer should be used to fit models?
                                    inducer=c("RF","GLM","J48"))
-    {
+{
+    
     if (pay_criteria =="random"){
         set.seed(cur_instance_num*global_seed)
         pay<-sample(payment_options,1)
-    } 
-    else if (pay_criteria =="min_pay_per_label"){
+        
+    } else if (pay_criteria =="min_pay_per_label"){
         pay<-payment_options[which.min(payment_options)]
-    } 
-    else if (pay_criteria =="max_pay_per_label"){
+        
+    } else if (pay_criteria =="max_pay_per_label"){
         pay<-payment_options[which.max(payment_options)]
-    } 
-    else if ((pay_criteria =="max_quality")|(pay_criteria =="max_ratio")|(pay_criteria =="max_total_ratio")|(pay_criteria=="delta_AUC_div_total_cost")){
+        
+    } else if (pay_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
         # for testing  
         #payment_options<-price_per_label_values
         #train<-training_set
         #meta_data<-metadata
         #cur_instance_num<-250
         #
-        columns_names<- c(payment_options)
+        columns_names <- c(payment_options)
         summary_partial_model_performance <- read.table(text = "", col.names = columns_names)
         
         num_payment_options<-length(payment_options) 

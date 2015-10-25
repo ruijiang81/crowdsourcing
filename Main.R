@@ -15,7 +15,7 @@ number_batch_omissions<<-10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost<-150 #should be larger than the cost of paying for the initial training batches
+max_total_cost<-40 #should be larger than the cost of paying for the initial training batches
 
 model_inducer = c("RF","GLM","J48")[2]
 
@@ -27,7 +27,7 @@ cost_function_type         = "Concave" #"Fix","Concave"',"Asymptotic"
 
 cross_validation_folds<<-8 #global10
 cross_validation_reruns<<-4 #global5
-repeatitions <- 10 #10
+repeatitions <- 1 #10
 
 #GENERATING A NEW DIRECTORY FOR THE RESULTS
 directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
@@ -67,8 +67,7 @@ dataset <- setVariablesNames(dataset)
 cl <- makeCluster(detectCores()-cores_not_to_use,outfile="")   
 registerDoParallel(cl)
 # Allocate report
-report_columns = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
-report = c()
+report = create_report()
 
 for(counter_repeatitions in 1:repeatitions)
 {
@@ -78,9 +77,8 @@ for(counter_repeatitions in 1:repeatitions)
     global_seed <<- initial_seed*counter_repeatitions
     start.time   <- Sys.time()
     # Defining the columns of the metadata table
-    metadata_columns = c("instance_num", "pay", "change", "cost_so_far") 
-    metadata   = read.table(text = "", col.names = metadata_columns)
-    rep_report = read.table(text = "", col.names = report_columns)
+    metadata   = create_report()
+    rep_report = create_report()
     current_report_line = 1
     # Display repetition info
     cat('\n', rep('#',40), 
@@ -117,12 +115,12 @@ for(counter_repeatitions in 1:repeatitions)
         #' using random or other non algorthmic payment selection methods
         for (i in 1:num_price_per_label_values){
             for (j in 1:num_batches_per_cost_initial_training_set){
-              
-              set.seed(current_instance_num*global_seed)
-              pay_per_label<-sample(price_per_label_values,1)
-              labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                                                             pay_per_label)  
-              for (k in 1:batch_size) {
+                
+                set.seed(current_instance_num*global_seed)
+                pay_per_label<-sample(price_per_label_values,1)
+                labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
+                                                               pay_per_label)  
+                for (k in 1:batch_size) {
                     if (current_instance_num==1){
                         training_set<-unlabeled_data[1,]
                     } 
@@ -134,7 +132,7 @@ for(counter_repeatitions in 1:repeatitions)
                     #labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
                     #                                               price_per_label_values[i])
                     
-                                                                   
+                    
                     set.seed(current_instance_num*global_seed)
                     random_number <- runif(1)
                     if (random_number>labeling_accuracy){
@@ -146,11 +144,13 @@ for(counter_repeatitions in 1:repeatitions)
                     }
                     #cost_so_far=cost_so_far+price_per_label_values[i]
                     cost_so_far=cost_so_far+pay_per_label
-                    metadata[current_instance_num,]<-c(current_instance_num,
-                                                       price_per_label_values[i],
-                                                       change,cost_so_far)
+                    new_entry = data.frame("instance_num"=current_instance_num,
+                                           "pay"=price_per_label_values[i],
+                                           "change"=change,
+                                           "cost_so_far"=cost_so_far)
+                    metadata = merge(metadata, new_entry, all=TRUE)
                     
-                    current_instance_num<-current_instance_num+1 #updating the counter
+                    current_instance_num = current_instance_num+1 #updating the counter
                 }
             }
         }
@@ -160,9 +160,9 @@ for(counter_repeatitions in 1:repeatitions)
                                      inducer=model_inducer)
         cat('\n',"Finished purchasing initial training set")
         cat('\n',"AUC =",calculated_AUC)
+        
+    } # end Purchase initial batches
     
-    }  
-   
     
     ############################################################################
     #' Running the rest of the simulation
@@ -204,7 +204,11 @@ for(counter_repeatitions in 1:repeatitions)
                 change<-0
             }
             cost_so_far=cost_so_far+pay_per_label
-            metadata[current_instance_num,]<-c(current_instance_num,pay_per_label,change,cost_so_far)
+            new_entry = data.frame("instance_num"=current_instance_num,
+                                   "pay"=pay_per_label,
+                                   "change"=change,
+                                   "cost_so_far"=cost_so_far)
+            metadata = merge(metadata, new_entry, all=TRUE)
             
             current_instance_num<-current_instance_num+1 #updating the counter
         }
@@ -213,9 +217,13 @@ for(counter_repeatitions in 1:repeatitions)
                                      holdout_data,
                                      inducer=model_inducer)
         cat('\n',"AUC =",calculated_AUC)
-        rep_report[current_report_line,] = c(metadata[current_instance_num-1,],calculated_AUC)
-        current_report_line<-current_report_line+1
-    }  
+        
+        ## Store metadata in the report
+        metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+        rep_report[current_report_line,] = metadata[current_instance_num-1,]
+        current_report_line <- current_report_line+1
+    } # end Running the rest of the simulation
+    
     
     stop.time = Sys.time()
     rep_report$repettition = counter_repeatitions
