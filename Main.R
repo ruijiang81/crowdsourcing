@@ -15,19 +15,19 @@ number_batch_omissions<<-10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost<-80 #should be larger than the cost of paying for the initial training batches
+max_total_cost<-150 #should be larger than the cost of paying for the initial training batches
 
 model_inducer = c("RF","GLM","J48")[2]
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
 
-payment_selection_criteria = "random" #"random", "max_quality", "max_ratio", "max_total_ratio","delta_AUC_div_total_cost", "min_pay_per_label", "max_pay_per_label"
+payment_selection_criteria = "max_quality" #"random", "max_quality", "max_ratio", "max_total_ratio","delta_AUC_div_total_cost", "min_pay_per_label", "max_pay_per_label"
 cost_function_type         = "Concave" #"Fix","Concave"',"Asymptotic"
 
 cross_validation_folds<<-8 #global10
 cross_validation_reruns<<-4 #global5
-repeatitions <- 1 #10
+repeatitions <- 10 #10
 
 #GENERATING A NEW DIRECTORY FOR THE RESULTS
 directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
