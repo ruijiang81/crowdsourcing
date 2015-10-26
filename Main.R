@@ -5,13 +5,16 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 # options(error=recover) # debugging mode
 
 ## Setup
+### Worst-case execution time
+watchdog_simulation = as.difftime(24, units="hours")
+### Dataset
 DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
 initial_seed      = 2015 #large number
-batch_size        <<-10
-number_batch_omissions<<-10
+batch_size             <<- 10
+number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
@@ -29,11 +32,11 @@ repeatitions <- 10 #10
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48")[c(2,3)],
+    model_inducer=c("RF","GLM","J48")[c(1,3)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio",
-                                 "delta_AUC_div_total_cost")[1],
+                                 "delta_AUC_div_total_cost")[c(1)],
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic")[2],
     stringsAsFactors=FALSE)
@@ -80,13 +83,17 @@ for(s in 1:nrow(param)){
     ## Allocate report
     report = create_report()
     
+    ## Start simulation timer
+    start.time = Sys.time()
+    
+    
     for(counter_repeatitions in 1:repeatitions)
     {
         #########################################################################
         #' Repetition setup
         ########################################################################
+        if (Sys.time()-start.time >= watchdog_simulation) break # watchdog stop execution
         global_seed <<- initial_seed*counter_repeatitions
-        start.time = Sys.time()
         metadata   = create_report()
         rep_report = create_report()
         current_report_line = 1
@@ -172,7 +179,6 @@ for(s in 1:nrow(param)){
                                          inducer=model_inducer)
             cat('\n',"Finished purchasing initial training set")
             cat('\n',"AUC =",calculated_AUC)
-            
         } # end Purchase initial batches
         
         
@@ -180,7 +186,8 @@ for(s in 1:nrow(param)){
         #' Running the rest of the simulation
         ########################################################################
         #while (current_instance_num<=max_number_of_training_instance) {
-        while (cost_so_far<=max_total_cost){
+        while ((cost_so_far <= max_total_cost) & 
+               (Sys.time()-start.time < watchdog_simulation)){
             cat("\n","Total model cost",paste0(round(cost_so_far,1),"$"))
             cat("\n","Total instances in the model",current_instance_num)
             
@@ -256,12 +263,7 @@ for(s in 1:nrow(param)){
             current_report_line <- current_report_line+1
         } # end Running the rest of the simulation
         
-        
-        stop.time = Sys.time()
         report = rbind(report, rep_report)
-        #rm(rep_report)
-        round(difftime(stop.time, start.time, units="mins"))
-        
     } #repetitions
     
     ## Save report on hard drive
