@@ -242,7 +242,7 @@ file_name = paste0('[',tolower(DATABASE_NAME),']',
                    '[',Sys.Date(),']',
                    ".csv")
 dir.create(dir_path, show=FALSE, recursive=TRUE)
-write.csv(report, file=file.path(foldr_path,file_name), row.names=F)
+write.csv(report, file=file.path(dir_path,file_name), row.names=F)
 
 
 stopCluster(cl) 
