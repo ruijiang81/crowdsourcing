@@ -75,8 +75,7 @@ for(counter_repeatitions in 1:repeatitions)
     #' Repetition setup
     ############################################################################
     global_seed <<- initial_seed*counter_repeatitions
-    start.time   <- Sys.time()
-    # Defining the columns of the metadata table
+    start.time = Sys.time()
     metadata   = create_report()
     rep_report = create_report()
     current_report_line = 1
@@ -120,28 +119,30 @@ for(counter_repeatitions in 1:repeatitions)
                 pay_per_label<-sample(price_per_label_values,1)
                 labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
                                                                pay_per_label)  
+                
+                ################################################################
+                #' Alternate batch quality (instance-wise implementation)
+                ################################################################
                 for (k in 1:batch_size) {
+                    ## Bind train-set and labeled-set
                     if (current_instance_num==1){
-                        training_set<-unlabeled_data[1,]
+                        training_set = unlabeled_data[1,]
                     } 
                     else {
                         training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
-                    }
-                    
-                    #batch payment option                  
-                    #labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                    #                                               price_per_label_values[i])
+                    } # end binding train/labeled sets
                     
                     
+                    ## Alternate true label (instance-wise operation)
                     set.seed(current_instance_num*global_seed)
                     random_number <- runif(1)
                     if (random_number>labeling_accuracy){
                         training_set$y[current_instance_num] <- change_level_value(training_set$y[current_instance_num])
                         change<-1
-                    }
-                    else {
+                    } else {
                         change<-0
-                    }
+                    } 
+                    
                     #cost_so_far=cost_so_far+price_per_label_values[i]
                     cost_so_far=cost_so_far+pay_per_label
                     new_entry = data.frame("instance_num"=current_instance_num,
@@ -151,9 +152,9 @@ for(counter_repeatitions in 1:repeatitions)
                     metadata = merge(metadata, new_entry, all=TRUE)
                     
                     current_instance_num = current_instance_num+1 #updating the counter
-                }
+                } # end for Alternate batch quality
             }
-        }
+        } 
         
         calculated_AUC = predict_set(training_set,
                                      holdout_data,
@@ -234,9 +235,14 @@ for(counter_repeatitions in 1:repeatitions)
 } #repettitions
 
 ## Save report on hard drive
-file_name = paste("report", payment_selection_criteria, cost_function_type, max_total_cost,".csv")
-file_path = file.path(directory, file_name)
-write.csv(report, file = file_path, row.names=F)
+foldr_path = file.path(getwd(),"results")
+dir_path   = paste0('[',tolower(DATABASE_NAME),']',
+                    '[',tolower(cost_function_type),']',
+                    '[',tolower(payment_selection_criteria),']',
+                    '[',Sys.Date(),']',
+                    ".csv")
+dir.create(dir_path, show=FALSE, recursive=TRUE)
+write.csv(report, file=file.path(foldr_path,file_name), row.names=F)
 
 
 stopCluster(cl) 
