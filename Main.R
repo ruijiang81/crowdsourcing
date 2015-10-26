@@ -11,7 +11,7 @@ watchdog_simulation = as.difftime(24, units="hours")
 DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced"
 
 cores_not_to_use  = 0 #0 means use all cores
-p_holdout         = 0.3 #percentage of data in external holdout
+p_holdout         = 0.5 #percentage of data in external holdout
 initial_seed      = 2015 #large number
 batch_size             <<- 10
 number_batch_omissions <<- 10
@@ -32,7 +32,7 @@ repeatitions <- 10 #10
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48")[c(1,3)],
+    model_inducer=c("RF","GLM","J48")[c(1)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio",

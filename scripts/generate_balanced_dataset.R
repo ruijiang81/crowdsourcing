@@ -2,7 +2,7 @@
 seed.number <- 2016
 set.seed(seed.number)
 p  <- 10
-n  <- 5000
+n  <- 20000
 # skewness=0   for class 1 only (only FALSE)
 # skewness=0.5 for balanced dataset
 # skewness=1   for class 2 only (only TRUE)
