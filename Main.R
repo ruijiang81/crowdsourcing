@@ -235,12 +235,12 @@ for(counter_repeatitions in 1:repeatitions)
 } #repettitions
 
 ## Save report on hard drive
-foldr_path = file.path(getwd(),"results")
-dir_path   = paste0('[',tolower(DATABASE_NAME),']',
-                    '[',tolower(cost_function_type),']',
-                    '[',tolower(payment_selection_criteria),']',
-                    '[',Sys.Date(),']',
-                    ".csv")
+dir_path  = file.path(getwd(),"results")
+file_name = paste0('[',tolower(DATABASE_NAME),']',
+                   '[',tolower(cost_function_type),']',
+                   '[',tolower(payment_selection_criteria),']',
+                   '[',Sys.Date(),']',
+                   ".csv")
 dir.create(dir_path, show=FALSE, recursive=TRUE)
 write.csv(report, file=file.path(foldr_path,file_name), row.names=F)
 
