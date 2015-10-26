@@ -61,7 +61,12 @@ decide_price_per_label <- function(train,
         
         out<-toString(c(cur_instance_num,delta_performance_improvement))
         
-        file_path<-paste0(directory,"/",repeatition_num,"delta_performance_improvements.txt")
+        ## Store results
+        dir_path = file.path(getwd(),"results","temp folder")
+        unlink(dir_path, recursive=TRUE, force=TRUE)
+        dir.create(dir_path, show=FALSE, recursive=TRUE)
+        
+        file_path = file.path(dir_path,"delta_performance_improvements.txt")
         cat(out,file=file_path, sep="\n", append=TRUE) 
         
         if (pay_criteria =="max_quality"){ 

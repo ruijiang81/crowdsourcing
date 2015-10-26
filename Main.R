@@ -2,7 +2,7 @@
 cat("\014"); rm(list = ls())
 source("scripts/load_libraries.R")
 sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source)
-
+# options(error=recover) # debugging mode
 
 ## Setup
 DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced"
@@ -27,12 +27,7 @@ cost_function_type         = "Concave" #"Fix","Concave"',"Asymptotic"
 
 cross_validation_folds<<-8 #global10
 cross_validation_reruns<<-4 #global5
-repeatitions <- 1 #10
-
-#GENERATING A NEW DIRECTORY FOR THE RESULTS
-directory <<- file.path(getwd(), DATABASE_NAME, payment_selection_criteria)
-directory
-dir.create(directory, showWarnings = FALSE, recursive = TRUE, mode = "0777")
+repeatitions <- 10 #10
 
 
 ## Get the data
@@ -219,20 +214,38 @@ for(counter_repeatitions in 1:repeatitions)
                                      inducer=model_inducer)
         cat('\n',"AUC =",calculated_AUC)
         
-        ## Store metadata in the report
+        ## Store iteration metadata in the report
         metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-        rep_report[current_report_line,] = metadata[current_instance_num-1,]
+        new_entry = metadata[current_instance_num-1,]
+        
+        if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
+            new_entry$subset_AUC = NA
+            ## Add data from text file
+            dir_path  = file.path(getwd(),"results","temp folder")
+            file_path = file.path(dir_path,"delta_performance_improvements.txt")
+            delta_performance = read.csv(file_path, header = FALSE)
+            dn = nrow(delta_performance)
+            dm = ncol(delta_performance)
+            ## Duplicate new_entry
+            for(i in 2:(dm-1)) new_entry[i,] = new_entry[i-1,]
+            ## Store subset AUC
+            for(i in 2:dm) new_entry[i-1,"subset_AUC"] = delta_performance[i]
+        } else {
+            new_entry$subset_AUC=NA
+        }
+        
+        rep_report = rbind(rep_report,new_entry)
         current_report_line <- current_report_line+1
     } # end Running the rest of the simulation
     
     
     stop.time = Sys.time()
-    rep_report$repettition = counter_repeatitions
+    rep_report$repetition = counter_repeatitions
     report = rbind(report, rep_report)
     #rm(rep_report)
     round(difftime(stop.time, start.time, units="mins"))
     
-} #repettitions
+} #repetitions
 
 ## Save report on hard drive
 dir_path  = file.path(getwd(),"results")

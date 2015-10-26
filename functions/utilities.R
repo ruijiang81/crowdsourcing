@@ -64,7 +64,7 @@ setVariablesNames <- function(fulldataset){
 #' Allocate data frame for the simulation
 create_report <- function()
 {
-    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout") 
+    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout","subset_AUC") 
     rep_report = read.table(text="", col.names=col_names)
     return(rep_report)
 } # end create_report
