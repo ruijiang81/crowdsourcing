@@ -269,9 +269,9 @@ for(s in 1:nrow(param)){
     ## Save report on hard drive
     dir_path  = file.path(getwd(),"results")
     file_name = paste0('[',tolower(DATABASE_NAME),']',
+                       '[',toupper(model_inducer),']',
                        '[',tolower(cost_function_type),']',
                        '[',tolower(payment_selection_criteria),']',
-                       '[',toupper(model_inducer),']',
                        '[',Sys.Date(),']',
                        ".csv")
     dir.create(dir_path, show=FALSE, recursive=TRUE)
