@@ -2,7 +2,7 @@
 ## Reports Utilities
 ################################################################################
 #' 1. import.reports; Import all the reports from the dest folde
-#' 
+#' 2. interpolate.reports; Calculate the AUC per cost from the reports
 
 ################################################################################
 #' import.reports
@@ -46,6 +46,7 @@ import.reports <- function(reports_folder="./reports"){
         report[,"cost_function_type"]         = reports_metadata[r,"cost_function_type"]
         report[,"payment_selection_criteria"] = reports_metadata[r,"payment_selection_criteria"]
         report[,"Sys_Date"]                   = reports_metadata[r,"Sys_Date"]
+        report[,"key"]                        = r # Unique key number for each report
         
         reports = rbind(reports,report)
     } # end combining reports with metadata
@@ -53,4 +54,88 @@ import.reports <- function(reports_folder="./reports"){
     return(reports)
 } # import.reports
 
-
+################################################################################
+#' interpolate.reports
+#'
+interpolate.reports <- function(reports_folder="./reports",
+                                na.rm = FALSE){
+    
+    ## Get the data
+    reports = import.reports(reports_folder)
+    
+    ## Calculate Auc(Cost)
+    outputs = c()
+    
+    ## Load each report at a time
+    Keys = unique(reports$key)
+    for(k in Keys){
+        ### Aggregae the data by talking the Mean of the subset_AUC column
+        report = subset(reports, key==k)
+        report <- tryCatch(
+            {
+                report = aggregate(subset_AUC ~ ., report, mean)
+                report = arrange(report, repetition, instance_num)
+            }, 
+            error = function(cond){ # for random rule
+                report = report
+            }
+        ) # end trycatch
+        
+        ### Generate cost table
+        interval_size=1 #usually 1, or 2
+        min_cost=1 #dont start from zero. Start with 0+interval_size (or desired value+interval size)
+        max_cost=150 
+        cost_intervals=seq(from = min_cost, to = max_cost, by = interval_size)
+        num_cost_intervals=length(cost_intervals)
+        
+        num_repeations = max(report$repetition)
+        
+        for (repeation_counter in 1:num_repeations){
+            #reading in the instance number from the first file and checking for instance number consistency across files
+            #file_counter=1
+            #current_repeatition = read.csv(filenames[file_counter], header = TRUE)
+            current_repeatition=report[which(report$repetition==repeation_counter),] 
+            num_lines=nrow(current_repeatition)
+            
+            
+            #####generating calculated performance for fixed cost intervals
+            interval_cost_performance=numeric()
+            
+            for (i in 1:num_cost_intervals){
+                #print (i)
+                line_counter=1
+                current_interval_cost=cost_intervals[i]
+                
+                while ((line_counter<=num_lines)&(current_interval_cost>=current_repeatition$cost_so_far[line_counter])){
+                    interval_cost_performance[i]=current_repeatition$AUC_holdout[line_counter]
+                    line_counter=line_counter+1
+                }
+            }
+            ###########
+            if (repeation_counter==1){
+                sum_interval_cost_performance=interval_cost_performance #contains the performance per cost intervals
+            } else { 
+                sum_interval_cost_performance=sum_interval_cost_performance+interval_cost_performance  #contains the performance per cost intervals
+            }
+        }
+        
+        average_holdout_cost_performance=sum_interval_cost_performance/num_repeations  
+        output = data.frame(cost_intervals, average_holdout_cost_performance)
+        
+        ###  Add metadata
+        output[,"DATABASE_NAME"]              = report[1,"DATABASE_NAME"]
+        output[,"model_inducer"]              = report[1,"model_inducer"]
+        output[,"cost_function_type"]         = report[1,"cost_function_type"]
+        output[,"payment_selection_criteria"] = report[1,"payment_selection_criteria"]
+        output[,"Sys_Date"]                   = report[1,"Sys_Date"]
+        output[,"key"]                        = report[1,"key"]
+        
+        ### Store output
+        outputs = rbind(outputs,output)
+    } #end keys
+    
+    ## Remove NA rows
+    if(na.rm) outputs = outputs[complete.cases(outputs),]
+    
+    return(outputs)
+} # interpolate.reports

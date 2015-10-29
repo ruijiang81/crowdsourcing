@@ -22,6 +22,7 @@ packages.loader <- function(packages.list){
         ) # end suppressPackageStartupMessages
 } # end functions packages.loader
 packages.list = c("testthat",                                                   # Development tools for R
+                  "plyr",                                                       # Data Manipulation
                   "randomForest","ROCR","RWeka",                                # Classification Algorithms
                   "doParallel","foreach",                                       # Parallel Tools
                   #"knitr","pander",                                            # Dynamic Report Generation in R
