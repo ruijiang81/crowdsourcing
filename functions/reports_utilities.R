@@ -21,7 +21,7 @@ import.reports <- function(reports_folder="./reports"){
     for(k in 1:length(reports_list)){
         #' Find the indices of the metadata in the file name.
         #' The metadata is encapsulated between [] (i.e. square parentheses)
-        index_metadata = gregexpr("\\[(.*?)\\]", reports_list[k], TRUE)
+        index_metadata = gregexpr("\\((.*?)\\)", reports_list[k], TRUE)
         #' Check that the number of sub string composing the file name is as 
         #' defined in reports_metadata
         stopifnot(ncol(reports_metadata)==length(index_metadata[[1]]))

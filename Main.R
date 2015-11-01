@@ -109,10 +109,9 @@ for(s in 1:nrow(param)){
         ########################################################################
         #' The holdout-set is fixed throughout the simulation
         #' The unlabeled-set is shuffled differently in each repetition
-        set.seed(initial_seed)
+        set.seed(global_seed)
         index.holdout  = sample(nrow(dataset), round(nrow(dataset)*p_holdout))
         holdout_data   = dataset[index.holdout,]
-        set.seed(global_seed)
         unlabeled_data = dataset[-sample(index.holdout),]
         
         max_size_training_data<-nrow(unlabeled_data) #used later for sanity check
@@ -268,11 +267,12 @@ for(s in 1:nrow(param)){
     
     ## Save report on hard drive
     dir_path  = file.path(getwd(),"results")
-    file_name = paste0('[',tolower(DATABASE_NAME),']',
-                       '[',toupper(model_inducer),']',
-                       '[',tolower(cost_function_type),']',
-                       '[',tolower(payment_selection_criteria),']',
-                       '[',Sys.Date(),']',
+    
+    file_name = paste0('(',tolower(DATABASE_NAME),')',
+                       '(',toupper(model_inducer),')',
+                       '(',tolower(cost_function_type),')',
+                       '(',tolower(payment_selection_criteria),')',
+                       '(',Sys.Date(),')',
                        ".csv")
     dir.create(dir_path, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(dir_path,file_name), row.names=F)
