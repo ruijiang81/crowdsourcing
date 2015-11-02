@@ -138,7 +138,7 @@ for(s in 1:nrow(param)){
                                                                    pay_per_label)  
                     
                     ############################################################
-                    #' Alternate batch quality (instance-wise implementation)
+                    #' Change label quality (instance-wise implementation)
                     ############################################################
                     for (k in 1:batch_size) {
                         ## Bind train-set and labeled-set
@@ -165,7 +165,8 @@ for(s in 1:nrow(param)){
                         new_entry = data.frame("instance_num"=current_instance_num,
                                                "pay"=price_per_label_values[i],
                                                "change"=change,
-                                               "cost_so_far"=cost_so_far)
+                                               "cost_so_far"=cost_so_far,
+                                               "updated_label"=training_set$y[current_instance_num])
                         metadata = merge(metadata, new_entry, all=TRUE)
                         
                         current_instance_num = current_instance_num+1 #updating the counter
@@ -223,9 +224,10 @@ for(s in 1:nrow(param)){
                 }
                 cost_so_far=cost_so_far+pay_per_label
                 new_entry = data.frame("instance_num"=current_instance_num,
-                                       "pay"=pay_per_label,
+                                       "pay"=price_per_label_values[i],
                                        "change"=change,
-                                       "cost_so_far"=cost_so_far)
+                                       "cost_so_far"=cost_so_far,
+                                       "updated_label"=training_set$y[current_instance_num])
                 metadata = merge(metadata, new_entry, all=TRUE)
                 
                 current_instance_num<-current_instance_num+1 #updating the counter
@@ -263,6 +265,9 @@ for(s in 1:nrow(param)){
         } # end Running the rest of the simulation
         
         report = rbind(report, rep_report)
+        
+        metadata_output<-paste0("metadata",counter_repeatitions,".csv")
+        write.csv(metadata,metadata_output,row.names = F)
     } #repetitions
     
     ## Save report on hard drive
