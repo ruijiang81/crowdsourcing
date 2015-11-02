@@ -271,8 +271,9 @@ for(s in 1:nrow(param)){
             current_report_line <- current_report_line+1
         } # end Running the rest of the simulation
         
-        report = rbind(report, rep_report)
-        metadata = rbind(metadata, rep_metadata)
+        report   = rbind(report, rep_report)
+        rep_metadata$repetition = counter_repeatitions
+        metadata = merge(metadata, rep_metadata, all=TRUE)
     } #repetitions
     
     ## Save report on hard drive
