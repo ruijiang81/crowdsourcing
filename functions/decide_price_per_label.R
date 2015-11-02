@@ -48,26 +48,30 @@ decide_price_per_label <- function(train,
                 #print (j)
                 payment_row_numbers<-which(meta_data$pay == payment_options[i]) #row number with this payments 
                 set.seed(cur_instance_num*global_seed+i+j*1000)
-                random_rows_to_remove_with_payment <- sample(payment_row_numbers, batch_size) 
-                randomly_remaining_instances <- train[-random_rows_to_remove_with_payment, ]; 
-                summary_partial_model_performance[j,i]<-cross_validation(randomly_remaining_instances,
-                                                                         cross_validation_folds,
-                                                                         cross_validation_reruns,
-                                                                         inducer=inducer)
+                random_rows_to_remove_with_payment     <- sample(payment_row_numbers, batch_size) 
+                randomly_remaining_instances           <- train[-random_rows_to_remove_with_payment, ]; 
+                summary_partial_model_performance[j,i] <- cross_validation(randomly_remaining_instances,
+                                                                           cross_validation_folds,
+                                                                           cross_validation_reruns,
+                                                                           inducer=inducer)
             }
         }  
         partial_model_performance<-colMeans(summary_partial_model_performance, na.rm = FALSE, dims = 1) #vector with the average performance of the partial models per payment option
         delta_performance_improvement<-full_model_CV_performance-partial_model_performance #vector with average delta improvement over a the full model    
         
-        out<-toString(c(cur_instance_num,delta_performance_improvement))
+        out_delta <- toString(c(cur_instance_num,delta_performance_improvement))
+        out_full  <- toString(c(cur_instance_num,full_model_CV_performance))
+        
         
         ## Store results
         dir_path = file.path(getwd(),"results","temp folder")
-        unlink(dir_path, recursive=TRUE, force=TRUE)
-        dir.create(dir_path, show=FALSE, recursive=TRUE)
-        
+        unlink(dir_path, recursive=TRUE, force=TRUE)     # Delete the folder
+        dir.create(dir_path, show=FALSE, recursive=TRUE) # Create the folder
+
+        file_path = file.path(dir_path,"full_performance_improvements.txt")
+        cat(out_full, file=file_path, sep="\n", append=TRUE) 
         file_path = file.path(dir_path,"delta_performance_improvements.txt")
-        cat(out,file=file_path, sep="\n", append=TRUE) 
+        cat(out_delta, file=file_path, sep="\n", append=TRUE) 
         
         if (pay_criteria =="max_quality"){ 
             pay<-payment_options[which.max(delta_performance_improvement)]

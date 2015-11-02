@@ -1,8 +1,22 @@
 ################################################################################
 ## Reports Utilities
 ################################################################################
-#' 1. import.reports; Import all the reports from the dest folde
-#' 2. interpolate.reports; Calculate the AUC per cost from the reports
+#' 1. create_report; Create report template
+#' 2. import.reports; Import all the reports from the dest folde
+#' 3. interpolate.reports; Calculate the AUC per cost from the reports
+#'
+
+
+################################################################################
+#' create_report
+#'
+create_report <- function()
+{
+    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout","full_AUC","subset_AUC") 
+    rep_report = read.table(text="", col.names=col_names)
+    return(rep_report)
+} # end create_report
+
 
 ################################################################################
 #' import.reports
@@ -53,6 +67,7 @@ import.reports <- function(reports_folder="./reports"){
     
     return(reports)
 } # import.reports
+
 
 ################################################################################
 #' interpolate.reports

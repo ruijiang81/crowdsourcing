@@ -89,7 +89,7 @@ for(s in 1:nrow(param)){
     
     for(counter_repeatitions in 1:repeatitions)
     {
-        #########################################################################
+        ########################################################################
         #' Repetition setup
         ########################################################################
         if (Sys.time()-start.time >= watchdog_simulation) break # watchdog stop execution
@@ -245,19 +245,24 @@ for(s in 1:nrow(param)){
             
             
             if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
+                new_entry$full_AUC = NA
                 new_entry$subset_AUC = NA
                 ## Add data from text file
-                dir_path  = file.path(getwd(),"results","temp folder")
-                file_path = file.path(dir_path,"delta_performance_improvements.txt")
-                delta_performance = read.csv(file_path, header = FALSE)
+                dir_path = file.path(getwd(),"results","temp folder")
+                delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
+                full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
+                ## Add full performance
+                new_entry$full_AUC = full_performance[1,"V2"]
+                ## Add delta performance
                 dn = nrow(delta_performance)
                 dm = ncol(delta_performance)
-                ## Duplicate new_entry
+                ### Duplicate new_entry
                 for(i in 2:(dm-1)) new_entry[i,] = new_entry[i-1,]
-                ## Store subset AUC
+                ### Store subset AUC
                 for(i in 2:dm) new_entry[i-1,"subset_AUC"] = delta_performance[i]
             } else {
-                new_entry$subset_AUC=NA
+                new_entry$full_AUC   = NA
+                new_entry$subset_AUC = NA
             }
             
             rep_report = rbind(rep_report,new_entry)
