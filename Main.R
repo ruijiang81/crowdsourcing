@@ -81,8 +81,8 @@ for(s in 1:nrow(param)){
     cost_function_type         = param[s,"cost_function_type"]
     
     ## Allocate report
-    report = create_report()
-    
+    report   = create_report()
+    metadata = create_report()
     
     
     ## Start simulation timer
@@ -272,9 +272,7 @@ for(s in 1:nrow(param)){
         } # end Running the rest of the simulation
         
         report = rbind(report, rep_report)
-        
-        rep_metadata_output<-paste0("metadata",counter_repeatitions,".csv")
-        write.csv(rep_metadata,rep_metadata_output,row.names = F)
+        metadata = rbind(metadata, rep_metadata)
     } #repetitions
     
     ## Save report on hard drive
@@ -289,7 +287,7 @@ for(s in 1:nrow(param)){
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
     dir.create(metadata_dir, show=FALSE, recursive=TRUE)
-    write.csv(rep_metadata, file=file.path(metadata_dir,file_name), row.names=F)
+    write.csv(metadata, file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
 stopCluster(cl) 
