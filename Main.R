@@ -83,6 +83,8 @@ for(s in 1:nrow(param)){
     ## Allocate report
     report = create_report()
     
+    
+    
     ## Start simulation timer
     start.time = Sys.time()
     
@@ -94,8 +96,8 @@ for(s in 1:nrow(param)){
         ########################################################################
         if (Sys.time()-start.time >= watchdog_simulation) break # watchdog stop execution
         global_seed <<- initial_seed*counter_repeatitions
-        metadata   = create_report()
-        rep_report = create_report()
+        rep_metadata = create_report()
+        rep_report   = create_report()
         current_report_line = 1
         # Display repetition info
         cat('\n', rep('#',40), 
@@ -167,7 +169,7 @@ for(s in 1:nrow(param)){
                                                "change"=change,
                                                "cost_so_far"=cost_so_far,
                                                "updated_label"=training_set$y[current_instance_num])
-                        metadata = merge(metadata, new_entry, all=TRUE)
+                        rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                         
                         current_instance_num = current_instance_num+1 #updating the counter
                     } # end for Alternate batch quality
@@ -200,7 +202,7 @@ for(s in 1:nrow(param)){
                                                    payment_selection_criteria,
                                                    price_per_label_values,
                                                    current_instance_num,
-                                                   metadata,
+                                                   rep_metadata,
                                                    counter_repeatitions,
                                                    inducer=model_inducer)
             
@@ -228,7 +230,7 @@ for(s in 1:nrow(param)){
                                        "change"=change,
                                        "cost_so_far"=cost_so_far,
                                        "updated_label"=training_set$y[current_instance_num])
-                metadata = merge(metadata, new_entry, all=TRUE)
+                rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                 
                 current_instance_num<-current_instance_num+1 #updating the counter
             }
@@ -239,8 +241,8 @@ for(s in 1:nrow(param)){
             cat('\n',"AUC =",calculated_AUC)
             
             ## Store iteration metadata in the report
-            metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-            new_entry = metadata[current_instance_num-1,]
+            rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+            new_entry = rep_metadata[current_instance_num-1,]
             new_entry$repetition = counter_repeatitions
             
             
@@ -271,8 +273,8 @@ for(s in 1:nrow(param)){
         
         report = rbind(report, rep_report)
         
-        metadata_output<-paste0("metadata",counter_repeatitions,".csv")
-        write.csv(metadata,metadata_output,row.names = F)
+        rep_metadata_output<-paste0("metadata",counter_repeatitions,".csv")
+        write.csv(rep_metadata,rep_metadata_output,row.names = F)
     } #repetitions
     
     ## Save report on hard drive
@@ -287,7 +289,7 @@ for(s in 1:nrow(param)){
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
     dir.create(metadata_dir, show=FALSE, recursive=TRUE)
-    write.csv(metadata, file=file.path(metadata_dir,file_name), row.names=F)
+    write.csv(rep_metadata, file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
 stopCluster(cl) 
