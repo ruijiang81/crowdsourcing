@@ -18,7 +18,7 @@ number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 40 #should be larger than the cost of paying for the initial training batches
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
@@ -26,7 +26,7 @@ max_total_cost = 150 #should be larger than the cost of paying for the initial t
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 10 #10
+repeatitions <- 2 #10
 
 
 ## Control simulation nuances
@@ -276,16 +276,18 @@ for(s in 1:nrow(param)){
     } #repetitions
     
     ## Save report on hard drive
-    dir_path  = file.path(getwd(),"results")
+    report_dir   = file.path(getwd(),"results")
+    metadata_dir = file.path(report_dir,"metadata")
+    file_name  = paste0('(',tolower(DATABASE_NAME),')',
+                        '(',toupper(model_inducer),')',
+                        '(',tolower(cost_function_type),')',
+                        '(',tolower(payment_selection_criteria),')',
+                        '(',Sys.Date(),')',".csv")
     
-    file_name = paste0('(',tolower(DATABASE_NAME),')',
-                       '(',toupper(model_inducer),')',
-                       '(',tolower(cost_function_type),')',
-                       '(',tolower(payment_selection_criteria),')',
-                       '(',Sys.Date(),')',
-                       ".csv")
-    dir.create(dir_path, show=FALSE, recursive=TRUE)
-    write.csv(report, file=file.path(dir_path,file_name), row.names=F)
+    dir.create(report_dir, show=FALSE, recursive=TRUE)
+    write.csv(report, file=file.path(report_dir,file_name), row.names=F)
+    dir.create(metadata_dir, show=FALSE, recursive=TRUE)
+    write.csv(metadata, file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
 stopCluster(cl) 
