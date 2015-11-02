@@ -36,7 +36,7 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio",
-                                 "delta_AUC_div_total_cost")[c(1)],
+                                 "delta_AUC_div_total_cost")[c(1,4)],
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic")[2],
     stringsAsFactors=FALSE)
@@ -98,6 +98,7 @@ for(s in 1:nrow(param)){
         global_seed <<- initial_seed*counter_repeatitions
         rep_metadata = create_report()
         rep_report   = create_report()
+        counter_batches = 1
         current_report_line = 1
         # Display repetition info
         cat('\n', rep('#',40), 
@@ -168,12 +169,16 @@ for(s in 1:nrow(param)){
                                                "pay"=price_per_label_values[i],
                                                "change"=change,
                                                "cost_so_far"=cost_so_far,
-                                               "updated_label"=training_set$y[current_instance_num])
+                                               "updated_label"=training_set$y[current_instance_num],
+                                               "batch"=counter_batches)
                         rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                         
-                        current_instance_num = current_instance_num+1 #updating the counter
-                    } # end for Alternate batch quality
-                }
+                        current_instance_num = current_instance_num+1 # updating the instance counter
+                    } # end for change instance quality
+                    
+                    counter_batches = counter_batches+1 # updating the batch counter
+                } # end for batch purchase
+                
             } 
             
             calculated_AUC = predict_set(training_set,
@@ -229,11 +234,15 @@ for(s in 1:nrow(param)){
                                        "pay"=price_per_label_values[i],
                                        "change"=change,
                                        "cost_so_far"=cost_so_far,
-                                       "updated_label"=training_set$y[current_instance_num])
+                                       "updated_label"=training_set$y[current_instance_num],
+                                       "batch"=counter_batches)
                 rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                 
-                current_instance_num<-current_instance_num+1 #updating the counter
+                current_instance_num<-current_instance_num+1 # updating the instance counter
             }
+            
+            counter_batches = counter_batches+1 # updating the batch counter
+            
             
             calculated_AUC = predict_set(training_set,
                                          holdout_data,
@@ -242,8 +251,10 @@ for(s in 1:nrow(param)){
             
             ## Store iteration metadata in the report
             rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-            new_entry = rep_metadata[current_instance_num-1,]
+            new_entry            = rep_metadata[current_instance_num-1,]
             new_entry$repetition = counter_repeatitions
+            new_entry$batch      = counter_batches
+            
             
             
             if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
@@ -279,11 +290,11 @@ for(s in 1:nrow(param)){
     ## Save report on hard drive
     report_dir   = file.path(getwd(),"results")
     metadata_dir = file.path(report_dir,"metadata")
-    file_name  = paste0('(',tolower(DATABASE_NAME),')',
-                        '(',toupper(model_inducer),')',
-                        '(',tolower(cost_function_type),')',
-                        '(',tolower(payment_selection_criteria),')',
-                        '(',Sys.Date(),')',".csv")
+    file_name    = paste0('(',tolower(DATABASE_NAME),')',
+                          '(',toupper(model_inducer),')',
+                          '(',tolower(cost_function_type),')',
+                          '(',tolower(payment_selection_criteria),')',
+                          '(',Sys.Date(),')',".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
