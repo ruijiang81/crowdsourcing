@@ -17,7 +17,9 @@ outputs = interpolate.reports(reports_folder, na.rm=FALSE)
 
 
 ## Visualisations
-
+### Create plots dir
+plot_dir  = file.path(getwd(),"plots")
+dir.create(plot_dir,showWarnings=F)
 ### Plot AUC as function of number of observations
 ggplot(outputs, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
     # Add lines to the plot
@@ -33,3 +35,10 @@ ggplot(outputs, aes(x=cost_intervals, y=average_holdout_cost_performance, group=
     theme_bw() + theme(strip.text.x = element_blank(),
                        strip.background = element_rect(colour="white", fill="white"),
                        legend.position=c(.1,.9))
+### Export "Auc vs. Cost" plot
+plot_name = paste0('(',unique(outputs$DATABASE_NAME),')',
+                   '(',unique(outputs$model_inducer),')',
+                   '(',unique(outputs$cost_function_type),')',
+                   '(','Auc vs. Cost',')',
+                   ".png")
+ggsave(file=file.path(plot_dir,plot_name), width=12, height=8)
