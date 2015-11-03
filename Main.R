@@ -18,7 +18,7 @@ number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values= c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost = 40 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
@@ -26,7 +26,7 @@ max_total_cost = 40 #should be larger than the cost of paying for the initial tr
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 2 #10
+repeatitions <- 10 #10
 
 
 ## Control simulation nuances
@@ -36,7 +36,7 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio",
-                                 "delta_AUC_div_total_cost")[c(1,4)],
+                                 "delta_AUC_div_total_cost")[c(1)],
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic")[2],
     stringsAsFactors=FALSE)
@@ -231,7 +231,7 @@ for(s in 1:nrow(param)){
                 }
                 cost_so_far=cost_so_far+pay_per_label
                 new_entry = data.frame("instance_num"=current_instance_num,
-                                       "pay"=price_per_label_values[i],
+                                       "pay"=pay_per_label,
                                        "change"=change,
                                        "cost_so_far"=cost_so_far,
                                        "updated_label"=training_set$y[current_instance_num],
