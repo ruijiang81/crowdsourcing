@@ -21,7 +21,10 @@ create_report <- function()
 ################################################################################
 #' import.reports
 #'
-import.reports <- function(reports_folder="./reports"){
+import.reports <- function(reports_folder="./reports",
+                           # Remove the "random" rule metadata
+                           random.rm=FALSE)
+    {
     ## List the (csv) reports in the folder
     reports_list = list.files(pattern="[.]csv$", path=reports_folder, full.names=TRUE)
     
@@ -64,6 +67,11 @@ import.reports <- function(reports_folder="./reports"){
         
         reports = rbind(reports,report)
     } # end combining reports with metadata
+    
+    
+    ## Remove "random" rule data
+    reports$payment_selection_criteria = tolower(reports$payment_selection_criteria)
+    if(random.rm) reports = subset(reports,payment_selection_criteria != "random")
     
     return(reports)
 } # import.reports
