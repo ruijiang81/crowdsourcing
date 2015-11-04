@@ -166,7 +166,7 @@ for(s in 1:nrow(param)){
                         #cost_so_far=cost_so_far+price_per_label_values[i]
                         cost_so_far=cost_so_far+pay_per_label
                         new_entry = data.frame("instance_num"=current_instance_num,
-                                               "pay"=price_per_label_values[i],
+                                               "pay"=pay_per_label,
                                                "change"=change,
                                                "cost_so_far"=cost_so_far,
                                                "updated_label"=training_set$y[current_instance_num],
