@@ -20,3 +20,5 @@ domino.log
 Dropbox/
 *.txt
 *.png
+*.rda
+*.RData
