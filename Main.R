@@ -38,9 +38,10 @@ param <- expand.grid(
                                  "max_quality", "max_ratio", "max_total_ratio",
                                  "delta_AUC_div_total_cost")[c(1)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic")[2],
+    cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[4],
     stringsAsFactors=FALSE)
-
+fixProbability = data.frame(cost=price_per_label_values,
+                            probability=c(0.6,0.87,0.97,0.94,0.76))
 
 ## Get the data
 DATABASE_NAME <- tolower(DATABASE_NAME)
@@ -142,7 +143,8 @@ for(s in 1:nrow(param)){
                         set.seed(current_instance_num*global_seed)
                         pay_per_label<-sample(price_per_label_values,1)
                         labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                                                                       pay_per_label)  
+                                                                       pay_per_label,
+                                                                       fixProbability)  
                         
                         ########################################################
                         #' Change label quality (instance-wise implementation)
@@ -223,7 +225,9 @@ for(s in 1:nrow(param)){
                     else {
                         training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
                     }
-                    labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,pay_per_label)
+                    labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
+                                                                   pay_per_label,
+                                                                   fixProbability)
                     set.seed(current_instance_num*global_seed)
                     random_number <- runif(1)
                     if (random_number>labeling_accuracy){

@@ -11,20 +11,27 @@
 #' 'Asymptotic' the probability increases.
 #' 'Quality' the strict probability to assign return, 
 #' e.g. costPerTask=0.8 would return probability=0.8.
+#' 'HashTable' maps costs to probabilities. 
+#' The user should add a dataframe with two columns: "cost" and "probability".
+#' The dataframe is passed with the fixProbability input argument.
 #' @param costPerTask Price paid to classify an instance.
 #' Need to be in the range [0.02,0.25].
 #' @return The probability \code{p}.
 #' 
 
-labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','Quality'),
+labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable'),
                                         costPerTask=NULL,
                                         fixProbability=NULL){
     method  = tolower(method)
     C_Range = c(0.02,0.25) # define the cost range
+    
+    
     # Check for null values. If TRUE then set the default
     if (is.null(method))                 method <- 'fix'
     if (is.null(costPerTask))       costPerTask <- 0.1
     if (is.null(fixProbability)) fixProbability <- 0.75        
+    
+    
     # Check arguments validity
     ## costPerTask argument
     if (method=="quality") {
@@ -33,13 +40,11 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','Q
     }
     else if (!is.numeric(costPerTask) || costPerTask<C_Range[1] || costPerTask>C_Range[2])
         stop(paste0('Unvalid costPerTask. Only numbers in the range [',C_Range[1],',',C_Range[1],'] are valid'))
-    ## fixProbability argument
-    if (!is.numeric(fixProbability) || fixProbability<=0 || fixProbability>1)
-        stop('fixProbability sholud be in the range (0,1]')
     
     
     if (method=='fix') {
-        p = rep(fixProbability,length(costPerTask))               
+        p = rep(fixProbability,length(costPerTask))
+        
     } else if (method=='concave') {
         C = costPerTask
         #                 p =-0.002*(C*100)^2+0.066*(C*100)+0.37
@@ -54,11 +59,19 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','Q
         ## Make sure p \in [0,1], one p at a time
         p <- sapply(p,function(p) max(0,min(p,1)))
         #                 curve(coeff[1] + coeff[1]*x + coeff[2]*x^2, from=0.02, to=0.25)
+        
+        
     } else if (method=='asymptotic') {
         C = costPerTask
-        p=1-1/(C*100) 
-    } else if (method=='quality') {
-        p=costPerTask
+        p = 1-1/(C*100) 
+        
+          
+    } else if (method=='hashtable') {
+        C = costPerTask
+        colnames(fixProbability) = tolower(colnames(fixProbability))
+        p = fixProbability[fixProbability$cost %in% C,"probability"]
+        
+        
     } else {
         stop('Unknown tradeoff method')
     }    
