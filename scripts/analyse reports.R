@@ -78,6 +78,34 @@ manipulate(
 )# end payment distribution manipulate
 
 
+################################################################################
+## Distribution of payments per repetition (Repetition-Wise)
+################################################################################
+#round(prop.table(table(states)),2)
+library(manipulate)
+library(pander)
+
+manipulate(
+    {
+        cat("\014")
+        rules = c("delta_auc_div_total_cost","max_quality","max_ratio","max_total_ratio")
+        flags = c(f1,f2,f3,f4)
+        
+        sub_dataset = metadata[metadata$payment_selection_criteria %in% rules[flags],]
+        sub_dataset = subset(sub_dataset, select=c(repetition,pay))
+        
+        long_dataset = round(prop.table(table(sub_dataset),1),2)
+        
+        colnames(long_dataset) = paste0(colnames(long_dataset),"$")
+        barplot(colSums(table(sub_dataset)), main="Payment selection distribution (Repetition-Wise)")
+        print(long_dataset)
+        #apply(long_dataset,1,sd)
+    },
+    f1 = checkbox(F, rules[1]), 
+    f2 = checkbox(F, rules[2]),
+    f3 = checkbox(T, rules[3]),
+    f4 = checkbox(F, rules[4])
+)# end payment distribution manipulate
 
 
 
