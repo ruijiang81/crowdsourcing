@@ -11,7 +11,7 @@ sapply(list.files(pattern="[.]R$",path="./functions/",full.names=TRUE), source)
 ## Get the data
 ################################################################################
 ### import metadata
-metadata_folder = file.path(getwd(),"reports1","metadata")
+metadata_folder = file.path(getwd(),"reports","metadata")
 metadata = import.reports(metadata_folder, 
                           # Remove the "random" rule metadata
                           random.rm=TRUE)
@@ -20,7 +20,7 @@ metadata = aggregate(pay ~ batch + repetition + payment_selection_criteria,
                      metadata, mean)
 metadata = arrange(metadata, payment_selection_criteria, repetition, batch)
 ### import reports
-reports_folder = file.path(getwd(),"reports1")
+reports_folder = file.path(getwd(),"reports")
 reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
