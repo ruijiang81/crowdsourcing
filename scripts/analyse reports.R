@@ -11,7 +11,7 @@ sapply(list.files(pattern="[.]R$",path="./functions/",full.names=TRUE), source)
 ## Get the data
 ################################################################################
 ### import metadata
-metadata_folder = file.path(getwd(),"reports","metadata")
+metadata_folder = file.path(getwd(),"reports1","metadata")
 metadata = import.reports(metadata_folder, 
                           # Remove the "random" rule metadata
                           random.rm=TRUE)
@@ -20,7 +20,7 @@ metadata = aggregate(pay ~ batch + repetition + payment_selection_criteria,
                      metadata, mean)
 metadata = arrange(metadata, payment_selection_criteria, repetition, batch)
 ### import reports
-reports_folder = file.path(getwd(),"reports")
+reports_folder = file.path(getwd(),"reports1")
 reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
@@ -116,12 +116,19 @@ manipulate(
         }
         
         
-        ## Plot chain
-        dtmcA <- new("markovchain",transitionMatrix=transitionMatrix,
-                     #states=c(),
-                     name="Payment transition matrix") #create the DTMC
-        set.seed(2015)
-        plot(dtmcA)
+        ## Plot Heatmap/State Machine
+        if(f_heat){
+            ## Plot Heatmap
+            heatmap.2(transitionMatrix, dendrogram='none', Rowv=FALSE, Colv=FALSE,
+                      trace='none', cellnote=round(transitionMatrix,2))
+        } else {
+            dtmcA <- new("markovchain",transitionMatrix=transitionMatrix,
+                         #states=c(),
+                         name="Payment transition matrix") #create the DTMC
+            set.seed(2015)
+            plot(dtmcA) 
+        }
+        
         
         ## Print Chain
         cat("\nThe probability from row payment into column payment\n")
@@ -129,7 +136,8 @@ manipulate(
     },
     n_rep = slider(1, max(metadata$repetition), 1, "Choose Repetition", 1),
     rule = picker("delta_auc_div_total_cost","max_quality","max_ratio","max_total_ratio"),
-    f_rep = checkbox(FALSE, "All repetition")
+    f_rep = checkbox(FALSE, "All repetition"),
+    f_heat = checkbox(FALSE, "Plot heatmap?")
 ) #end HMM manipulation
 
 
