@@ -25,8 +25,9 @@ packages.list = c("testthat",                                                   
                   "plyr",                                                       # Data Manipulation
                   "randomForest","ROCR","RWeka",                                # Classification Algorithms
                   "doParallel","foreach",                                       # Parallel Tools
-                  #"knitr","pander",                                            # Dynamic Report Generation in R
-                  "ggplot2","manipulate")                                       # Visualization tools
+                  "knitr","pander",                                             # Dynamic Report Generation in R
+                  "ggplot2","manipulate",                                       # Visualization tools
+                  "markovchain")
 
 packages.loader(packages.list)
 ## Clean Up
