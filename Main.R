@@ -8,7 +8,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24, units="hours")
 ### Dataset
-DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced"
+DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
@@ -60,6 +60,10 @@ if(DATABASE_NAME=="otto"){
     
 } else if (DATABASE_NAME=="synthetic_unbalanced") {
     source("scripts/generate_unbalanced_dataset.R")
+    
+} else if ("tax_audit") {
+    dataset = subset(read.csv('./data/Tax Audit/dataset.csv', header=TRUE), 
+                     select=c(-Revenue,-ACTIVE))
     
 } else {
     error("Unknow dataset")

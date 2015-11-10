@@ -11,7 +11,7 @@
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
-*.csv
+#*.csv
 results/stdout.txt
 
 # Domino
