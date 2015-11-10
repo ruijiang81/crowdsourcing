@@ -35,8 +35,8 @@ param <- expand.grid(
     model_inducer=c("RF","GLM","J48")[c(1)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
-                                 "max_quality", "max_ratio", "max_total_ratio",
-                                 "delta_AUC_div_total_cost")[c(1)],
+                                 "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(8,9,10,11,12)],
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[4],
     stringsAsFactors=FALSE)

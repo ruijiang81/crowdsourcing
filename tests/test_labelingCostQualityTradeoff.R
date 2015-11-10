@@ -21,7 +21,7 @@ labelingCostQualityTradeoff(method='Asymptotic',
                             costPerTask=costs)
 ## HashTable Method
 labelingCostQualityTradeoff(method='HashTable',
-                            costPerTask=costs,
-                            fixProbability = data.frame(cost=costs,
-                                                        probability=c(0.6,0.87,0.97,0.94,0.76)))
-                                                        
+                            costPerTask=2*costs,
+                            fixProbability=data.frame(cost=2*costs,
+                                                      probability=c(0.6,0.87,0.97,0.94,0.76)))
+

@@ -20,11 +20,14 @@ decide_price_per_label <- function(train,
         set.seed(cur_instance_num*global_seed)
         pay<-sample(payment_options,1)
         
-    } else if (pay_criteria =="min_pay_per_label"){
+    } else if (pay_criteria == "min_pay_per_label"){
         pay<-payment_options[which.min(payment_options)]
         
-    } else if (pay_criteria =="max_pay_per_label"){
+    } else if (pay_criteria == "max_pay_per_label"){
         pay<-payment_options[which.max(payment_options)]
+        
+    } else if (substr(pay_criteria,1,6) == "always"){
+        pay <- substr(pay_criteria, 8, nchar(pay_criteria))
         
     } else if (pay_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
         # for testing  
@@ -124,5 +127,5 @@ decide_price_per_label <- function(train,
         stop("WRONG CRITERIA in decide_price_per_label")  
     }
     
-    return(pay)
+    return(as.numeric(pay))
 } # end decide_price_per_label

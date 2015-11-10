@@ -32,16 +32,6 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
     if (is.null(fixProbability)) fixProbability <- 0.75        
     
     
-    # Check arguments validity
-    ## costPerTask argument
-    if (method=="quality") {
-        if ((max(costPerTask)>1) || (min(costPerTask)<0))
-            stop('Unvalid costPerTask for method=Quality. Only numbers in the range [0,1] are valid')
-    }
-    else if (!is.numeric(costPerTask) || costPerTask<C_Range[1] || costPerTask>C_Range[2])
-        stop(paste0('Unvalid costPerTask. Only numbers in the range [',C_Range[1],',',C_Range[1],'] are valid'))
-    
-    
     if (method=='fix') {
         p = rep(fixProbability,length(costPerTask))
         
