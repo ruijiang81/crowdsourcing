@@ -8,7 +8,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24, units="hours")
 ### Dataset
-DATABASE_NAME="Synthetic_Balanced" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit"
+DATABASE_NAME="Spam" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
@@ -36,9 +36,9 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(8,9,10,11,12)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[4],
+    cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[c(2)],
     stringsAsFactors=FALSE)
 fixProbability = data.frame(cost=price_per_label_values,
                             probability=c(0.6,0.87,0.97,0.94,0.76))
@@ -61,7 +61,7 @@ if(DATABASE_NAME=="otto"){
 } else if (DATABASE_NAME=="synthetic_unbalanced") {
     source("scripts/generate_unbalanced_dataset.R")
     
-} else if ("tax_audit") {
+} else if (DATABASE_NAME=="tax_audit") {
     dataset = subset(read.csv('./data/Tax Audit/dataset.csv', header=TRUE), 
                      select=c(-Revenue,-ACTIVE))
     
