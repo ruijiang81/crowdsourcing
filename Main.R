@@ -6,9 +6,9 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 
 ## Setup
 ### Worst-case execution time
-watchdog_simulation = as.difftime(24, units="hours")
+watchdog_simulation = as.difftime(12, units="hours")
 ### Dataset
-DATABASE_NAME="Spam" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit"
+DATABASE_NAME="Mushroom" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
@@ -64,6 +64,9 @@ if(DATABASE_NAME=="otto"){
 } else if (DATABASE_NAME=="tax_audit") {
     dataset = subset(read.csv('./data/Tax Audit/dataset.csv', header=TRUE), 
                      select=c(-Revenue,-ACTIVE))
+    
+} else if (DATABASE_NAME=="mushroom") {
+    dataset = read.csv("./data/Mushroom/dataset.csv", colClasses = "factor")
     
 } else {
     error("Unknow dataset")
