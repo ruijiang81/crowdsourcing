@@ -8,7 +8,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24, units="hours")
 ### Dataset
-DATABASE_NAME="Spam" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult"
+DATABASE_NAME="Pen Digits" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult","Pen Digits"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
@@ -46,9 +46,7 @@ fixProbability = data.frame(cost=price_per_label_values,
 ## Get the data
 DATABASE_NAME <- tolower(DATABASE_NAME)
 if(DATABASE_NAME=="otto"){
-    dataset <- read.csv(file.path(getwd(),'data','Otto','train.csv'), colClasses=c("integer",rep("numeric",93),"factor"))
-    dataset <- dataset[,-1] #deletes the first (ID) column 
-    dataset <- oneVsAll(dataset, positive.class=3) #customized function that assigns one positive and one negative class
+    source("./data/Otto/import dataset.R")
     
 } else if (DATABASE_NAME=="spam") {
     library("kernlab")  
@@ -69,6 +67,9 @@ if(DATABASE_NAME=="otto"){
     
 } else if (DATABASE_NAME=='adult') {
     source("./data/Adult/import dataset.R")
+    
+} else if (DATABASE_NAME=='pen digits') {
+    source("./data/Pen Digits/import dataset.R")
     
 } else {
     error("Unknow dataset")
