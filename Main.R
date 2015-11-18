@@ -62,31 +62,13 @@ if(DATABASE_NAME=="otto"){
     source("scripts/generate_unbalanced_dataset.R")
     
 } else if (DATABASE_NAME=="tax_audit") {
-    dataset = subset(read.csv('./data/Tax Audit/dataset.csv', header=TRUE), 
-                     select=c(-Revenue,-ACTIVE))
+    source("./data/Tax Audit/import dataset.R")
     
 } else if (DATABASE_NAME=="mushroom") {
-    dataset = read.csv("./data/Mushroom/dataset.csv", colClasses = "factor")
+    source("./data/Mushroom/import dataset.R")
     
 } else if (DATABASE_NAME=='adult') {
-    names_type_pairs = c("age",            "numeric",
-                         "workclass",      "factor",
-                         "fnlwgt",         "numeric",
-                         "education",      "factor",
-                         "education-num",  "numeric",
-                         "marital-status", "factor",
-                         "occupation",     "factor",
-                         "relationship",   "factor",
-                         "race",           "factor",
-                         "sex",            "factor",
-                         "capital-gain",   "numeric",
-                         "capital-loss",   "numeric",
-                         "hours-per-week", "numeric",
-                         "native-country", "factor",
-                         "income",         "factor")
-    dataset = read.csv("./data/Adult/dataset.csv", header=FALSE,
-                       col.names=names_type_pairs[seq(1,30,2)],
-                       colClasses=names_type_pairs[seq(2,30,2)])
+    source("./data/Adult/import dataset.R")
     
 } else {
     error("Unknow dataset")
@@ -107,6 +89,7 @@ for(s in 1:nrow(param)){
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
     cost_function_type         = param[s,"cost_function_type"]
+    
     
     ## Allocate report
     report   = create_report()
