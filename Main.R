@@ -8,7 +8,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 ### Worst-case execution time
 watchdog_simulation = as.difftime(12, units="hours")
 ### Dataset
-DATABASE_NAME="Mushroom" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom"
+DATABASE_NAME="Adult" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
@@ -67,6 +67,26 @@ if(DATABASE_NAME=="otto"){
     
 } else if (DATABASE_NAME=="mushroom") {
     dataset = read.csv("./data/Mushroom/dataset.csv", colClasses = "factor")
+    
+} else if (DATABASE_NAME=='adult') {
+    names_type_pairs = c("age",            "numeric",
+                         "workclass",      "factor",
+                         "fnlwgt",         "numeric",
+                         "education",      "factor",
+                         "education-num",  "numeric",
+                         "marital-status", "factor",
+                         "occupation",     "factor",
+                         "relationship",   "factor",
+                         "race",           "factor",
+                         "sex",            "factor",
+                         "capital-gain",   "numeric",
+                         "capital-loss",   "numeric",
+                         "hours-per-week", "numeric",
+                         "native-country", "factor",
+                         "income",         "factor")
+    dataset = read.csv("./data/Adult/dataset.csv", header=FALSE,
+                       col.names=names_type_pairs[seq(1,30,2)],
+                       colClasses=names_type_pairs[seq(2,30,2)])
     
 } else {
     error("Unknow dataset")
