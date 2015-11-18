@@ -6,13 +6,13 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 
 ## Setup
 ### Worst-case execution time
-watchdog_simulation = as.difftime(12, units="hours")
+watchdog_simulation = as.difftime(24, units="hours")
 ### Dataset
-DATABASE_NAME="Adult" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult"
+DATABASE_NAME="Spam" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult"
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.5 #percentage of data in external holdout
-initial_seed      = 2015 #large number
+initial_seed      = 1811 #large number
 batch_size             <<- 10
 number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=5 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
