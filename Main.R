@@ -6,7 +6,7 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 
 ## Setup
 ### Worst-case execution time
-watchdog_simulation = as.difftime(24, units="hours")
+watchdog_simulation = as.difftime(24*3, units="hours")
 ### Dataset
 DATABASE_NAME="Pen Digits" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult","Pen Digits"
 
