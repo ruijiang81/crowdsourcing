@@ -38,16 +38,13 @@ param <- expand.grid(
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
                                  "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[c(2)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","HashTable")[c(1,2,3,4,5)],
     stringsAsFactors=FALSE)
+
+## Fix value
 fixProbability = 0.85
 
-## Hash-tables options
-### F1
-# probabilities=c(0.75,0.93,0.94,0.95,0.75)
-### F2
-# probabilities=c(0.6,0.87,0.97,0.94,0.76)
-###
+## Hash-table example
 # fixProbability = data.frame(cost=price_per_label_values,
 #                             probability=probabilities)
 

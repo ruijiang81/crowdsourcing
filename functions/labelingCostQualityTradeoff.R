@@ -19,11 +19,12 @@
 #' @return The probability \code{p}.
 #' 
 
-labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable'),
+labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable','F1','F2'),
                                         costPerTask=NULL,
                                         fixProbability=NULL){
     method  = tolower(method)
     C_Range = c(0.02,0.25) # define the cost range
+    C = costPerTask
     
     
     # Check for null values. If TRUE then set the default
@@ -33,37 +34,31 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
     
     
     if (method=='fix') {
-        p = rep(fixProbability,length(costPerTask))
+        p = rep(fixProbability,length(C))
         
     } else if (method=='concave') {
-        C = costPerTask
-        #                 p =-0.002*(C*100)^2+0.066*(C*100)+0.37
         p = 0.48+0.066*(100*C)-0.0022*(100*C)^2
-        #                 curve(0.48 +0.066*(100*x) + -0.0022*(100*x)^2, from=0.02, to=0.25)
-        ## Supply 3 points
-        #                 x = c(0.02,0.16,0.25) # Cost
-        #                 y = c(0.60,0.95,0.70) # Probability
-        ## Fin the coefficients for the polynom
-        #                 coeff <- lm(y~poly(x,degree=2,raw=TRUE))$coefficients
-        #                 p <- coeff[1] + coeff[1]*C + coeff[2]*C^2
-        ## Make sure p \in [0,1], one p at a time
-        p <- sapply(p,function(p) max(0,min(p,1)))
-        #                 curve(coeff[1] + coeff[1]*x + coeff[2]*x^2, from=0.02, to=0.25)
-        
         
     } else if (method=='asymptotic') {
-        C = costPerTask
         p = 1-1/(C*100) 
         
-          
     } else if (method=='hashtable') {
-        C = costPerTask
         colnames(fixProbability) = tolower(colnames(fixProbability))
         p = fixProbability[fixProbability$cost %in% C,"probability"]
         
+    } else if (method=='f1') {
+        # {{0.02,0.75},{0.08,0.93},{0.14,0.94},{0.19,0.95},{0.25,0.75}}
+        f1 = function(x) round(0.559388 + 12.1491*x - 145.554*x^2 + 760.25*x^3 - 1440.88*x^4,4)
+        p = f1(C)
+        
+    } else if (method=='f2') {
+        # {{0.02,0.82},{0.25,0.88}}
+        f2 = function(x) round(0.814783 + 0.26087*x,4)
+        p = f2(C)
         
     } else {
         stop('Unknown tradeoff method')
     }    
+    
     return(p)   
 } # end function labelingCostQualityTradeoff
