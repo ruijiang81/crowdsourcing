@@ -40,8 +40,17 @@ param <- expand.grid(
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic","HashTable")[c(2)],
     stringsAsFactors=FALSE)
-fixProbability = data.frame(cost=price_per_label_values,
-                            probability=c(0.6,0.87,0.97,0.94,0.76))
+fixProbability = 0.85
+
+## Hash-tables options
+### F1
+# probabilities=c(0.75,0.93,0.94,0.95,0.75)
+### F2
+# probabilities=c(0.6,0.87,0.97,0.94,0.76)
+###
+# fixProbability = data.frame(cost=price_per_label_values,
+#                             probability=probabilities)
+
 
 ## Get the data
 DATABASE_NAME <- tolower(DATABASE_NAME)
