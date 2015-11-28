@@ -20,6 +20,9 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
+max_instances_in_history<<-100 #the size (in terms of instances) of the number of last instances for each payment option to consider
+#to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
+
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
 
@@ -36,9 +39,9 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","HashTable")[c(1,2,3,4,5)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","HashTable")[c(1)],
     stringsAsFactors=FALSE)
 
 ## Fix value
@@ -324,7 +327,8 @@ for(s in 1:nrow(param)){
     file_name    = paste0('(',tolower(DATABASE_NAME),')',
                           '(',toupper(model_inducer),')',
                           '(',tolower(cost_function_type),')',
-                          '(',tolower(payment_selection_criteria),')',
+                          '(',tolower(payment_selection_criteria),
+                          max_instances_in_history,')',
                           '(',Sys.Date(),')',".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)

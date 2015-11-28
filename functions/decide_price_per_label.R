@@ -50,6 +50,11 @@ decide_price_per_label <- function(train,
             for (j in 1:number_batch_omissions){
                 #print (j)
                 payment_row_numbers<-which(meta_data$pay == payment_options[i]) #row number with this payments 
+                
+                if(length(payment_row_numbers)>max_instances_in_history) {
+                  payment_row_numbers<-tail(payment_row_numbers,max_instances_in_history)
+                  }
+                
                 set.seed(cur_instance_num*global_seed+i+j*1000)
                 random_rows_to_remove_with_payment     <- sample(payment_row_numbers, batch_size) 
                 randomly_remaining_instances           <- train[-random_rows_to_remove_with_payment, ]; 
