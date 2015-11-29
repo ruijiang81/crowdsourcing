@@ -24,7 +24,7 @@ create_report <- function()
 import.reports <- function(reports_folder="./reports",
                            # Remove the "random" rule metadata
                            random.rm=FALSE)
-    {
+{
     ## List the (csv) reports in the folder
     reports_list = list.files(pattern="[.]csv$", path=reports_folder, full.names=TRUE)
     
@@ -86,6 +86,23 @@ interpolate.reports <- function(reports_folder="./reports",
     ## Get the data
     reports = import.reports(reports_folder)
     
+    
+    ## Test that each rule has the same number of repetitions
+    rep_table = matrix(NA, nrow=length(unique(reports$key)), ncol=max(reports$repetition))
+    for(k in unique(reports$key)){
+        index_rep = t(unique(subset(reports, key==k, select=repetition)))
+        rep_table[k,index_rep] = TRUE
+    }
+    rep_table = rep_table[,unique(reports$repetition)]
+    if(any(is.na(rep_table))) 
+        stop("different repetitions detected")
+    else 
+        cat("\n found",length(unique(reports$repetition)),"repetitions")
+    
+    
+    
+    
+    
     ## Calculate Auc(Cost)
     outputs = c()
     
@@ -107,17 +124,17 @@ interpolate.reports <- function(reports_folder="./reports",
         ### Generate cost table
         interval_size=1 #usually 1, or 2
         min_cost=1 #dont start from zero. Start with 0+interval_size (or desired value+interval size)
-        max_cost=150 
+        max_cost=150
         cost_intervals=seq(from = min_cost, to = max_cost, by = interval_size)
         num_cost_intervals=length(cost_intervals)
         
-        num_repeations = max(report$repetition)
+        num_repeations = length(unique(report$repetition))
         
-        for (repeation_counter in 1:num_repeations){
+        for (repeation_counter in unique(report$repetition)){
             #reading in the instance number from the first file and checking for instance number consistency across files
             #file_counter=1
             #current_repeatition = read.csv(filenames[file_counter], header = TRUE)
-            current_repeatition=report[which(report$repetition==repeation_counter),] 
+            current_repeatition=subset(report, repetition==repeation_counter)
             num_lines=nrow(current_repeatition)
             
             
