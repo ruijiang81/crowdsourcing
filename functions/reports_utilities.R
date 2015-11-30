@@ -89,18 +89,22 @@ interpolate.reports <- function(reports_folder="./reports",
     
     ## Test that each rule has the same number of repetitions
     rep_table = matrix(NA, nrow=length(unique(reports$key)), ncol=max(reports$repetition))
-    for(k in unique(reports$key)){
+    for(k in sort(unique(reports$key))){
         index_rep = t(unique(subset(reports, key==k, select=repetition)))
         rep_table[k,index_rep] = TRUE
     }
     rep_table = rep_table[,unique(reports$repetition)]
-    if(any(is.na(rep_table))) 
-        stop("different repetitions detected")
-    else 
+    if(any(is.na(rep_table))){
+        cat("\ndifferent repetitions detected")
+        ans <- readline(prompt="Would you like to ignore missing repetitions? Y/N: ")
+        if('n'==tolower(ans))
+            stop("different repetitions detected")
+        valid_rep = apply(rep_table,2,function(x) !any(is.na(x)))
+        valid_rep = unique(reports$repetition)[valid_rep]
+        reports   = reports[reports$repetition %in% valid_rep,]
+    } else {
         cat("\n found",length(unique(reports$repetition)),"repetitions")
-    
-    
-    
+    }
     
     
     ## Calculate Auc(Cost)

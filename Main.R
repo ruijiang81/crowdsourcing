@@ -315,7 +315,7 @@ for(s in 1:nrow(param)){
             metadata = merge(metadata, rep_metadata, all=TRUE)
         },
         error = function(cond){ # if the model fitting or the evaluation failed, return AUC = 0.5 with a warning
-            warning(paste0("failed to run reptition #",counter_repetitions,"; ignoring repetition"))
+            warning(paste0("failed to run repetition #",counter_repetitions,"; ignoring repetition"))
             return(NA)
         } # end error
         ) # end tryCatch
