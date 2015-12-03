@@ -126,18 +126,21 @@ interpolate.reports <- function(reports_folder="./reports",
         ) # end trycatch
         
         ### Generate cost table
-        interval_size=1 #usually 1, or 2
-        min_cost=1 #dont start from zero. Start with 0+interval_size (or desired value+interval size)
-        max_cost=150
-        cost_intervals=seq(from = min_cost, to = max_cost, by = interval_size)
-        num_cost_intervals=length(cost_intervals)
+        interval_size = 1 #usually 1, or 2
+        #### Find the minimum model costs among all the intial model costs
+        initial_model_costs = aggregate(cost_so_far ~ repetition,data=reports, min)["cost_so_far"]
+        min_cost = ceiling(min(initial_model_costs)) #dont start from zero. Start with 0+interval_size (or desired value+interval size)
+        #### Find the minimum model costs among all the final model costs
+        final_model_costs = aggregate(cost_so_far ~ repetition,data=reports, max)["cost_so_far"]
+        max_cost = floor(min(final_model_costs))
+        #### Set intervals
+        cost_intervals = seq(from = min_cost, to = max_cost, by = interval_size)
+        num_cost_intervals = length(cost_intervals)
         
         num_repeations = length(unique(report$repetition))
         
         for (repeation_counter in unique(report$repetition)){
-            #reading in the instance number from the first file and checking for instance number consistency across files
-            #file_counter=1
-            #current_repeatition = read.csv(filenames[file_counter], header = TRUE)
+            ## Subset the repetition across all reports
             current_repeatition=subset(report, repetition==repeation_counter)
             num_lines=nrow(current_repeatition)
             
@@ -157,9 +160,12 @@ interpolate.reports <- function(reports_folder="./reports",
             }
             ###########
             if (repeation_counter==1){
-                sum_interval_cost_performance=interval_cost_performance #contains the performance per cost intervals
+                #contains the performance per cost intervals
+                sum_interval_cost_performance = interval_cost_performance 
             } else { 
-                sum_interval_cost_performance=sum_interval_cost_performance+interval_cost_performance  #contains the performance per cost intervals
+                # contains the performance per cost intervals
+                sum_interval_cost_performance = sum_interval_cost_performance + interval_cost_performance
+                
             }
         }
         
