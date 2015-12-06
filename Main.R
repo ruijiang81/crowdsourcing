@@ -41,7 +41,7 @@ param <- expand.grid(
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
                                  "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","HashTable")[c(1)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","HashTable")[c(1)],
     stringsAsFactors=FALSE)
 
 ## Fix value

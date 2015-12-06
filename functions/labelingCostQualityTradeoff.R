@@ -19,7 +19,7 @@
 #' @return The probability \code{p}.
 #' 
 
-labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable','F1','F2'),
+labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable','F1','F2','F3'),
                                         costPerTask=NULL,
                                         fixProbability=NULL){
     method  = tolower(method)
@@ -55,6 +55,11 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
         # {{0.02,0.82},{0.25,0.88}}
         f2 = function(x) round(0.814783 + 0.26087*x,4)
         p = f2(C)
+      
+    } else if (method=='f3') {
+        # {{0.02,0.75},{0.04,0.80},{0.08,0.97},{0.22,0.94},{0.25,0.80}}
+        f3 = function(x) round(0.756717 - 2.24434*x + 108.603*x^2 - 681.85*x^3 + 1144.47*x^4,4)
+        p = f3(C)
         
     } else {
         stop('Unknown tradeoff method')

@@ -5,7 +5,7 @@
 cat("\014"); rm(list = ls())
 source("functions/labelingCostQualityTradeoff.R")
 price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
-trade_offs = c("Fix","Concave","Asymptotic","F1","F2")
+trade_offs = c("Fix","Concave","Asymptotic","F1","F2","F3")
 
 par(mfrow=c(2,3))
 
