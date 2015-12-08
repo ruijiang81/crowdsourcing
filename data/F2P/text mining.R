@@ -7,112 +7,98 @@ cat("\014"); rm(list = ls())
 
 
 ## Get the data
-read.csv("./data/F2P/dataset.csv")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+reviews <- read.csv("./data/F2P/dataset.csv", stringsAsFactors=FALSE)
+str(reviews) #have a quick look at reviews to see if the csv has loaded correctly.
 
 
 ################################################################################
-## Developer Zone
+## Using the tm package - the text mining library for R.
 ################################################################################
-# ## Bag of Words
-# # install.packages("qdap")
-# # library("qdap")
-# # words <- all_words(dataset, apostrophe.remove=TRUE)
-# # head(words)
-# # bag_o_words(dataset, apostrophe.remove=TRUE)
-# 
-# 
-# ## Create a term-document matrix from a corpus
-# #install.packages(c("tm","bigmemory"))
-# library("tm")
-# library("bigmemory")
-# corpus <- Corpus(VectorSource(dataset[1:10660,]))
-# DTM <- DocumentTermMatrix(corpus,
-#                           control = list())
-# DTM
-# 
-# M=as.big.matrix(x=as.matrix(DTM))#convert the DTM into a bigmemory object using the bigmemory package 
-# M=as.matrix(M)#convert the bigmemory object again to a regular matrix
-# M_l = M>0 #convert counts matrix to logical matrix
-# dim(M)
-# 
-# 
-# ## Remove near zero variance predictors
-# # library("caret")
-# # p = 100
-# # freq = t(round(prop.table(apply(M_l, 2, table),2),4))[,2]
-# # freq = sort(freq, decreasing=TRUE)
-# # hist(freq[1:100],20)
-# # index_cols = colnames(M_l) %in% names((freq[1:p]))
-# # M_nzr = nearZeroVar(M_l[,index_cols], freqCut = 95/5, uniqueCut = 10, saveMetrics = TRUE, 
-# #                     foreach = FALSE, allowParallel = TRUE)
-# # M_nzr
-# #' freqRatio	    the ratio of frequencies for the most common value over the second most common value
-# #' percentUnique	the percentage of unique data points out of the total number of data points
-# #' zeroVar	        a vector of logicals for whether the predictor has only one distinct value
-# #' nzv	            a vector of logicals for whether the predictor is a near zero variance predictor
-# #' #
-# # checkConditionalX(x=as.data.frame(M[,1:10]), y=labels)
-# #
-# # https://rpubs.com/nishantsbi/92510
-# # sparse = tm::removeSparseTerms(frequencies, 0.995)
-# 
-# 
-# ## Information gain
-# # install.packages("FSelector")
-# # library("FSelector")
-# # D = as.data.frame(cbind(M_l[,index_col],labels))
-# # IG = information.gain(labels~., D)
-# # IG
-# 
-# set.seed(2016)
-# index_train = sample(1:nrow(dataset),round(0.7*nrow(dataset)))
-# p = 40
-# 
-# # Find the correlation between the independent variables and the dependent variable
-# C = cor(M_l,labels=="P")
-# # Pick the top 'm' correlated independent variables
-# names(C) = colnames(M_l)
-# sort(abs(C), decreasing = TRUE)[1:p]
-# index_col = colnames(M_l)[colnames(M_l) %in% names(sort(abs(C), decreasing = TRUE)[1:p])]
-# 
-# D     = data.frame(M_l[,index_col],labels=(labels=="P"))
-# mdl   = glm(labels~., D[index_train, ], family = "binomial")
-# #y_hat = predict(mdl, D[-index_train, ])
-# #caret::confusionMatrix(y_hat>0,D[-index_train,"labels"])
-# y_hat    = predict(mdl, D[-index_train,], type="response")
-# pred     = ROCR::prediction(as.vector(y_hat),D[-index_train,"labels"])
-# perf_AUC = ROCR::performance(pred,"auc") #Calculate the AUC value
-# perf_AUC@y.values[[1]]
-# 
-# 
-# # p=40;  0.68/0.68
-# # p=100; 0.75
-# # p=400; 0.83
-# 
-# #summary(mdl)
-# 
-# # stopCluster(cl) 
-# write.csv(ifelse(D==FALSE,0,1), "MR40_dataset.csv", row.names=F)
+#' First install and load the 'tm' library into your session, 
+#' 
+#install.packages('tm')
+library(tm)
+#' The tm package is designed for comparing different texts against each other. 
+#' These are the steps the tm package expects you to take:
+#' 
+#' 1. Set up a source for your text
+#' 2. Create a corpus from that source (a corpus is just another name for a collection of texts)
+#' 3. Create a document-term matrix, which tells you how frequently each term appears in each document in your corpus
+#' 
+#' We currently have all the text of every review in a vector, reviews$text, of 
+#' size 1000. Each element of the vector corresponds to one review. Since we’re
+#' currently not interested in the difference between each review, we can simply
+#' paste every review together, separating with a space.
+#' 
+review_text <- paste(reviews$text, collapse=" ")
+#' The collapse argument in paste tells R that we want to paste together 
+#' elements of a vector, rather than pasting vectors together.
+#' Now we can set up the source and create a corpus.
+#' 
+review_source <- VectorSource(review_text)
+corpus        <- Corpus(review_source)
+#' Easy!
+#' Next, we begin cleaning the text. We use the multipurpose tm_map function 
+#' inside tm to do a variety of cleaning tasks:
+#' 
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, stopwords("english")) # or use stopwords("SMART")
+#' So, what have we just done? 
+#' 
+#' 1. We’ve transformed every word to lower case, so that ‘Fun’ and ‘fun’ now count as the same word. 
+#' 2. We’ve removed all punctuation – ‘fun’ and ‘fun!’ will now be the same. 
+#' 3. We stripped out any extra whitespace. 
+#' 4. we removed stop words. Stop words are just common words which we may not be interested in. 
+#' 
+#' If we look at the result of stopwords ("english") we can see what is getting removed:
+#' 
+stopwords("english")
+#' Depending out what you are trying to achieve with your analysis, you may want 
+#' to do the data cleaning step differently. You may want to know what 
+#' punctuation is being used in your text or the stop words might be an 
+#' important part of your analysis. So use your head and have a look at the 
+#' getTransformations() function to see what your data cleaning options are.
+#' 
+getTransformations()
+#' Now we create the document-term matrix.
+#' 
+dtm <- DocumentTermMatrix(corpus)
+#' Since we only have one document in this case, our document-term matrix will 
+#' only have one column.
+#' The tm package stores document term matrixes as sparse matrices for efficacy. 
+#' Since we only have 1000 reviews and one document we can just convert our 
+#' term-document-matrix into a normal matrix, which is easier to work with.
+#' 
+dtm2 <- as.matrix(dtm)
+#' We then take the column sums of this matrix, which will give us a named 
+#' vector.
+#' 
+frequency <- colSums(dtm2)
+#' And now we can sort this vector to see the most frequently used words:
+#' 
+frequency <- sort(frequency, decreasing=TRUE)
+head(frequency)
+#' Voila!
+    
+    
+################################################################################
+## Plotting a word cloud
+################################################################################
+#' However, a list of words and frequencies is a little hard to interpret. Let’s 
+#' install and load the wordcloud package to visualize these words as a word 
+#' cloud.
+#' 
+#install.packages('wordcloud')
+library(wordcloud)
+#' Word cloud is very easy to use, we just need a list of the words to be 
+#' plotted and their frequency. To get the list of words we can take the names 
+#' of our named vector.
+#' 
+words <- names(frequency)
+#' Let’s plot the top 100 words in our cloud.
+#' 
+set.seed(2016)
+wordcloud(words[1:100], frequency[1:100])
+
