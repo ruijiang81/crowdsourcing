@@ -8,10 +8,20 @@ sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24*3, units="hours")
 ### Dataset
-DATABASE_NAME="Movies Reviews" #"Spam","Otto","Synthetic_Balanced","Synthetic_Unbalanced","Tax_Audit","Mushroom","Adult","Pen Digits","Movies Reviews"
+DATABASE_NAME=
+    c("Spam",                 # 1
+      "Otto",                 # 2
+      "Synthetic_Balanced",   # 3
+      "Synthetic_Unbalanced", # 4
+      "Tax Audit",            # 5
+      "Mushroom",             # 6
+      "Adult",                # 7
+      "Pen Digits",           # 8
+      "Movies Reviews"        # 9      
+    )[1]
 
 cores_not_to_use  = 0 #0 means use all cores
-p_holdout         = 0.5 #percentage of data in external holdout
+p_holdout         = 0.3 #percentage of data in external holdout
 initial_seed      = 1811 #large number
 batch_size             <<- 10
 number_batch_omissions <<- 10
@@ -20,7 +30,7 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
-max_instances_in_history<<-100 #the size (in terms of instances) of the number of last instances for each payment option to consider
+max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
@@ -68,7 +78,7 @@ if(DATABASE_NAME=="otto"){
 } else if (DATABASE_NAME=="synthetic_unbalanced") {
     source("scripts/generate_unbalanced_dataset.R")
     
-} else if (DATABASE_NAME=="tax_audit") {
+} else if (DATABASE_NAME=="tax audit") {
     source("./data/Tax Audit/import dataset.R")
     
 } else if (DATABASE_NAME=="mushroom") {
@@ -79,7 +89,7 @@ if(DATABASE_NAME=="otto"){
     
 } else if (DATABASE_NAME=='pen digits') {
     source("./data/Pen Digits/import dataset.R")
-  
+    
 } else if (DATABASE_NAME=='movies reviews') {
     source("./data/Movie Review/import dataset.R")
     
