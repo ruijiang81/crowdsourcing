@@ -28,7 +28,7 @@ number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 200 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -45,7 +45,7 @@ repeatitions <- 10 #10
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48")[c(1)],
+    model_inducer=c("RF","GLM","J48","SVM")[c(4)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",

@@ -19,7 +19,7 @@ predict_set(train_set, test_set)
 
 ## B. test that predict_set handles the different inducers
 results = c()
-for (inducer in c("RF","GLM","J48")){
+for (inducer in c("RF","GLM","J48","SVM")){
     cat('\n Fit', inducer, 'model')
     AUC = predict_set(train_set, test_set, inducer=inducer)
     names(AUC) = inducer
