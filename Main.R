@@ -45,7 +45,7 @@ repeatitions <- 10 #10
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48","SVM")[c(4)],
+    model_inducer=c("RF","GLM","J48","SVM")[c(1)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
@@ -227,7 +227,17 @@ for(s in 1:nrow(param)){
                 cat('\n',"AUC =",calculated_AUC)
             } # end Purchase initial batches
             
-            
+
+#             ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
+             ## Store iteration metadata in the report
+             rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+             new_entry            = rep_metadata[current_instance_num-1,]
+             new_entry$repetition = counter_repetitions
+             new_entry$batch      = counter_batches-1
+             rep_report = rbind(rep_report,new_entry)
+             current_report_line <- current_report_line+1   
+#             ######
+
             ####################################################################
             #' Running the rest of the simulation
             ####################################################################
@@ -282,7 +292,7 @@ for(s in 1:nrow(param)){
                     current_instance_num<-current_instance_num+1 # updating the instance counter
                 }
                 
-                counter_batches = counter_batches+1 # updating the batch counter
+                #counter_batches = counter_batches+1 # updating the batch counter
                 
                 
                 calculated_AUC = predict_set(training_set,
@@ -320,6 +330,7 @@ for(s in 1:nrow(param)){
                 }
                 
                 rep_report = rbind(rep_report,new_entry)
+                counter_batches = counter_batches+1 # updating the batch counter
                 current_report_line <- current_report_line+1
             } # end Running the rest of the simulation
             
