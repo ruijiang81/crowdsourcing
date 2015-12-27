@@ -1,5 +1,5 @@
 ################################################################################
-## Analyse Reports - Produce Graphs
+## Analyze Reports - Produce Graphs
 ################################################################################
 ## Initialization
 cat("\014"); rm(list = ls())
@@ -17,35 +17,52 @@ reports = import.reports(reports_folder,
 
 
 ################################################################################
-## Visualisation
+## Visualization
 ################################################################################
-## Calculate AUC(Cost)
-outputs = interpolate.reports(reports_folder, na.rm=FALSE)
-y_range = signif(range(outputs$average_holdout_cost_performance, na.rm=TRUE),1)
+# Calculate AUC(Cost)
+outputs  = interpolate.reports(reports_folder, na.rm=FALSE)
+# Create different plots by
+plot_div = c("DATABASE_NAME","model_inducer","cost_function_type")
+plot_param = unique(outputs[,plot_div])
 
-### Create plots dir
-plot_dir  = file.path(getwd(),"plots")
-dir.create(plot_dir,showWarnings=F)
-### Plot AUC as function of number of observations
-ggplot(outputs, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
-    # Add lines to the plot
-    geom_line(aes(colour = payment_selection_criteria), size=1) +
-    geom_hline(aes(yintercept=0.5)) + 
-    # Add scatter points to the plot
-    geom_point(aes(colour = payment_selection_criteria), size=4) +
-    # Change axis labels
-    xlab("Cost of Model [$]") + ylab("AUC") + 
-    # Set axis limits and ticks
-    scale_x_continuous(breaks = seq(40,300,10), limits = c(80, 200)) +
-    scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
-    # Theme settings
-    theme_bw() + theme(strip.text.x = element_blank(),
-                       strip.background = element_rect(colour="white", fill="white"),
-                       legend.position=c(.1,.9))
-### Export "Auc vs. Cost" plot
-plot_name = paste0('(',unique(outputs$DATABASE_NAME),')',
-                   '(',unique(outputs$model_inducer),')',
-                   '(',unique(outputs$cost_function_type),')',
-                   '(','Auc vs. Cost',')',
-                   ".png")
-ggsave(file=file.path(plot_dir,plot_name), width=12, height=8)
+
+for(k in 1:nrow(plot_param))
+{
+    # Subset the output
+    cases = !logical(nrow(outputs))
+    for(p in 1:length(plot_div)) cases = (cases & outputs[,plot_div[p]] %in% plot_param[k,p])
+    output = outputs[cases,]
+    
+    # Setup
+    y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
+    
+    # Create plots directory
+    plot_dir  = file.path(getwd(),"plots")
+    dir.create(plot_dir,showWarnings=F)
+    
+    # Plot AUC as function of number of observations
+    fig <- ggplot(output, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
+        # Add lines to the plot
+        geom_line(aes(colour = payment_selection_criteria), size=1) +
+        geom_hline(aes(yintercept=0.5)) + 
+        # Add scatter points to the plot
+        geom_point(aes(colour = payment_selection_criteria), size=4) +
+        # Change axis labels
+        xlab("Cost of Model [$]") + ylab("AUC") + 
+        # Set axis limits and ticks
+        scale_x_continuous(breaks = seq(40,300,10), limits = c(80, 200)) +
+        scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
+        # Theme settings
+        theme_bw() + theme(strip.text.x = element_blank(),
+                           strip.background = element_rect(colour="white", fill="white"),
+                           legend.position=c(.1,.9))
+    plot(fig)
+    ### Export "Auc vs. Cost" plot
+    plot_name = paste0('(',unique(output$DATABASE_NAME),')',
+                       '(',unique(output$model_inducer),')',
+                       '(',unique(output$cost_function_type),')',
+                       '(','Auc vs. Cost',')',
+                       ".png")
+    ggsave(file=file.path(plot_dir,plot_name), fig,width=12, height=8)
+} # end for plot_param
+
