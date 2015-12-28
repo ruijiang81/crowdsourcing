@@ -44,14 +44,14 @@ for(k in 1:nrow(plot_param))
     fig <- ggplot(output, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
         # Add lines to the plot
         geom_line(aes(colour = payment_selection_criteria), size=1) +
-        geom_hline(aes(yintercept=0.5)) + 
+        #geom_hline(aes(yintercept=0.5)) + 
         # Add scatter points to the plot
         geom_point(aes(colour = payment_selection_criteria), size=4) +
         # Change axis labels
         xlab("Cost of Model [$]") + ylab("AUC") + 
         # Set axis limits and ticks
-        scale_x_continuous(breaks = seq(40,300,10), limits = c(80, 200)) +
-        scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
+        scale_x_continuous(breaks = seq(40,300,10), limits = c(40, 200)) +
+        #scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
         # Theme settings
         theme_bw() + theme(strip.text.x = element_blank(),
                            strip.background = element_rect(colour="white", fill="white"),

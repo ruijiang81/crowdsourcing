@@ -7,9 +7,9 @@
 #'
 
 
-################################################################################
-#' create_report
-#'
+#################
+# create_report #
+#################
 create_report <- function()
 {
     col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout","full_AUC","subset_AUC") 
@@ -18,9 +18,9 @@ create_report <- function()
 } # end create_report
 
 
-################################################################################
-#' import.reports
-#'
+##################
+# import.reports #
+##################
 import.reports <- function(reports_folder="./reports",
                            # Remove the "random" rule metadata
                            random.rm=FALSE)
@@ -77,9 +77,9 @@ import.reports <- function(reports_folder="./reports",
 } # import.reports
 
 
-################################################################################
-#' interpolate.reports
-#'
+#######################
+# interpolate.reports #
+#######################
 interpolate.reports <- function(reports_folder="./reports",
                                 na.rm = FALSE){
     
@@ -106,18 +106,20 @@ interpolate.reports <- function(reports_folder="./reports",
         cat("\n found",length(unique(reports$repetition)),"repetitions")
     }
     
-    
-    ## Calculate Auc(Cost)
+    ########################
+    ## Calculate Auc(Cost) #
+    ########################
     outputs = c()
-    
-    ## Load each report at a time
+    # Load each report at a time
     Keys = unique(reports$key)
     for(k in Keys){
-        ### Aggregae the data by talking the Mean of the subset_AUC column
+        ## Aggregae the data by taking the Mean of the average_holdout_cost_performance column
         report = subset(reports, key==k)
         report <- tryCatch(
             {
-                report = aggregate(subset_AUC ~ ., report, mean)
+                report = aggregate(average_holdout_cost_performance  ~ . -subset_AUC,
+                                   report,
+                                   function(x) mean(x, na.rm=T))
                 report = arrange(report, repetition, instance_num)
             }, 
             error = function(cond){ # for random rule
@@ -128,10 +130,12 @@ interpolate.reports <- function(reports_folder="./reports",
         ### Generate cost table
         interval_size = 1 #usually 1, or 2
         #### Find the minimum model costs among all the intial model costs
-        initial_model_costs = aggregate(cost_so_far ~ repetition,data=reports, min)["cost_so_far"]
+        initial_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
+                                        function(x) min(x, na.rm=T))["cost_so_far"]
         min_cost = ceiling(min(initial_model_costs)) #dont start from zero. Start with 0+interval_size (or desired value+interval size)
         #### Find the minimum model costs among all the final model costs
-        final_model_costs = aggregate(cost_so_far ~ repetition,data=reports, max)["cost_so_far"]
+        final_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
+                                      function(x) max(x, na.rm=T))["cost_so_far"]
         max_cost = floor(min(final_model_costs))
         #### Set intervals
         cost_intervals = seq(from = min_cost, to = max_cost, by = interval_size)
@@ -169,7 +173,7 @@ interpolate.reports <- function(reports_folder="./reports",
             }
         }
         
-        average_holdout_cost_performance=sum_interval_cost_performance/num_repeations  
+        average_holdout_cost_performance = sum_interval_cost_performance/num_repeations  
         output = data.frame(cost_intervals, average_holdout_cost_performance)
         
         ###  Add metadata
