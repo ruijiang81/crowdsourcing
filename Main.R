@@ -18,7 +18,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[1]
+    )[9]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -28,7 +28,7 @@ number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
 price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
-max_total_cost = 200 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -49,13 +49,13 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(10)],
     # Quality-Cost tradeoff
     cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","HashTable")[c(1)],
     stringsAsFactors=FALSE)
 
 ## Fix value
-fixProbability = 0.85
+fixProbability = 1.0
 
 ## Hash-table example
 # fixProbability = data.frame(cost=price_per_label_values,
@@ -151,13 +151,13 @@ for(s in 1:nrow(param)){
             #' The holdout-set is fixed throughout the simulation
             #' The unlabeled-set is shuffled differently in each repetition
             set.seed(global_seed)
-            index.holdout  = sample(nrow(dataset), round(nrow(dataset)*p_holdout))
-            holdout_data   = dataset[index.holdout,]
-            unlabeled_data = dataset[-sample(index.holdout),]
+            index_holdout  = sample(nrow(dataset), round(nrow(dataset)*p_holdout))
+            holdout_data   = dataset[index_holdout,]
+            unlabeled_data = dataset[-index_holdout,]
+            unlabeled_data = unlabeled_data[sample(nrow(unlabeled_data)),]
+            max_size_training_data = nrow(unlabeled_data) #used later for sanity check
             
-            max_size_training_data<-nrow(unlabeled_data) #used later for sanity check
-            
-            
+                        
             ####################################################################
             #' Purchase initial batches and fit model on them
             ####################################################################
@@ -227,20 +227,22 @@ for(s in 1:nrow(param)){
                 cat('\n',"AUC =",calculated_AUC)
             } # end Purchase initial batches
             
+            
+            ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
+            ## Store iteration metadata in the report
+            rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+            new_entry            = rep_metadata[current_instance_num-1,]
+            new_entry$repetition = counter_repetitions
+            new_entry$batch      = counter_batches-1
+            rep_report = rbind(rep_report,new_entry)
+            current_report_line <- current_report_line+1   
 
-#             ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
-             ## Store iteration metadata in the report
-             rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-             new_entry            = rep_metadata[current_instance_num-1,]
-             new_entry$repetition = counter_repetitions
-             new_entry$batch      = counter_batches-1
-             rep_report = rbind(rep_report,new_entry)
-             current_report_line <- current_report_line+1   
-#             ######
-
+            
             ####################################################################
             #' Running the rest of the simulation
             ####################################################################
+            
+            
             #while (current_instance_num<=max_number_of_training_instance) {
             while ((cost_so_far <= max_total_cost) & 
                    (Sys.time()-start.time < watchdog_simulation)){

@@ -101,7 +101,7 @@ perf_AUC@y.values[[1]]
 #######################
 set.seed(2016)
 dataset = dtm_l_df
-dataset = dataset[sample(nrow(dataset)),]
+# dataset = dataset[sample(nrow(dataset)),]
 
 
 #######################
