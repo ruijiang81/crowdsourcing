@@ -4,22 +4,41 @@
 
 predict_set = function(train_set,
                        test_set,
-                       inducer=c("RF","GLM","J48"))
+                       inducer=c("RF","GLM","J48","SVM"),
+                       verbose=TRUE)
 {
-    # Standardize variables names
+    ###############################
+    # Standardize variables names #
+    ###############################
     train_set = setVariablesNames(train_set)
     test_set  = setVariablesNames(test_set)
     
     
-    # Validate assumption
-    ## Global seed number
+    #######################
+    # Validate assumption #
+    #######################
+    # Global seed number
     if(!exists("global_seed")) global_seed <- 1992
     set.seed(global_seed)
-    ## Model inducer
+    # Model inducer
     inducer = tolower(inducer[1])
     
     
-    # Fit & Evaluate model
+    #########################
+    ## Data Pre-Processing ##
+    #########################
+    ## Check which variables in the train-set have less then two levels, that is ZV 
+    ## (Zero Variance)
+    # zv_var = apply(train_set, 2, function(x) length(unique(x))<2)
+    # if(sum(zv_var)>0) {
+    #    cat('\n Removed', sum(zv_var), "independent variables with zero variance from the train-set")
+    #    train_set = train_set[,!zv_var]
+    # }
+    
+    
+    ########################
+    # Fit & Evaluate model #
+    ########################
     AUC <- tryCatch(
         { # recieves train and test set and returns AUC over the test set
             if(inducer=="rf"){          # Random Forest
@@ -28,6 +47,13 @@ predict_set = function(train_set,
                 predictions = as.vector(y_hat[,2])
                 
             } else if(inducer=="glm") { # Logistic Regression
+                # Check which variables in the train-set have less then two levels, that is ZV 
+                # (Zero Variance)
+                zv_var = apply(train_set, 2, function(x) length(unique(x))<2)
+                if(sum(zv_var)>0) {
+                    if(verbose) cat('\n Removed', sum(zv_var), "independent variables with zero variance from the train-set")
+                    train_set = train_set[,!zv_var]
+                }
                 model = glm(y ~ ., data=train_set, family = "binomial")
                 y_hat = predict(model, test_set, type="response")
                 predictions = as.vector(y_hat)
@@ -46,7 +72,7 @@ predict_set = function(train_set,
                 y_hat = predict(model, test_set, probability=TRUE)
                 y_hat = attr(y_hat, "probabilities")
                 predictions = as.vector(y_hat[,1])
-   
+                
             } else {
                 warning("Unknown inducer in predict_set")
             }

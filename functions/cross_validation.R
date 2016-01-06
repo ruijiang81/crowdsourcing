@@ -58,7 +58,8 @@ cross_validation <- function(cv_data,
             ## Fit & Evaluate model
             AUC.mdl <- predict_set(train_data,
                                    test_data,
-                                   inducer=inducer)
+                                   inducer=inducer,
+                                   verbose=FALSE)
             
             return(data.frame(Repetition=rep,Fold=fold,AUC=AUC.mdl))
         } # end foreach fit model via repeated K-fold CV
