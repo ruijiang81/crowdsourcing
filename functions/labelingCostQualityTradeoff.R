@@ -61,7 +61,12 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
         f3 = function(x) round(0.756717 - 2.24434*x + 108.603*x^2 - 681.85*x^3 + 1144.47*x^4,4)
         p = f3(C)
         
-    } else {
+    } else if (method=='f4') {
+      # {{0.02,0.65},{0.25,0.95}}
+      f4 = function(x) round(0.625 + 1.3*x,4)
+    p = f4(C)
+      
+    }   else {
         stop('Unknown tradeoff method')
     }    
     
