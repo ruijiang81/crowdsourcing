@@ -4,6 +4,7 @@ source("scripts/load_libraries.R")
 sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source)
 # options(error=recover) # debugging mode
 
+
 ## Setup
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24*3, units="hours")
@@ -18,7 +19,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[9]
+    )[2]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -27,8 +28,10 @@ batch_size             <<- 10
 number_batch_omissions <<- 10
 num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
 #for random payment selection best to use 0
-price_per_label_values = c(0.02,0.08,0.14,0.19,0.25) #c(0.02,0.14,0.25)
-max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
+#price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
+price_per_label_values = c(0.02,0.14,0.25)
+
+max_total_cost = 50 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -39,21 +42,20 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 10 #10
+repeatitions <- 2 #10
 
 
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48","SVM")[c(2)],
+    model_inducer=c("RF","GLM","J48","SVM")[c(1)],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","HashTable")[c(1)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","HashTable","F4")[c(1)],
     stringsAsFactors=FALSE)
-
 
 ## Fix value
 fixProbability = 0.85
@@ -226,17 +228,22 @@ for(s in 1:nrow(param)){
                                              inducer=model_inducer)
                 cat('\n',"Finished purchasing initial training set")
                 cat('\n',"AUC =",calculated_AUC)
+            
+                
+                ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
+                ## Store iteration metadata in the report
+                rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+                new_item            = rep_metadata[current_instance_num-1,]
+                new_item$repetition = counter_repetitions
+                new_item$batch      = counter_batches-1
+                rep_report = rbind(rep_report,new_item)
+                current_report_line <- current_report_line+1   
+                
+                
             } # end Purchase initial batches
             
             
-            ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
-            ## Store iteration metadata in the report
-            rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-            new_entry            = rep_metadata[current_instance_num-1,]
-            new_entry$repetition = counter_repetitions
-            new_entry$batch      = counter_batches-1
-            rep_report = rbind(rep_report,new_entry)
-            current_report_line <- current_report_line+1   
+           
 
             
             ####################################################################
@@ -305,34 +312,34 @@ for(s in 1:nrow(param)){
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                new_entry            = rep_metadata[current_instance_num-1,]
-                new_entry$repetition = counter_repetitions
-                new_entry$batch      = counter_batches
+                new_item            = rep_metadata[current_instance_num-1,]
+                new_item$repetition = counter_repetitions
+                new_item$batch      = counter_batches
                 
                 
                 
                 if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
-                    new_entry$full_AUC = NA
-                    new_entry$subset_AUC = NA
+                    new_item$full_AUC = NA
+                    new_item$subset_AUC = NA
                     ## Add data from text file
                     dir_path = file.path(getwd(),"results","temp folder")
                     delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
                     full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
                     ## Add full performance
-                    new_entry$full_AUC = full_performance[1,"V2"]
+                    new_item$full_AUC = full_performance[1,"V2"]
                     ## Add delta performance
                     dn = nrow(delta_performance)
                     dm = ncol(delta_performance)
-                    ### Duplicate new_entry
-                    for(i in 2:(dm-1)) new_entry[i,] = new_entry[i-1,]
+                    ### Duplicate new_item
+                    for(i in 2:(dm-1)) new_item[i,] = new_item[i-1,]
                     ### Store subset AUC
-                    for(i in 2:dm) new_entry[i-1,"subset_AUC"] = delta_performance[i]
+                    for(i in 2:dm) new_item[i-1,"subset_AUC"] = delta_performance[i]
                 } else {
-                    new_entry$full_AUC   = NA
-                    new_entry$subset_AUC = NA
+                    new_item$full_AUC   = NA
+                    new_item$subset_AUC = NA
                 }
                 
-                rep_report = rbind(rep_report,new_entry)
+                rep_report = rbind(rep_report,new_item)
                 counter_batches = counter_batches+1 # updating the batch counter
                 current_report_line <- current_report_line+1
             } # end Running the rest of the simulation
