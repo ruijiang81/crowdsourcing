@@ -219,25 +219,29 @@ for(s in 1:nrow(param)){
                         } # end for change instance quality
                         
                         counter_batches = counter_batches+1 # updating the batch counter
+                        
+                        calculated_AUC = predict_set(training_set,
+                                                     holdout_data,
+                                                     inducer=model_inducer)
+                        
+                        #printing out to report
+                        rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+                        new_item            = rep_metadata[current_instance_num-1,]
+                        new_item$repetition = counter_repetitions
+                        new_item$batch      = counter_batches-1
+                        rep_report = rbind(rep_report,new_item)
+                        current_report_line <- current_report_line+1  
+                        
                     } # end for batch purchase
                     
                 } 
                 
-                calculated_AUC = predict_set(training_set,
-                                             holdout_data,
-                                             inducer=model_inducer)
+                
                 cat('\n',"Finished purchasing initial training set")
                 cat('\n',"AUC =",calculated_AUC)
             
-                
-                ###### adding the last performance results of the first phase of the simulation to the report file before starting the second phase
-                ## Store iteration metadata in the report
-                rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                new_item            = rep_metadata[current_instance_num-1,]
-                new_item$repetition = counter_repetitions
-                new_item$batch      = counter_batches-1
-                rep_report = rbind(rep_report,new_item)
-                current_report_line <- current_report_line+1   
+               
+                 
                 
                 
             } # end Purchase initial batches
