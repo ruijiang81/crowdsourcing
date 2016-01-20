@@ -22,7 +22,7 @@ reports = import.reports(reports_folder,
 # Calculate AUC(Cost)
 outputs  = interpolate.reports(reports_folder, na.rm=FALSE)
 # Should min and max benchmarks be added to the plot?
-benchmarks = TRUE
+benchmarks = F
 # Create different plots by
 plot_div = c("DATABASE_NAME","model_inducer","cost_function_type")
 plot_param = unique(outputs[,plot_div])
@@ -30,15 +30,18 @@ plot_param = unique(outputs[,plot_div])
 
 for(k in 1:nrow(plot_param))
 {
+    xlim=c(40,150) # The range of x axis
+    
     # Subset the output
     cases = !logical(nrow(outputs))
     for(p in 1:length(plot_div)) cases = (cases & outputs[,plot_div[p]] %in% plot_param[k,p])
     output = outputs[cases,]
+    output = output[output$cost_intervals>=xlim[1] & output$cost_intervals<=xlim[2],]
     # Include/Exclude the min_pay and max_pay benchmarks
     if(!benchmarks) output = output[!substr(output$payment_selection_criteria, 1, 7) %in% c("min_pay","max_pay"),]
     
     # Setup
-    y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
+    # y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
     
     # Create plots directory
     plot_dir  = file.path(getwd(),"plots")
@@ -54,8 +57,8 @@ for(k in 1:nrow(plot_param))
         # Change axis labels
         xlab("Cost of Model [$]") + ylab("AUC") + 
         # Set axis limits and ticks
-        scale_x_continuous(breaks = seq(40,300,10), limits = c(40, 150)) +
-        #scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
+        scale_x_continuous(breaks = seq(40,300,10), limits = xlim) +
+        # scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
         # Theme settings
         theme_bw() + theme(strip.text.x = element_blank(),
                            strip.background = element_rect(colour="white", fill="white"),
