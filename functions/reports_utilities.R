@@ -81,7 +81,8 @@ import.reports <- function(reports_folder="./reports",
 # interpolate.reports #
 #######################
 interpolate.reports <- function(reports_folder="./reports",
-                                na.rm = FALSE){
+                                na.rm=FALSE,
+                                interval_size=1){
     
     ## Get the data
     reports = import.reports(reports_folder)
@@ -128,7 +129,6 @@ interpolate.reports <- function(reports_folder="./reports",
         ) # end trycatch
         
         ### Generate cost table
-        interval_size = 1 #usually 1, or 2
         #### Find the minimum model costs among all the intial model costs
         initial_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
                                         function(x) min(x, na.rm=T))["cost_so_far"]

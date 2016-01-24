@@ -20,7 +20,7 @@ reports = import.reports(reports_folder,
 ## Visualization
 ################################################################################
 # Calculate AUC(Cost)
-outputs  = interpolate.reports(reports_folder, na.rm=FALSE)
+outputs  = interpolate.reports(reports_folder, na.rm=FALSE, interval_size=5)
 # Should min and max benchmarks be added to the plot?
 benchmarks = F
 # Create different plots by
