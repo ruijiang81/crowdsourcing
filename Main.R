@@ -19,7 +19,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[2]
+    )[1]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -31,7 +31,7 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-max_total_cost = 50 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -42,7 +42,7 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 2 #10
+repeatitions <- 10 #10
 
 
 ## Control simulation nuances
@@ -54,7 +54,7 @@ param <- expand.grid(
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
                                  "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","HashTable","F4")[c(1)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(7)],
     stringsAsFactors=FALSE)
 
 ## Fix value
