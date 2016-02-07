@@ -4,7 +4,8 @@
 #' 1. create_report; Create report template
 #' 2. import.reports; Import all the reports from the dest folde
 #' 3. interpolate.reports; Calculate the AUC per cost from the reports
-#'
+#' 4. export.interval.table;
+#' 
 
 
 #################
@@ -193,3 +194,29 @@ interpolate.reports <- function(reports_folder="./reports",
     
     return(outputs)
 } # interpolate.reports
+
+
+#########################
+# export.interval.table #
+#########################
+#' @param outputs the product of interpolate.reports()
+export.interval.table <- function(outputs)
+{
+    key_dic = unique(outputs[,c("key","payment_selection_criteria")])
+    
+    results = data.frame(cost_intervals=unique(outputs$cost_intervals))
+    for(k in key_dic$key){
+        key_value = unique(key_dic[key_dic$key %in% k, "payment_selection_criteria"])
+        output = subset(outputs, key==k, select = c("cost_intervals","average_holdout_cost_performance"))
+        results[results$cost_intervals %in% output$cost_intervals,key_value] = output$average_holdout_cost_performance
+    }
+    # > head(results)
+    # cost_intervals max_ratio100   max_ratio1e+06     max_total_ratio100   random100
+    # 1              NA             NA                 NA                   NA
+    # 2              NA             NA                 NA                   NA
+    # 3              0.7944134      0.7944134          0.7944134            0.7944134
+    # 4              0.8074540      0.8074540          0.8074540            0.8074540
+    # 5              0.8254625      0.8254625          0.8254625            0.8254625
+    # 6              0.8579312      0.8579312          0.8579312            0.8579312
+    return(results)
+} # end export.interval.table
