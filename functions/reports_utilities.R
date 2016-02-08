@@ -196,11 +196,13 @@ interpolate.reports <- function(reports_folder="./reports",
 } # interpolate.reports
 
 
-#########################
-# export.interval.table #
-#########################
+#############################
+# AUC.as.a.function.of.Cost #
+#############################
 #' @param outputs the product of interpolate.reports()
-export.interval.table <- function(outputs)
+#' @query_points the cost values
+#' 
+AUC.as.a.function.of.Cost <- function(outputs, query_points=NA)
 {
     key_dic = unique(outputs[,c("key","payment_selection_criteria")])
     
@@ -218,5 +220,55 @@ export.interval.table <- function(outputs)
     # 4              0.8074540      0.8074540          0.8074540            0.8074540
     # 5              0.8254625      0.8254625          0.8254625            0.8254625
     # 6              0.8579312      0.8579312          0.8579312            0.8579312
+    
+    
+    # Subset the table
+    if(!is.na(query_points[1])) results = subset(results, cost_intervals %in% query_points)
+    
+    
     return(results)
-} # end export.interval.table
+} # end AUC.as.a.function.of.Cost
+
+
+#############################
+# Cost.as.a.function.of.AUC #
+#############################
+#' @param outputs the product of interpolate.reports()
+#' @query_points the AUC values
+#' 
+Cost.as.a.function.of.AUC <- function(outputs, query_points){
+    key_dic = unique(outputs[,c("key","payment_selection_criteria")])
+    results = data.frame("auc"=query_points)
+    
+    for(k in unique(key_dic$key))
+    {
+        key_value = unique(key_dic[key_dic$key %in% k, "payment_selection_criteria"])
+        key_table = subset(outputs, key %in% k, select=c("cost_intervals","average_holdout_cost_performance"))
+        colnames(key_table) = c("cost_intervals","auc")
+        
+        
+        ## Step 1: Replace NA in index i with the value at index i+1
+        #         for(i in nrow(key_table):2)
+        #             if(is.na(key_table[i-1,"auc"]))
+        #                 key_table[i-1,"auc"] = key_table[i,"auc"]
+        
+        ## Step 2: Check that f(x) is monotonic nonincreasing function. 
+        ## If f(x) not monotnic then append the value in index i to index i+1
+        for(i in 2:nrow(key_table)) 
+            if(!any(is.na(key_table[(i-1):i,"auc"])) & key_table[i,"auc"]<key_table[i-1,"auc"])
+                key_table[i,"auc"] = key_table[i-1,"auc"]
+        
+        ## Step 3: Find f(x)^-1 and query it at the desired auc values via linear 
+        ## interpolation
+        x   = data.matrix(key_table[-1,"auc"])
+        y   = data.matrix(key_table[-1,"cost_intervals"])
+        app = approx(x, y, query_points) 
+        
+        ## Step 4: Store query points
+        results[results$auc %in% app$x, key_value] = app$y
+    } # end for loop
+    
+    
+    return(results)
+} # end Cost.as.a.function.of.AUC
+
