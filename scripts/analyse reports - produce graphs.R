@@ -24,9 +24,9 @@ plot_div = c("DATABASE_NAME","model_inducer","cost_function_type")
 # Control plot nuances
 param <- expand.grid(
     # Define interval ticks [in $]
-    interval_size=c(1,5),
+    interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
-    benchmarks=c(T,F),
+    benchmarks=c(T,F)[2],
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -38,6 +38,15 @@ for(l in 1:nrow(param))
     # Calculate AUC(Cost)
     outputs    = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
     plot_param = unique(outputs[,plot_div])
+    
+    ############################
+    # ggplot legend attributes #
+    ############################
+    # Change rules' names
+    names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "min_pay_per_label100", "random100")
+    names_new      = c("Max Payment",          "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Minimum Payment",      "Random")
+    # Change legend title
+    legend_title = "Payment Selection Criteria"
     
     
     for(k in 1:nrow(plot_param))
@@ -51,6 +60,9 @@ for(l in 1:nrow(param))
         output = output[output$cost_intervals>=xlim[1] & output$cost_intervals<=xlim[2],]
         # Include/Exclude the min_pay and max_pay benchmarks
         if(!benchmarks) output = output[!substr(output$payment_selection_criteria, 1, 7) %in% c("min_pay","max_pay"),]
+        # Change rules names
+        for(n in 1:length(names_original))
+            outputs[outputs$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
         
         # Setup
         # y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
@@ -62,26 +74,34 @@ for(l in 1:nrow(param))
         # Plot AUC as function of number of observations
         fig <- ggplot(output, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
             # Add lines to the plot
-            geom_line(aes(colour = payment_selection_criteria), size=1) +
+            geom_line(aes(colour = payment_selection_criteria), size=2) +
             #geom_hline(aes(yintercept=0.5)) + 
             # Add scatter points to the plot
-            geom_point(aes(colour = payment_selection_criteria), size=4) +
-            # Change axis labels
-            xlab("Cost of Model [$]") + ylab("AUC") + 
-            # Set axis limits and ticks
+            #geom_point(aes(colour = payment_selection_criteria), size=4) +
+            # X axis attributes
+            ## Set axis label
+            xlab("Cost of Model [$]") +  
+            ## Set axis limits and ticks
             scale_x_continuous(breaks = seq(40,300,10), limits = xlim) +
+            # Y axis attributes
+            ## Set axis label
+            ylab("AUC") +
+            ## Set axis limits and ticks
             # scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
             # Theme settings
             theme_bw() + theme(strip.text.x = element_blank(),
                                strip.background = element_rect(colour="white", fill="white"),
-                               legend.position=c(.9,.1))
+                               legend.position=c(.75,.2),
+                               text=element_text(size=20)) +
+            # Legend Title
+            labs(colour = legend_title) 
         plot(fig)
         ### Export "Auc vs. Cost" plot
         plot_name = paste0('(',unique(output$DATABASE_NAME),')',
                            '(',unique(output$model_inducer),')',
                            '(',unique(output$cost_function_type),')',
                            '(','Auc vs. Cost',')')#,
-                           #'(','interval size=',interval_size,')')
+        #'(','interval size=',interval_size,')')
         if(benchmarks) plot_name = paste0(plot_name,'(With Benchmarks)')
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            

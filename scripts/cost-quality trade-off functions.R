@@ -48,10 +48,7 @@ fig1 <- ggplot(plot_data, aes(x=price, y=probabilities, group=trade_offs)) +
     scale_x_continuous(breaks = x_ticks, limits = range(x_ticks)) +
     xlab("Price Per Label") + 
     # Theme attributes
-    theme_bw() + theme(legend.position="none") +
+    theme_bw() + theme(legend.position="none", text=element_text(size=20)) +
     facet_grid(. ~ trade_offs) 
 plot(fig1)
 ggsave(file=file.path(getwd(),"Cost-Quality tradeoff functions.png"), fig1, width=12, height=4)
-
-
-

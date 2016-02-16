@@ -24,3 +24,4 @@ Dropbox/
 *.RData
 *.csv
 *.dominokeep
+.Rproj.user
