@@ -31,7 +31,7 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 60 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -42,7 +42,7 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 10 #10
+repeatitions <- 1 #10
 
 
 ## Control simulation nuances
@@ -52,9 +52,9 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(7)],
+    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(2)],
     stringsAsFactors=FALSE)
 
 ## Fix value
@@ -160,7 +160,7 @@ for(s in 1:nrow(param)){
             unlabeled_data = unlabeled_data[sample(nrow(unlabeled_data)),]
             max_size_training_data = nrow(unlabeled_data) #used later for sanity check
             
-                        
+            
             ####################################################################
             #' Purchase initial batches and fit model on them
             ####################################################################
@@ -220,9 +220,17 @@ for(s in 1:nrow(param)){
                         
                         counter_batches = counter_batches+1 # updating the batch counter
                         
+                        #################################
+                        # Evaluate model on unseen data #
+                        #################################
+                        ## AUC
                         calculated_AUC = predict_set(training_set,
                                                      holdout_data,
                                                      inducer=model_inducer)
+                        ## Top N measures
+                        topN = top_n(training_set,
+                                     holdout_data,
+                                     inducer=model_inducer)
                         
                         #printing out to report
                         rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
@@ -239,16 +247,16 @@ for(s in 1:nrow(param)){
                 
                 cat('\n',"Finished purchasing initial training set")
                 cat('\n',"AUC =",calculated_AUC)
-            
-               
-                 
+                
+                
+                
                 
                 
             } # end Purchase initial batches
             
             
-           
-
+            
+            
             
             ####################################################################
             #' Running the rest of the simulation
@@ -309,10 +317,18 @@ for(s in 1:nrow(param)){
                 #counter_batches = counter_batches+1 # updating the batch counter
                 
                 
+                #################################
+                # Evaluate model on unseen data #
+                #################################
+                ## AUC
                 calculated_AUC = predict_set(training_set,
                                              holdout_data,
                                              inducer=model_inducer)
                 cat('\n',"AUC =",calculated_AUC)
+                ## Top N measures
+                topN = top_n(training_set,
+                             holdout_data,
+                             inducer=model_inducer)
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
