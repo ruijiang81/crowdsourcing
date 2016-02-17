@@ -13,6 +13,8 @@
 top_n <- function(train_set,
                   test_set,
                   inducer=c("RF","GLM","J48","SVM"),
+                  percentage_cutoffs=c(0.01, 0.05, 0.10), # 1%, 5%, 10%
+                  measures=c('rec', 'prec'), # Recall, Precision
                   verbose=TRUE)
 {
     ###############################
@@ -35,12 +37,12 @@ top_n <- function(train_set,
     ########################
     # Fit & Evaluate model #
     ########################
-    AUC <- tryCatch(
+    evaluations <- tryCatch(
         { # recieves train and test set and returns AUC over the test set
             if(inducer=="rf"){          # Random Forest
                 model = randomForest::randomForest(y ~ ., train_set, ntree=100)                                 
                 y_hat = predict(model,test_set,type="prob") 
-                predictions = as.vector(y_hat[,2])
+                y_hat = as.vector(y_hat[,2])
                 
             } else if(inducer=="glm") { # Logistic Regression
                 # Check which variables in the train-set have less then two levels, that is ZV 
@@ -52,7 +54,7 @@ top_n <- function(train_set,
                 }
                 model = glm(y ~ ., data=train_set, family = "binomial")
                 y_hat = predict(model, test_set, type="response")
-                predictions = as.vector(y_hat)
+                y_hat = as.vector(y_hat)
                 
             } else if(inducer=="j48") { # J48 tree
                 ## Learn J4.8 tree with reduced error pruning (-R) and 
@@ -61,22 +63,50 @@ top_n <- function(train_set,
                 Weka_control = RWeka::Weka_control()
                 model = RWeka::J48(y ~ ., train_set, control=Weka_control)
                 y_hat = predict(model, test_set, type="probability")
-                predictions = as.vector(y_hat[,1])
+                y_hat = as.vector(y_hat[,1])
                 
             } else if(inducer=="svm") { # Support Vector Machines
                 model = e1071::svm(y ~ ., data=train_set, scale=T, cost=1e0, probability=TRUE)
                 y_hat = predict(model, test_set, probability=TRUE)
                 y_hat = attr(y_hat, "probabilities")
-                predictions = as.vector(y_hat[,1])
+                y_hat = as.vector(y_hat[,1])
                 
             } else {
                 warning("Unknown inducer in predict_set")
             }
             
-            pred     = ROCR::prediction(predictions,test_set$y)
-            perf_AUC = ROCR::performance(pred,"auc") #Calculate the AUC value
-            perf_AUC = perf_AUC@y.values[[1]]
-            #max(perf_AUC,1-perf_AUC)
+            #######################
+            ## Models evaluation ##
+            #######################
+            params = expand.grid(measures=measures,
+                                 percentage_cutoffs=percentage_cutoffs,
+                                 stringsAsFactors=FALSE)
+            params$n_cutoffs = round(nrow(test_set)*params$percentage_cutoffs,0)
+            ranked_indices = order(y_hat,decreasing=TRUE)
+            eval = data.frame()
+            
+            for(k in 1:nrow(params)){
+                # Find the n_cutoff observation corresponding to the highest \hat{P}(Y = Minority Class)  
+                predictions = y_hat[ranked_indices %in% 1:params[k,"n_cutoffs"]]
+                labels = test_set[ranked_indices %in% 1:params[k,"n_cutoffs"],"y"]
+                # Evaluate the top n performance
+                prediction.obj = ROCR::prediction(predictions, labels)
+                perf = ROCR::performance(prediction.obj,params[k,"measures"])
+                x = perf@x.values[[1]] # cutoff values
+                y = perf@y.values[[1]] # performance values
+                # Find the (inherent) cutoff which yields the max F1 performance
+                f1 = ROCR::performance(prediction.obj,"f")
+                f1_cutoff = f1@x.values[[1]][which.max(f1@y.values[[1]])[1]]
+                # Plot
+                # plot(0,0,type="n", xlim=c(0,1), ylim=c(0,1), xlab="Cutoff", ylab="Performance")
+                # lines(perf@x.values[[1]], perf@y.values[[1]], type="b", col="red")
+                # abline(v=f1_cutoff, lty=2)
+                
+                # Stroe result
+                eval[k,"measure"] = perf@y.name
+                eval[k,"top"]     = paste0(params[k,"percentage_cutoffs"]*100,'%')
+                eval[k,"value"]   = y[x==max(x[x<=f1_cutoff])]
+            } # end for params
         },
         error = function(cond){ # if the model fitting or the evaluation failed, return AUC = NA with a warning
             warning("predict_set could not fit/evalute a model, return AUC=NA")
@@ -85,5 +115,5 @@ top_n <- function(train_set,
     ) # end tryCatch
     
     
-    return(AUC)   
+    return(evaluations)   
 } # end predict_set
