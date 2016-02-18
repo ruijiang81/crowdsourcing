@@ -62,7 +62,7 @@ for(l in 1:nrow(param))
         if(!benchmarks) output = output[!substr(output$payment_selection_criteria, 1, 7) %in% c("min_pay","max_pay"),]
         # Change rules names
         for(n in 1:length(names_original))
-            outputs[outputs$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
+            output[output$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
         
         # Setup
         # y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
