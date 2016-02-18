@@ -31,7 +31,7 @@ num_batches_per_cost_initial_training_set=10 # 5  e.g., if the batch size is 10,
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-max_total_cost = 60 #should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 #should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -42,7 +42,7 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 1 #10
+repeatitions <- 20 #10
 
 
 ## Control simulation nuances
@@ -234,6 +234,8 @@ for(s in 1:nrow(param)){
                         
                         #printing out to report
                         rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+                        for(col_name in colnames(topN))
+                            rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                         new_item            = rep_metadata[current_instance_num-1,]
                         new_item$repetition = counter_repetitions
                         new_item$batch      = counter_batches-1
@@ -332,6 +334,8 @@ for(s in 1:nrow(param)){
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+                for(col_name in colnames(topN))
+                    rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                 new_item            = rep_metadata[current_instance_num-1,]
                 new_item$repetition = counter_repetitions
                 new_item$batch      = counter_batches
