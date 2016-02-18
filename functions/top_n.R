@@ -34,6 +34,15 @@ top_n <- function(train_set,
     inducer = tolower(inducer[1])
     
     
+    ##############
+    # Parameters #
+    ##############
+    params = expand.grid(measures=measures,
+                         percentage_cutoffs=percentage_cutoffs,
+                         stringsAsFactors=FALSE)
+    params$n_cutoffs = round(nrow(test_set)*params$percentage_cutoffs,0)
+    
+    
     ########################
     # Fit & Evaluate model #
     ########################
@@ -78,10 +87,6 @@ top_n <- function(train_set,
             #######################
             ## Models evaluation ##
             #######################
-            params = expand.grid(measures=measures,
-                                 percentage_cutoffs=percentage_cutoffs,
-                                 stringsAsFactors=FALSE)
-            params$n_cutoffs = round(nrow(test_set)*params$percentage_cutoffs,0)
             ranked_indices = order(y_hat,decreasing=TRUE)
             eval = data.frame()
             
@@ -103,17 +108,35 @@ top_n <- function(train_set,
                 # abline(v=f1_cutoff, lty=2)
                 
                 # Stroe result
-                eval[k,"measure"] = perf@y.name
+                eval[k,"measure"] = params[k,"measures"]
                 eval[k,"top"]     = paste0(params[k,"percentage_cutoffs"]*100,'%')
                 eval[k,"value"]   = y[x==max(x[x<=f1_cutoff])]
+                
             } # end for params
         },
         error = function(cond){ # if the model fitting or the evaluation failed, return AUC = NA with a warning
-            warning("predict_set could not fit/evalute a model, return AUC=NA")
-            return(NA)
+            warning("predict_set could not fit/evalute a model, return NAs")
+            eval = data.frame()
+            for(k in 1:nrow(params)){
+                eval[k,"measure"] = params[k,"measures"]
+                eval[k,"top"]     = paste0(params[k,"percentage_cutoffs"]*100,'%')
+                eval[k,"value"]   = NA
+            }
+            return(eval)
         } # end error
     ) # end tryCatch
     
     
-    return(evaluations)   
+    #############################################
+    # Convert long data frame into a row vector #
+    ############################################# 
+    eval_vec = data.frame()
+    for(k in 1:nrow(eval))
+    {
+        eval_vec[1,k] = eval[k,"value"]
+        colnames(eval_vec)[k] = paste(eval[k,"measure"],eval[k,"top"],sep="_")
+    }
+    
+    
+    return(eval_vec)   
 } # end predict_set
