@@ -14,7 +14,7 @@ top_n <- function(train_set,
                   test_set,
                   inducer=c("RF","GLM","J48","SVM"),
                   percentage_cutoffs=c(0.01, 0.05, 0.10), # 1%, 5%, 10%
-                  measures=c('rec', 'prec'), # Recall, Precision
+                  measures=c('rec', 'prec')[2], # Recall, Precision
                   verbose=TRUE)
 {
     ###############################
@@ -94,23 +94,24 @@ top_n <- function(train_set,
                 # Find the n_cutoff observation corresponding to the highest \hat{P}(Y = Minority Class)  
                 predictions = y_hat[ranked_indices %in% 1:params[k,"n_cutoffs"]]
                 labels = test_set[ranked_indices %in% 1:params[k,"n_cutoffs"],"y"]
-                # Evaluate the top n performance
-                prediction.obj = ROCR::prediction(predictions, labels)
-                perf = ROCR::performance(prediction.obj,params[k,"measures"])
-                x = perf@x.values[[1]] # cutoff values
-                y = perf@y.values[[1]] # performance values
-                # Find the (inherent) cutoff which yields the max F1 performance
-                f1 = ROCR::performance(prediction.obj,"f")
-                f1_cutoff = f1@x.values[[1]][which.max(f1@y.values[[1]])[1]]
-                # Plot
-                # plot(0,0,type="n", xlim=c(0,1), ylim=c(0,1), xlab="Cutoff", ylab="Performance")
-                # lines(perf@x.values[[1]], perf@y.values[[1]], type="b", col="red")
-                # abline(v=f1_cutoff, lty=2)
+                if(params[k,"measures"]=="prec"){ # precision
+                    # Evaluate the top n performance
+                    prediction.obj = ROCR::prediction(predictions, labels)
+                    perf  = ROCR::performance(prediction.obj,'prec')
+                    y     = perf@y.values[[1]] # performance values
+                    value = y[length(y)]
+                }
+                # } else if (params[k,"measures"]=="rec"){ # recall
+                #     tp_topN = 
+                #     tp = 
+                #     fn=
+                # }
                 
-                # Stroe result
+                
+                # Store result
                 eval[k,"measure"] = params[k,"measures"]
                 eval[k,"top"]     = paste0(params[k,"percentage_cutoffs"]*100,'%')
-                eval[k,"value"]   = y[x==max(x[x<=f1_cutoff])]
+                eval[k,"value"]   = value
                 
             } # end for params
         },
