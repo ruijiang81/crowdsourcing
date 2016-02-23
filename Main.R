@@ -42,7 +42,7 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 20 #10
+repeatitions <- 2 #10
 
 
 ## Control simulation nuances
@@ -54,7 +54,7 @@ param <- expand.grid(
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
                                  "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(1)],
     # Quality-Cost tradeoff
-    cost_function_type = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(2)],
+    primary_cost_function = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(2)],
     stringsAsFactors=FALSE)
 
 ## Fix value
@@ -63,6 +63,12 @@ fixProbability = 0.85
 ## Hash-table example
 # fixProbability = data.frame(cost=price_per_label_values,
 #                             probability=probabilities)
+
+
+## Setup cost function change
+secondary_cost_function_flag          = TRUE
+secondary_cost_function               = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[1]
+model_cost_for_changing_cost_function = 75
 
 
 ## Get the data
@@ -114,7 +120,7 @@ for(s in 1:nrow(param)){
     ## Setup simulation parameters
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
-    cost_function_type         = param[s,"cost_function_type"]
+    cost_function_type         = param[s,"primary_cost_function"]
     
     
     ## Allocate report
@@ -128,6 +134,7 @@ for(s in 1:nrow(param)){
     
     for(counter_repetitions in 1:repeatitions)
     {
+        cost_function_type = param[s,"primary_cost_function"]
         #' In order to handle repetitions failure we encapsulate the repetitions  
         #' in tryCatch.
         #' For example, initial batches don't encompass all the available costs.
@@ -178,6 +185,10 @@ for(s in 1:nrow(param)){
                         
                         set.seed(current_instance_num*global_seed)
                         pay_per_label<-sample(price_per_label_values,1)
+                        
+                        if (secondary_cost_function_flag & (cost_so_far>model_cost_for_changing_cost_function))
+                            cost_function_type = secondary_cost_function
+                        
                         labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
                                                                        pay_per_label,
                                                                        fixProbability)  
@@ -228,14 +239,14 @@ for(s in 1:nrow(param)){
                                                      holdout_data,
                                                      inducer=model_inducer)
                         ## Top N measures
-                        topN = top_n(training_set,
-                                     holdout_data,
-                                     inducer=model_inducer)
+                        # topN = top_n(training_set,
+                        #              holdout_data,
+                        #              inducer=model_inducer)
                         
                         #printing out to report
                         rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                        for(col_name in colnames(topN))
-                            rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
+                        # for(col_name in colnames(topN))
+                        #     rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                         new_item            = rep_metadata[current_instance_num-1,]
                         new_item$repetition = counter_repetitions
                         new_item$batch      = counter_batches-1
@@ -292,6 +303,9 @@ for(s in 1:nrow(param)){
                     else {
                         training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
                     }
+                    
+                    if (secondary_cost_function_flag & (cost_so_far>model_cost_for_changing_cost_function))
+                        cost_function_type = secondary_cost_function
                     labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
                                                                    pay_per_label,
                                                                    fixProbability)
@@ -328,14 +342,14 @@ for(s in 1:nrow(param)){
                                              inducer=model_inducer)
                 cat('\n',"AUC =",calculated_AUC)
                 ## Top N measures
-                topN = top_n(training_set,
-                             holdout_data,
-                             inducer=model_inducer)
+                # topN = top_n(training_set,
+                #              holdout_data,
+                #              inducer=model_inducer)
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                for(col_name in colnames(topN))
-                    rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
+                # for(col_name in colnames(topN))
+                #     rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                 new_item            = rep_metadata[current_instance_num-1,]
                 new_item$repetition = counter_repetitions
                 new_item$batch      = counter_batches
@@ -380,14 +394,15 @@ for(s in 1:nrow(param)){
     } #repetitions
     
     ## Save report on hard drive
-    report_dir   = file.path(getwd(),"results")
-    metadata_dir = file.path(report_dir,"metadata")
-    file_name    = paste0('(',tolower(DATABASE_NAME),')',
-                          '(',toupper(model_inducer),')',
-                          '(',tolower(cost_function_type),')',
-                          '(',tolower(payment_selection_criteria),
-                          max_instances_in_history,')',
-                          '(',Sys.Date(),')',".csv")
+    report_dir         = file.path(getwd(),"results")
+    metadata_dir       = file.path(report_dir,"metadata")
+    primary_cost_function = param[s,"primary_cost_function"]
+    cost_function_type = ifelse(secondary_cost_function_flag,paste0(primary_cost_function,2,secondary_cost_function),primary_cost_function)
+    file_name          = paste0('(',tolower(DATABASE_NAME),')',
+                                '(',toupper(model_inducer),')',
+                                '(',tolower(cost_function_type),')',
+                                '(',tolower(payment_selection_criteria),max_instances_in_history,')',
+                                '(',Sys.Date(),')',".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
