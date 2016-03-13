@@ -65,7 +65,6 @@ for(l in 1:nrow(param))
             output[output$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
         
         # Setup
-        # y_range = signif(range(output$average_holdout_cost_performance, na.rm=TRUE),1)
         
         # Create plots directory
         plot_dir  = file.path(getwd(),"plots")

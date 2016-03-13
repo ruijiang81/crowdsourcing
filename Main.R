@@ -19,7 +19,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[1]
+    )[6]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -42,7 +42,7 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 2 #10
+repeatitions <- 20 #10
 
 
 ## Control simulation nuances
