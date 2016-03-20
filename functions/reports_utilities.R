@@ -164,7 +164,6 @@ interpolate.reports <- function(reports_folder="./reports",
                 }
             }
             ###########
-            sum_interval_cost_performance = 0
             if (repeation_counter==1){
                 #contains the performance per cost intervals
                 sum_interval_cost_performance = interval_cost_performance 

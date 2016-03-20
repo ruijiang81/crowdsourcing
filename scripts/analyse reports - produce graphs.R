@@ -26,7 +26,7 @@ param <- expand.grid(
     # Define interval ticks [in $]
     interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
-    benchmarks=c(T,F)[2],
+    benchmarks=c("No","Yes","Min-Max-Random")[c(1,2,3)],
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -43,10 +43,13 @@ for(l in 1:nrow(param))
     # ggplot legend attributes #
     ############################
     # Change rules' names
-    names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "min_pay_per_label100", "random100")
-    names_new      = c("Max Payment",          "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Minimum Payment",      "Random")
+    names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "max_total_ratio1e+06", "min_pay_per_label100", "random100")
+    #names_new     = c("Maximum Payment",      "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Max Total Ratio",      "Minimum Payment",      "Random")
+    names_new      = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
+
     # Change legend title
-    legend_title = "Payment Selection Criteria"
+    #legend_title = "Payment Selection Criteria"
+    legend_title = "" # No title
     
     
     for(k in 1:nrow(plot_param))
@@ -59,7 +62,11 @@ for(l in 1:nrow(param))
         output = outputs[cases,]
         output = output[output$cost_intervals>=xlim[1] & output$cost_intervals<=xlim[2],]
         # Include/Exclude the min_pay and max_pay benchmarks
-        if(!benchmarks) output = output[!substr(output$payment_selection_criteria, 1, 7) %in% c("min_pay","max_pay"),]
+        if(benchmarks=="No") 
+            output = output[!substr(output$payment_selection_criteria, 1, 6) %in% c("min_pa","max_pa"),]
+        else if(benchmarks=="Min-Max-Random")
+            output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","min_pa","max_pa"),]
+        
         # Change rules names
         for(n in 1:length(names_original))
             output[output$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
@@ -79,7 +86,8 @@ for(l in 1:nrow(param))
             #geom_point(aes(colour = payment_selection_criteria), size=4) +
             # X axis attributes
             ## Set axis label
-            xlab("Cost of Model [$]") +  
+            #xlab("Cost of Model [$]") + 
+            xlab("Cost") +
             ## Set axis limits and ticks
             scale_x_continuous(breaks = seq(40,300,10), limits = xlim) +
             # Y axis attributes
@@ -101,7 +109,13 @@ for(l in 1:nrow(param))
                            '(',unique(output$cost_function_type),')',
                            '(','Auc vs. Cost',')')#,
         #'(','interval size=',interval_size,')')
-        if(benchmarks) plot_name = paste0(plot_name,'(With Benchmarks)')
+        if(benchmarks=="Yes") 
+            plot_name = paste0(plot_name,'(With Benchmarks)')
+        else if(benchmarks=="No")
+            plot_name = paste0(plot_name,'(Without Benchmarks)')
+        else if(benchmarks=="Min-Max-Random")
+            plot_name = paste0(plot_name,'(Min-Max-Random)')
+        
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            
         ggsave(file=file.path(plot_dir,plot_name), fig,width=12, height=8)
