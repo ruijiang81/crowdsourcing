@@ -26,7 +26,7 @@ param <- expand.grid(
     # Define interval ticks [in $]
     interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
-    benchmarks=c("No","Yes","Min-Max-Random")[c(1,2,3)],
+    benchmarks=c("No","Yes","Min-Max-Random","MR","MTR"),
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -45,8 +45,9 @@ for(l in 1:nrow(param))
     # Change rules' names
     names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "max_total_ratio1e+06", "min_pay_per_label100", "random100")
     #names_new     = c("Maximum Payment",      "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Max Total Ratio",      "Minimum Payment",      "Random")
-    names_new      = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
-
+    #names_new     = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
+    names_new      = c("Maximum Payment",      "ALP-MR",        "ALP-MR-h",       "ALP-TR",              "ALP-TR-h",             "Minimum Payment",      "Uniform")
+    
     # Change legend title
     #legend_title = "Payment Selection Criteria"
     legend_title = "" # No title
@@ -66,6 +67,10 @@ for(l in 1:nrow(param))
             output = output[!substr(output$payment_selection_criteria, 1, 6) %in% c("min_pa","max_pa"),]
         else if(benchmarks=="Min-Max-Random")
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","min_pa","max_pa"),]
+        else if(benchmarks=="MR")
+            output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_ra"),]
+        else if(benchmarks=="MTR")
+            output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_to"),]
         
         # Change rules names
         for(n in 1:length(names_original))
@@ -107,14 +112,15 @@ for(l in 1:nrow(param))
         plot_name = paste0('(',unique(output$DATABASE_NAME),')',
                            '(',unique(output$model_inducer),')',
                            '(',unique(output$cost_function_type),')',
-                           '(','Auc vs. Cost',')')#,
+                           '(','Auc vs. Cost',')')
         #'(','interval size=',interval_size,')')
         if(benchmarks=="Yes") 
             plot_name = paste0(plot_name,'(With Benchmarks)')
         else if(benchmarks=="No")
             plot_name = paste0(plot_name,'(Without Benchmarks)')
-        else if(benchmarks=="Min-Max-Random")
-            plot_name = paste0(plot_name,'(Min-Max-Random)')
+        else(benchmarks=="Min-Max-Random")
+            plot_name = paste0(plot_name,'(',benchmarks,')')
+
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            
