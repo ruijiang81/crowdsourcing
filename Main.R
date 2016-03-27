@@ -268,7 +268,7 @@ for(s in 1:nrow(param)){
             } # end Purchase initial batches
             
             
-            
+            # ---------------------------------------------------------------- #
             
             
             ####################################################################
@@ -282,8 +282,17 @@ for(s in 1:nrow(param)){
                 cat("\n","Total model cost",paste0(round(cost_so_far,1),"$"))
                 cat("\n","Total instances in the model",current_instance_num)
                 
-                if (current_instance_num+batch_size>max_size_training_data)
-                {stop("current_instance_num+batch_size>max_size_training_data")} #sanity check that the allocation of instances according to cost doesn't exceed the number of initially available unlabelled data
+                
+                ##################
+                #' Sanity Checks #
+                ##################
+                # Handle the "run out of instances" issue
+                if(current_instance_num + batch_size > max_size_training_data){
+                    cat("\n", "Out of unlabeled instances")
+                    break
+                } 
+                
+                
                 ################################################################
                 #' Choose next cost to pay
                 ################################################################
