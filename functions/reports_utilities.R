@@ -84,12 +84,15 @@ import.reports <- function(reports_folder="./reports",
 interpolate.reports <- function(reports_folder="./reports",
                                 na.rm=FALSE,
                                 interval_size=1){
-    
-    ## Get the data
+    ################
+    # Get the data #
+    ################
     reports = import.reports(reports_folder)
     
     
-    ## Test that each rule has the same number of repetitions
+    ##########################################################
+    # Test that each rule has the same number of repetitions #
+    ##########################################################
     rep_table = matrix(NA, nrow=length(unique(reports$key)), ncol=max(reports$repetition))
     for(k in sort(unique(reports$key))){
         index_rep = t(unique(subset(reports, key==k, select=repetition)))
@@ -107,6 +110,23 @@ interpolate.reports <- function(reports_folder="./reports",
     } else {
         cat("\n found",length(unique(reports$repetition)),"repetitions")
     }
+    
+    
+    #########################################################
+    # Test that each repetition has the same max model cost #
+    #########################################################
+    # Remove the min_payment instances index
+    select_indicator = !(substr(reports$payment_selection_criteria, 1, 6) %in% c("min_pa"))
+    # Find the model cost for each run
+    max_model_cost = aggregate(cost_so_far ~ repetition + payment_selection_criteria, 
+                               reports[select_indicator,], max)
+    min_max_model_cost_index = which.min(max_model_cost$cost_so_far)[1]    
+    min_max_model_cost_value = min(max_model_cost$cost_so_far)[1]    
+    cat("\n  Maximal Minimum Model Cost is ", min_max_model_cost_value, "$", sep="")
+    # Trim the max model cost
+    cutoff_offset = 10*0.25 # since if there is no problem the difference between the most and least value can be 2.5$ we add an offset
+    reports = subset(reports, cost_so_far<=(min_max_model_cost_value + cutoff_offset))    
+    
     
     ########################
     ## Calculate Auc(Cost) #
