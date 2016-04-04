@@ -26,7 +26,7 @@ param <- expand.grid(
     # Define interval ticks [in $]
     interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
-    benchmarks=c("No","Yes","Min-Max-Random","MR","MTR"),
+    benchmarks=c("Only","No","Yes","Min-Max-Random","MR","MTR")[1],
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -71,6 +71,9 @@ for(l in 1:nrow(param))
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_ra"),]
         else if(benchmarks=="MTR")
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_to"),]
+        else if(benchmarks=="Only")
+            output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","min_pa","max_pa"),]
+        
         
         # Change rules names
         for(n in 1:length(names_original))
@@ -118,9 +121,12 @@ for(l in 1:nrow(param))
             plot_name = paste0(plot_name,'(With Benchmarks)')
         else if(benchmarks=="No")
             plot_name = paste0(plot_name,'(Without Benchmarks)')
-        else(benchmarks=="Min-Max-Random")
+        else if(benchmarks=="Min-Max-Random")
             plot_name = paste0(plot_name,'(',benchmarks,')')
-
+        else if(benchmarks=="Only")
+            plot_name = paste0(plot_name,'(benchmarks)')
+        
+            
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            
