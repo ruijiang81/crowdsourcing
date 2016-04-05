@@ -19,24 +19,41 @@ outputs = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 head(outputs)
 
 
+###############################
+# Create different reports by #
+###############################
+report_div = c("DATABASE_NAME","model_inducer","cost_function_type")
+report_param = unique(outputs[,report_div])
+
+
 ##########################################
 # Export "AUC as function of Cost" table #
 ##########################################
-lower_bound = 50
-upper_bound = 150
-
-AUC.tabel = AUC.as.a.function.of.Cost(outputs, query_points=lower_bound:upper_bound)
-
-report_dir = file.path(getwd(),"results")
-file_name  = paste0('(','Auc as a function of Cost',')',
-                    '(','Intervales of size ',interval_size,')',
-                    '(',unique(tolower(outputs$DATABASE_NAME)),')',
-                    '(',unique(toupper(outputs$model_inducer)),')',
-                    '(',unique(tolower(outputs$cost_function_type)),')',
-                    '(',Sys.Date(),')',".csv")
-dir.create(report_dir, show=FALSE, recursive=TRUE)
-write.csv(AUC.tabel, file=file.path(report_dir,file_name), row.names=F)
-head(AUC.tabel)
+for(k in 1:nrow(report_param))
+{
+    lower_bound = 50
+    upper_bound = 150
+    
+    # Subset the output
+    cases = !logical(nrow(outputs))
+    for(p in 1:length(report_div)) 
+        cases = (cases & outputs[,report_div[p]] %in% report_param[k,p])
+    output = outputs[cases,]
+    
+    # Calculation
+    AUC.tabel = AUC.as.a.function.of.Cost(output, query_points=lower_bound:upper_bound)
+    
+    report_dir = file.path(getwd(),"results")
+    file_name  = paste0('(','Auc as a function of Cost',')',
+                        '(','Intervales of size ',interval_size,')',
+                        '(',unique(tolower(output$DATABASE_NAME)),')',
+                        '(',unique(toupper(output$model_inducer)),')',
+                        '(',unique(tolower(output$cost_function_type)),')',
+                        '(',Sys.Date(),')',".csv")
+    dir.create(report_dir, show=FALSE, recursive=TRUE)
+    write.csv(AUC.tabel, file=file.path(report_dir,file_name), row.names=F)
+    head(AUC.tabel)
+} # end for AUC as function of Cost
 
 
 ##########################################
