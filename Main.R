@@ -3,6 +3,7 @@ cat("\014"); rm(list = ls())
 source("scripts/load_libraries.R")
 sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source)
 # options(error=recover) # debugging mode
+options(digits=4)
 
 
 ## Setup
@@ -19,7 +20,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[6]
+    )[8]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -31,9 +32,9 @@ num_batches_per_cost_initial_training_set=10 # 5 e.g., if the batch size is 10, 
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
+max_total_cost = 300 # should be larger than the cost of paying for the initial training batches
 
-max_instances_in_history <<- 1e6 #the size (in terms of instances) of the number of last instances for each payment option to consider
+max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
@@ -52,22 +53,23 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
                                  "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(6)],
+                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
     # Quality-Cost tradeoff
-    primary_cost_function = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[c(3)],
+    primary_cost_function = c("Fix",                   # 1
+                              "Concave",               # 2
+                              "Asymptotic",            # 3
+                              "Fix3Labels",            # 4
+                              "Concave3Labels",        # 5
+                              "Asymptotic3Labels")[4], # 6
     stringsAsFactors=FALSE)
 
 ## Fix value
 fixProbability = 0.85
 
-## Hash-table example
-# fixProbability = data.frame(cost=price_per_label_values,
-#                             probability=probabilities)
-
 
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
-secondary_cost_function               = c("Fix","Concave","Asymptotic","F1","F2","F3","F4","HashTable")[1]
+secondary_cost_function               = c("Fix","Concave","Asymptotic")[2]
 model_cost_for_changing_cost_function = 75
 
 
@@ -216,8 +218,11 @@ for(s in 1:nrow(param)){
                                 change<-0
                             } 
                             
-                            #cost_so_far=cost_so_far+price_per_label_values[i]
-                            cost_so_far=cost_so_far+pay_per_label
+                            if(any(tolower(cost_function_type) %in% c("fix3labels","concave3labels","asymptotic3labels")))
+                                cost_so_far=cost_so_far+3*pay_per_label
+                            else
+                                cost_so_far=cost_so_far+pay_per_label
+                            
                             new_entry = data.frame("instance_num"=current_instance_num,
                                                    "pay"=pay_per_label,
                                                    "change"=change,
@@ -327,7 +332,12 @@ for(s in 1:nrow(param)){
                     else {
                         change<-0
                     }
-                    cost_so_far=cost_so_far+pay_per_label
+                    
+                    if(any(tolower(cost_function_type) %in% c("fix3labels","concave3labels","asymptotic3labels")))
+                        cost_so_far=cost_so_far+3*pay_per_label
+                    else
+                        cost_so_far=cost_so_far+pay_per_label
+                    
                     new_entry = data.frame("instance_num"=current_instance_num,
                                            "pay"=pay_per_label,
                                            "change"=change,

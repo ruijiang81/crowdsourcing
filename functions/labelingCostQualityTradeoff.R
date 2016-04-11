@@ -19,9 +19,10 @@
 #' @return The probability \code{p}.
 #' 
 
-labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable','F1','F2','F3'),
+labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','Fix3Labels','Concave3Labels','Asymptotic3Labels'),
                                         costPerTask=NULL,
                                         fixProbability=NULL){
+    stopifnot(length(method)==1)
     method  = tolower(method)
     C_Range = c(0.02,0.25) # define the cost range
     C = costPerTask
@@ -42,6 +43,39 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
     } else if (method=='asymptotic') {
         p = 1-1/(C*100) 
         
+    } else if (method=='fix3labels') {
+        N = 1
+        n = 2*N + 1        # 2N + 1 labelers
+        p = fixProbability # labelers quality 
+        q = 0              # integrated labeling quality
+        for(k in 0:N){
+            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+            q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        }
+        p = q
+        
+    } else if (method=='concave3labels') {
+        N = 1
+        n = 2*N + 1                             # 2N + 1 labelers
+        p = 0.48+0.066*(100*C)-0.0022*(100*C)^2 # labelers quality 
+        q = 0                                   # integrated labeling quality
+        for(k in 0:N){
+            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+            q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        }
+        p = q
+        
+    } else if (method=='asymptotic3labels') {
+        N = 1
+        n = 2*N + 1     # 2N + 1 labelers
+        p = 1-1/(C*100) # labelers quality 
+        q = 0           # integrated labeling quality
+        for(k in 0:N){
+            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+            q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        }
+        p = q
+        
     } else if (method=='hashtable') {
         colnames(fixProbability) = tolower(colnames(fixProbability))
         p = fixProbability[fixProbability$cost %in% C,"probability"]
@@ -55,17 +89,17 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
         # {{0.02,0.82},{0.25,0.88}}
         f2 = function(x) round(0.814783 + 0.26087*x,4)
         p = f2(C)
-      
+        
     } else if (method=='f3') {
         # {{0.02,0.75},{0.04,0.80},{0.08,0.97},{0.22,0.94},{0.25,0.80}}
         f3 = function(x) round(0.756717 - 2.24434*x + 108.603*x^2 - 681.85*x^3 + 1144.47*x^4,4)
         p = f3(C)
         
     } else if (method=='f4') {
-      # {{0.02,0.65},{0.25,0.95}}
-      f4 = function(x) round(0.625 + 1.3*x,4)
-    p = f4(C)
-      
+        # {{0.02,0.65},{0.25,0.95}}
+        f4 = function(x) round(0.625 + 1.3*x,4)
+        p = f4(C)
+        
     }   else {
         stop('Unknown tradeoff method')
     }    
