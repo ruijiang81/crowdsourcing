@@ -69,8 +69,7 @@ for(k in 1:nrow(report_param))
     for(p in 1:length(report_div)) 
         cases = (cases & outputs[,report_div[p]] %in% report_param[k,p])
     output = outputs[cases,]
-    output = subset(output, 
-                    lower_bound<=cost_intervals & cost_intervals<=upper_bound)
+    output = subset(output, cost_intervals<=upper_bound)
     
     key_dic = unique(output[,c("key","payment_selection_criteria")])
     random_value  = key_dic[tolower(substr(key_dic$payment_selection_criteria,1,6)) %in% "random","payment_selection_criteria"]
