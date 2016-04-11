@@ -51,12 +51,15 @@ param <- expand.grid(
     # What inducer should be used to fit models?
     model_inducer=c("RF","GLM","J48","SVM")[c(1)],
     # By which rule to decide how much to pay for the next batch?
-    payment_selection_criteria=c("random", "min_pay_per_label", "max_pay_per_label",
-                                 "max_quality", "max_ratio", "max_total_ratio", "delta_AUC_div_total_cost",
-                                 "always_0.02", "always_0.08", "always_0.14", "always_0.19", "always_0.25")[c(5)],
+    payment_selection_criteria=c("random",              # 1
+                                 "min_pay_per_label",   # 2
+                                 "max_pay_per_label",   # 3
+                                 "max_quality",         # 4
+                                 "max_ratio",           # 5
+                                 "max_total_ratio")[5], # 6
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
-                              "Concave",               # 2
+                              "Concave",               # 2   
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
@@ -66,10 +69,30 @@ param <- expand.grid(
 ## Fix value
 fixProbability = 0.85
 
+## Hash-table
+primary_cost_function = tolower(param[1,"primary_cost_function"])
+# if(primary_cost_function %in% c("fix3labels","concave3labels","asymptotic3labels")))
+if(primary_cost_function %in% "fix3labels"){
+    price_per_label_values = 3*price_per_label_values
+    fixProbability = data.frame(cost=price_per_label_values,
+                                probability=c(0.93925,0.93925,0.93925))
+    
+} else if (primary_cost_function %in% "concave3labels") {
+    price_per_label_values = 3*price_per_label_values
+    fixProbability = data.frame(cost=price_per_label_values,
+                                probability=c(0.6526018,0.9978207,0.8493373))
+    
+} else if (primary_cost_function %in% "asymptotic3labels") {
+    price_per_label_values = 3*price_per_label_values
+    fixProbability = data.frame(cost=price_per_label_values,
+                                probability=c(0.5000000,0.9854227,0.9953280))
+    
+}
+
 
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
-secondary_cost_function               = c("Fix","Concave","Asymptotic")[2]
+secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[1]
 model_cost_for_changing_cost_function = 75
 
 
@@ -218,11 +241,8 @@ for(s in 1:nrow(param)){
                                 change<-0
                             } 
                             
-                            if(any(tolower(cost_function_type) %in% c("fix3labels","concave3labels","asymptotic3labels")))
-                                cost_so_far=cost_so_far+3*pay_per_label
-                            else
-                                cost_so_far=cost_so_far+pay_per_label
-                            
+                            #cost_so_far=cost_so_far+price_per_label_values[i]
+                            cost_so_far=cost_so_far+pay_per_label
                             new_entry = data.frame("instance_num"=current_instance_num,
                                                    "pay"=pay_per_label,
                                                    "change"=change,
@@ -332,12 +352,7 @@ for(s in 1:nrow(param)){
                     else {
                         change<-0
                     }
-                    
-                    if(any(tolower(cost_function_type) %in% c("fix3labels","concave3labels","asymptotic3labels")))
-                        cost_so_far=cost_so_far+3*pay_per_label
-                    else
-                        cost_so_far=cost_so_far+pay_per_label
-                    
+                    cost_so_far=cost_so_far+pay_per_label
                     new_entry = data.frame("instance_num"=current_instance_num,
                                            "pay"=pay_per_label,
                                            "change"=change,

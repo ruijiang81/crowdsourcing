@@ -19,7 +19,7 @@
 #' @return The probability \code{p}.
 #' 
 
-labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','Fix3Labels','Concave3Labels','Asymptotic3Labels'),
+labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','HashTable'),
                                         costPerTask=NULL,
                                         fixProbability=NULL){
     stopifnot(length(method)==1)
@@ -43,43 +43,6 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','F
     } else if (method=='asymptotic') {
         p = 1-1/(C*100) 
         
-    } else if (method=='fix3labels') {
-        N = 1
-        n = 2*N + 1        # 2N + 1 labelers
-        p = fixProbability # labelers quality 
-        q = 0              # integrated labeling quality
-        for(k in 0:N){
-            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-            q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        }
-        p = q
-        
-    } else if (method=='concave3labels') {
-        N = 1
-        n = 2*N + 1                             # 2N + 1 labelers
-        p = 0.48+0.066*(100*C)-0.0022*(100*C)^2 # labelers quality 
-        q = 0                                   # integrated labeling quality
-        for(k in 0:N){
-            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-            q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        }
-        p = q
-        
-    } else if (method=='asymptotic3labels') {
-        N = 1
-        n = 2*N + 1     # 2N + 1 labelers
-        p = 1-1/(C*100) # labelers quality 
-        q = 0           # integrated labeling quality
-        for(k in 0:N){
-            binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-            q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        }
-        p = q
-        
-    } else if (method=='hashtable') {
-        colnames(fixProbability) = tolower(colnames(fixProbability))
-        p = fixProbability[fixProbability$cost %in% C,"probability"]
-        
     } else if (method=='f1') {
         # {{0.02,0.75},{0.08,0.93},{0.14,0.94},{0.19,0.95},{0.25,0.75}}
         f1 = function(x) round(0.559388 + 12.1491*x - 145.554*x^2 + 760.25*x^3 - 1440.88*x^4,4)
@@ -100,9 +63,45 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','F
         f4 = function(x) round(0.625 + 1.3*x,4)
         p = f4(C)
         
-    }   else {
-        stop('Unknown tradeoff method')
-    }    
+        # } else if (method=='fix3labels') {
+        #     N = 1
+        #     n = 2*N + 1        # 2N + 1 labelers
+        #     p = fixProbability # labelers quality 
+        #     q = 0              # integrated labeling quality
+        #     for(k in 0:N){
+        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        #     }
+        #     p = q
+        #     
+        # } else if (method=='concave3labels') {
+        #     N = 1
+        #     n = 2*N + 1                             # 2N + 1 labelers
+        #     p = 0.48+0.066*(100*C)-0.0022*(100*C)^2 # labelers quality 
+        #     q = 0                                   # integrated labeling quality
+        #     for(k in 0:N){
+        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        #     }
+        #     p = q
+        #     
+        # } else if (method=='asymptotic3labels') {
+        #     N = 1
+        #     n = 2*N + 1     # 2N + 1 labelers
+        #     p = 1-1/(C*100) # labelers quality 
+        #     q = 0           # integrated labeling quality
+        #     for(k in 0:N){
+        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
+        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
+        #     }
+        #     p = q   
+        
+    } else { # Hashtable
+        colnames(fixProbability) = tolower(colnames(fixProbability))
+        p = fixProbability[fixProbability$cost %in% C,"probability"]
+    }     
+    # stop('Unknown tradeoff method')
+    
     
     return(p)   
 } # end function labelingCostQualityTradeoff
