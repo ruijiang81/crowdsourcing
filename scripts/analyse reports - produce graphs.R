@@ -55,7 +55,7 @@ for(l in 1:nrow(param))
     
     for(k in 1:nrow(plot_param))
     {
-        xlim=c(40,150) # The range of x axis
+        xlim=c(140,300) # The range of x axis
         
         # Subset the output
         cases = !logical(nrow(outputs))
