@@ -1,22 +1,13 @@
 ################################################################################
 ## Reports Utilities
 ################################################################################
+#' 1. import.reports; Import all the reports from the dest folde
+#' 2. interpolate.reports; Calculate the AUC per cost from the reports
+#' 3. AUC.as.a.function.of.Cost;
+#' 4. Cost.as.a.function.of.AUC;
+#' Helper functions
 #' 1. create_report; Create report template
-#' 2. import.reports; Import all the reports from the dest folde
-#' 3. interpolate.reports; Calculate the AUC per cost from the reports
-#' 4. export.interval.table;
-#' 
-
-
-#################
-# create_report #
-#################
-create_report <- function()
-{
-    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout","full_AUC","subset_AUC") 
-    rep_report = read.table(text="", col.names=col_names)
-    return(rep_report)
-} # end create_report
+#' 2. interpolation.kernel
 
 
 ##################
@@ -158,44 +149,13 @@ interpolate.reports <- function(reports_folder="./reports",
         final_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
                                       function(x) max(x, na.rm=T))["cost_so_far"]
         max_cost = floor(min(final_model_costs))
+        
+        
         #### Set intervals
-        cost_intervals = seq(from = min_cost, to = max_cost, by = interval_size)
-        num_cost_intervals = length(cost_intervals)
+        cost_intervals                   = seq(from = min_cost, to = max_cost, by = interval_size)
+        average_holdout_cost_performance = interpolation.kernel(cost_intervals, report)
+        output                           = data.frame(cost_intervals, average_holdout_cost_performance)
         
-        num_repeations = length(unique(report$repetition))
-        
-        for (repeation_counter in unique(report$repetition)){
-            ## Subset the repetition across all reports
-            current_repeatition=subset(report, repetition==repeation_counter)
-            num_lines=nrow(current_repeatition)
-            
-            
-            #####generating calculated performance for fixed cost intervals
-            interval_cost_performance=numeric()
-            
-            for (i in 1:num_cost_intervals){
-                #print (i)
-                line_counter=1
-                current_interval_cost=cost_intervals[i]
-                
-                while ((line_counter<=num_lines)&(current_interval_cost>=current_repeatition$cost_so_far[line_counter])){
-                    interval_cost_performance[i]=current_repeatition$AUC_holdout[line_counter]
-                    line_counter=line_counter+1
-                }
-            }
-            ###########
-            if (repeation_counter==1){
-                #contains the performance per cost intervals
-                sum_interval_cost_performance = interval_cost_performance 
-            } else { 
-                # contains the performance per cost intervals
-                sum_interval_cost_performance = sum_interval_cost_performance + interval_cost_performance
-                
-            }
-        }
-        
-        average_holdout_cost_performance = sum_interval_cost_performance/num_repeations  
-        output = data.frame(cost_intervals, average_holdout_cost_performance)
         
         ###  Add metadata
         output[,"DATABASE_NAME"]              = report[1,"DATABASE_NAME"]
@@ -204,6 +164,7 @@ interpolate.reports <- function(reports_folder="./reports",
         output[,"payment_selection_criteria"] = report[1,"payment_selection_criteria"]
         output[,"Sys_Date"]                   = report[1,"Sys_Date"]
         output[,"key"]                        = report[1,"key"]
+        
         
         ### Store output
         outputs = rbind(outputs,output)
@@ -292,3 +253,60 @@ Cost.as.a.function.of.AUC <- function(outputs, query_points){
     return(results)
 } # end Cost.as.a.function.of.AUC
 
+
+
+# ---------------------------------------------------------------------------- #
+#                              Helper functions                                #
+# ---------------------------------------------------------------------------- #
+#################
+# create_report #
+#################
+create_report <- function()
+{
+    col_names  = c("instance_num", "pay", "change", "cost_so_far", "AUC_holdout","full_AUC","subset_AUC") 
+    rep_report = read.table(text="", col.names=col_names)
+    return(rep_report)
+} # end create_report
+
+########################
+# interpolation.kernel #
+########################
+interpolation.kernel <- function(cost_intervals, report){
+    
+    num_cost_intervals = length(cost_intervals)
+    ind_repeations     = unique(report$repetition)
+    num_repeations     = length(ind_repeations)
+    
+    for (repeation_counter in ind_repeations){
+        ## Subset the repetition across all reports
+        current_repeatition=subset(report, repetition==repeation_counter)
+        num_lines=nrow(current_repeatition)
+        
+        
+        #####generating calculated performance for fixed cost intervals
+        interval_cost_performance=numeric()
+        
+        for (i in 1:num_cost_intervals){
+            #print (i)
+            line_counter=1
+            current_interval_cost=cost_intervals[i]
+            
+            while ((line_counter<=num_lines)&(current_interval_cost>=current_repeatition$cost_so_far[line_counter])){
+                interval_cost_performance[i]=current_repeatition$AUC_holdout[line_counter]
+                line_counter=line_counter+1
+            }
+        }
+        ###########
+        if (repeation_counter==1){
+            #contains the performance per cost intervals
+            sum_interval_cost_performance = interval_cost_performance 
+        } else { 
+            # contains the performance per cost intervals
+            sum_interval_cost_performance = sum_interval_cost_performance + interval_cost_performance
+            
+        }
+    }
+    
+    average_holdout_cost_performance = sum_interval_cost_performance/num_repeations    
+    return(average_holdout_cost_performance)
+} # end interpolate_report
