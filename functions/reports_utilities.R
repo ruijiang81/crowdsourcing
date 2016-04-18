@@ -7,7 +7,8 @@
 #' 4. Cost.as.a.function.of.AUC;
 #' Helper functions
 #' 1. create_report; Create report template
-#' 2. interpolation.kernel
+#' 2. interpolation.kernel.multiple.repetitions
+#' 3. interpolation.kernel.single.repetition
 
 
 ##################
@@ -74,7 +75,8 @@ import.reports <- function(reports_folder="./reports",
 #######################
 interpolate.reports <- function(reports_folder="./reports",
                                 na.rm=FALSE,
-                                interval_size=1){
+                                interval_size=1,
+                                isolated_repetitions=FALSE){
     ################
     # Get the data #
     ################
@@ -152,9 +154,16 @@ interpolate.reports <- function(reports_folder="./reports",
         
         
         #### Set intervals
-        cost_intervals                   = seq(from = min_cost, to = max_cost, by = interval_size)
-        average_holdout_cost_performance = interpolation.kernel(cost_intervals, report)
-        output                           = data.frame(cost_intervals, average_holdout_cost_performance)
+        cost_intervals = seq(from = min_cost, to = max_cost, by = interval_size)
+        
+        if(isolated_repetitions)
+            report_interpolation = interpolation.kernel.single.repetition(cost_intervals, report)
+        else
+            report_interpolation = interpolation.kernel.multiple.repetitions(cost_intervals, report)
+        
+        output = data.frame(repetition                       = report_interpolation$repetition,
+                            cost_intervals                   = report_interpolation$cost_intervals,
+                            average_holdout_cost_performance = report_interpolation$average_holdout_cost_performance)
         
         
         ###  Add metadata
@@ -183,14 +192,29 @@ interpolate.reports <- function(reports_folder="./reports",
 #' @param outputs the product of interpolate.reports()
 #' @query_points the cost values
 #' 
-AUC.as.a.function.of.Cost <- function(outputs, query_points=NA)
+AUC.as.a.function.of.Cost <- function(outputs, 
+                                      query_points=NA)
 {
-    key_dic = unique(outputs[,c("key","payment_selection_criteria")])
-    
-    results = data.frame(cost_intervals=unique(outputs$cost_intervals))
+    # > head(outputs)
+    # repetition  cost_intervals average_holdout_cost_performance DATABASE_NAME model_inducer cost_function_type payment_selection_criteria   Sys_Date     key
+    # 0           1              NA                               mushroom      RF            fix                max_ratio100                 2016-03-15   1
+    # 0           2              NA                               mushroom      RF            fix                max_ratio100                 2016-03-15   1
+    # 0           3              0.8280254                        mushroom      RF            fix                max_ratio100                 2016-03-15   1
+    key_dic = unique(outputs[,c("repetition","key","payment_selection_criteria")])
+    # repetition  key payment_selection_criteria
+    # 0           1   max_ratio100
+    # 0           2   random100
+    results = data.frame(unique(outputs[,c("repetition","cost_intervals")]))
+    # > head(results)
+    # repetition cost_intervals
+    # 0          1
+    # 0          2
+    # 0          3
     for(k in key_dic$key){
         key_value = unique(key_dic[key_dic$key %in% k, "payment_selection_criteria"])
-        output = subset(outputs, key==k, select = c("cost_intervals","average_holdout_cost_performance"))
+        output    = subset(outputs,
+                           key==k,
+                           select = c("repetition","cost_intervals","average_holdout_cost_performance"))
         results[results$cost_intervals %in% output$cost_intervals,key_value] = output$average_holdout_cost_performance
     }
     # > head(results)
@@ -268,18 +292,19 @@ create_report <- function()
     return(rep_report)
 } # end create_report
 
-########################
-# interpolation.kernel #
-########################
-interpolation.kernel <- function(cost_intervals, report){
+
+#############################################
+# interpolation.kernel.multiple.repetitions #
+#############################################
+interpolation.kernel.multiple.repetitions <- function(cost_intervals, report){
     
     num_cost_intervals = length(cost_intervals)
-    ind_repeations     = unique(report$repetition)
-    num_repeations     = length(ind_repeations)
+    ind_repetitions     = unique(report$repetition)
+    num_repetitions     = length(ind_repetitions)
     
-    for (repeation_counter in ind_repeations){
+    for (repetition_counter in ind_repetitions){
         ## Subset the repetition across all reports
-        current_repeatition=subset(report, repetition==repeation_counter)
+        current_repeatition=subset(report, repetition==repetition_counter)
         num_lines=nrow(current_repeatition)
         
         
@@ -297,7 +322,7 @@ interpolation.kernel <- function(cost_intervals, report){
             }
         }
         ###########
-        if (repeation_counter==1){
+        if (repetition_counter==1){
             #contains the performance per cost intervals
             sum_interval_cost_performance = interval_cost_performance 
         } else { 
@@ -307,6 +332,34 @@ interpolation.kernel <- function(cost_intervals, report){
         }
     }
     
-    average_holdout_cost_performance = sum_interval_cost_performance/num_repeations    
-    return(average_holdout_cost_performance)
-} # end interpolate_report
+    average_holdout_cost_performance = sum_interval_cost_performance/num_repetitions    
+    return(data.frame(repetition=0,cost_intervals,average_holdout_cost_performance))
+} # end iinterpolation.kernel.multiple.repetitions
+
+
+##########################################
+# interpolation.kernel.single.repetition #
+##########################################
+interpolation.kernel.single.repetition <-  function(cost_intervals, report){
+    
+    outputs = data.frame()
+    # Subset report
+    ind_repetitions = unique(report$repetition)
+    
+    for (r in ind_repetitions){
+        x = data.matrix(subset(report,repetition==r,select=cost_so_far))
+        y = data.matrix(subset(report,repetition==r,select=AUC_holdout))
+        ## Linear interpolation
+        app     = approx(x,y,cost_intervals) 
+        output  = data.frame("cost_intervals"                  = cost_intervals,
+                             "average_holdout_cost_performance"= app$y)
+        outputs = rbind(outputs,cbind(repetition=r,output))
+    }#end for ind_repetitions
+    
+    
+    return(outputs)
+} # end interpolation.kernel.single.repetition 
+
+
+
+

@@ -7,15 +7,19 @@ source("scripts/load_libraries.R")
 invisible(sapply(list.files(pattern="[.]R$",path="./functions/",full.names=TRUE), source))
 
 
-################################################################################
-## Get the data
-################################################################################
+################
+# Get the data #
+################
 reports_folder = file.path(getwd(),"reports")
 reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
 interval_size = 1
-outputs = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
+isolated_repetitions = FALSE
+outputs = interpolate.reports(reports_folder,
+                              na.rm=FALSE,
+                              interval_size,
+                              isolated_repetitions)
 head(outputs)
 
 
@@ -29,6 +33,7 @@ report_param = unique(outputs[,report_div])
 ##########################################
 # Export "AUC as function of Cost" table #
 ##########################################
+isolated_repetitions=FALSE
 for(k in 1:nrow(report_param))
 {
     lower_bound = 50
@@ -41,7 +46,8 @@ for(k in 1:nrow(report_param))
     output = outputs[cases,]
     
     # Calculation
-    AUC.tabel = AUC.as.a.function.of.Cost(output, query_points=lower_bound:upper_bound)
+    AUC.tabel = AUC.as.a.function.of.Cost(output,
+                                          query_points=lower_bound:upper_bound)
     
     report_dir = file.path(getwd(),"results")
     file_name  = paste0('(','Auc as a function of Cost',')',
