@@ -26,7 +26,13 @@ param <- expand.grid(
     # Define interval ticks [in $]
     interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
-    benchmarks=c("Only","No","Yes","Min-Max-Random","MR","MTR","Main results")[7],
+    benchmarks=c("Yes",              # 1 Every rule
+                 "No",               # 2 Every rule except for Minimum Payment & Maximum Payment
+                 "Min-Max-Random",   # 3 Random, Minimum Payment, Maximum Payment
+                 "MR",               # 4 Random, Max Ratio, Max Ratio 100
+                 "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
+                 "Main results")[6], # 6 Random, Max Ratio 100, Max Total Ratio 100
+    
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -55,7 +61,7 @@ for(l in 1:nrow(param))
     
     for(k in 1:nrow(plot_param))
     {
-        xlim=c(140,300) # The range of x axis
+        xlim=c(40,150) # The range of x axis
         
         # Subset the output
         cases = !logical(nrow(outputs))
@@ -71,8 +77,6 @@ for(l in 1:nrow(param))
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_ra"),]
         else if(benchmarks=="MTR")
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_to"),]
-        else if(benchmarks=="Only")
-            output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","min_pa","max_pa"),]
         else if(benchmarks=="Main results")
             output = output[output$payment_selection_criteria %in% c("random100","max_ratio100","max_total_ratio100"),]
         
