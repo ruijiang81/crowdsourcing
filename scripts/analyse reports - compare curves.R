@@ -25,60 +25,61 @@ params = unique(reports[,c("DATABASE_NAME","model_inducer","cost_function_type",
                            "payment_selection_criteria","repetition")])
 results = data.frame()
 for(s in 1:nrow(params)){
+    cat("\n#","Integrating curve",s,"/",nrow(params))
     #################
-# Subset report #
-#################
-chosen_DATABASE_NAME              = params[s,"DATABASE_NAME"]
-chosen_model_inducer              = params[s,"model_inducer"]
-chosen_cost_function_type         = params[s,"cost_function_type"]
-chosen_payment_selection_criteria = params[s,"payment_selection_criteria"]
-chosen_repetition                 = params[s,"repetition"]
-
-report = subset(reports, DATABASE_NAME==chosen_DATABASE_NAME & 
-                    model_inducer==chosen_model_inducer & 
-                    cost_function_type==chosen_cost_function_type & 
-                    payment_selection_criteria==chosen_payment_selection_criteria &
-                    repetition==chosen_repetition,
-                select=c("cost_so_far","AUC_holdout"))
-
-
-######################
-# Interpolate report #
-######################
-x = report[,"cost_so_far"]
-y = report[,"AUC_holdout"]
-stopifnot(!any(is.na(x)), !any(is.na(y)))
-xout = seq(lower_bound, upper_bound, by=1)
-yout = approx(x, y, xout)[["y"]] 
-
-
-###################    
-# Integrate curve # 
-###################
-S = vector("numeric",length(xout)-1)
-for(i in 2:length(xout))
+    # Subset report #
+    #################
+    chosen_DATABASE_NAME              = params[s,"DATABASE_NAME"]
+    chosen_model_inducer              = params[s,"model_inducer"]
+    chosen_cost_function_type         = params[s,"cost_function_type"]
+    chosen_payment_selection_criteria = params[s,"payment_selection_criteria"]
+    chosen_repetition                 = params[s,"repetition"]
+    
+    report = subset(reports, DATABASE_NAME==chosen_DATABASE_NAME & 
+                        model_inducer==chosen_model_inducer & 
+                        cost_function_type==chosen_cost_function_type & 
+                        payment_selection_criteria==chosen_payment_selection_criteria &
+                        repetition==chosen_repetition,
+                    select=c("cost_so_far","AUC_holdout"))
+    
+    
+    ######################
+    # Interpolate report #
+    ######################
+    x = report[,"cost_so_far"]
+    y = report[,"AUC_holdout"]
+    # stopifnot(!any(is.na(x)), !any(is.na(y)))
+    xout = seq(lower_bound, upper_bound, by=1)
+    yout = approx(x, y, xout)[["y"]] 
+    
+    
+    ###################    
+    # Integrate curve # 
+    ###################
+    S = vector("numeric",length(xout)-1)
+    for(i in 2:length(xout))
     {
-    a = xout[i-1]
-    b = xout[i]
-    f_a = yout[i-1]
-    f_b = yout[i]
-    # Trapezoidal rule
-    # https://en.wikipedia.org/wiki/Trapezoidal_rule
-    S[i] = ((b-a)/2)*(f_a+f_b)
-} # end for Integrate curve
-Area = sum(S) / ( diff(range(xout)) * 1 )
-
-
-#################
-# Store results #
-#################
-results = rbind(results,
-                data.frame(DATABASE_NAME=chosen_DATABASE_NAME,
-                           model_inducer=chosen_model_inducer,
-                           cost_function_type=chosen_cost_function_type,
-                           payment_selection_criteria=chosen_payment_selection_criteria,
-                           repetition=chosen_repetition,
-                           curve_integration=Area))
+        a = xout[i-1]
+        b = xout[i]
+        f_a = yout[i-1]
+        f_b = yout[i]
+        # Trapezoidal rule
+        # https://en.wikipedia.org/wiki/Trapezoidal_rule
+        S[i] = ((b-a)/2)*(f_a+f_b)
+    } # end for Integrate curve
+    Area = sum(S) / ( diff(range(xout)) * 1 )
+    
+    
+    #################
+    # Store results #
+    #################
+    results = rbind(results,
+                    data.frame(DATABASE_NAME=chosen_DATABASE_NAME,
+                               model_inducer=chosen_model_inducer,
+                               cost_function_type=chosen_cost_function_type,
+                               payment_selection_criteria=chosen_payment_selection_criteria,
+                               repetition=chosen_repetition,
+                               curve_integration=Area))
 }# end for params
 results_long = results
 

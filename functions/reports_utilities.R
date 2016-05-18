@@ -9,6 +9,7 @@
 #' 1. create_report; Create report template
 #' 2. interpolation.kernel.multiple.repetitions
 #' 3. interpolation.kernel.single.repetition
+#' 4. interpolation.kernel.customized
 
 
 ##################
@@ -299,8 +300,8 @@ create_report <- function()
 interpolation.kernel.multiple.repetitions <- function(cost_intervals, report){
     
     num_cost_intervals = length(cost_intervals)
-    ind_repetitions     = unique(report$repetition)
-    num_repetitions     = length(ind_repetitions)
+    ind_repetitions    = unique(report$repetition)
+    num_repetitions    = length(ind_repetitions)
     
     for (repetition_counter in ind_repetitions){
         ## Subset the repetition across all reports
@@ -361,5 +362,43 @@ interpolation.kernel.single.repetition <-  function(cost_intervals, report){
 } # end interpolation.kernel.single.repetition 
 
 
-
+###################################
+# interpolation.kernel.customized #
+###################################
+interpolation.kernel.customized <- function(x,y,xout){
+    #
+    # Initialization
+    #
+    xout = sort(xout)
+    xout_ind = c()
+    #
+    # Shift the max value within an interval into the right end 
+    #
+    for(i in 1:length(xout)){
+        ## Find which numbers in x are within the interval
+        if(i==1)
+            j = which(x<=xout[i])
+        else
+            j = which(xout[i-1]<x & x<=xout[i])
+        ## Return the one with the maximum index, else return NA
+        ind = ifelse(length(j)==0, NA, max(j))
+        xout_ind = c(xout_ind,ind)
+    }
+    #
+    # Fill blank spots with their right neighbor☺'s value
+    #
+    for(i in 2:length(xout))
+        if(is.na(xout_ind[i])) 
+            xout_ind[i] = xout_ind[i-1]
+    #
+    # Assign the corresponding y values
+    #
+    yout = y[xout_ind]
+    
+    return(list(x=x, y=y, xout=xout, yout=yout))
+    
+    # plot(x,y,type="o",xlim=range(xout),ylim=range(yout))
+    # abline(v=xout,lty=2)
+    # lines(xout,yout,col=2,type="s")
+} # end interpolation.kernel.single.repetition 
 
