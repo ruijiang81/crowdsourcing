@@ -21,11 +21,11 @@ cross_validation <- function(cv_data,
     #
     for (j in 1:num_reruns){
         set.seed(global_seed+j-1)
-        fold_values<-sample(1:num_folds, nrow(cv_data), replace = TRUE) # sample values from 1 to k, for each row in the data
-        if (j==1) {fold.df<-fold_values}
-        else {
-            fold.df<-cbind(fold.df,fold_values)    
-        }
+        fold_values <- sample(1:num_folds, nrow(cv_data), replace = TRUE) # sample values from 1 to k, for each row in the data
+        if (j==1) 
+            fold.df <- data.frame(col1 = fold_values)
+        else 
+            fold.df <- cbind(fold.df,fold_values)    
     }
     
     #print (fold.df)
