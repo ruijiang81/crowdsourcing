@@ -18,8 +18,19 @@ interval_size = 1
 isolated_repetitions = FALSE
 outputs = interpolate.reports(reports_folder,
                               na.rm=FALSE,
-                              interval_size,
-                              isolated_repetitions)
+                              interval_size)
+
+#####################
+# Aggregate outputs #
+#####################
+col_names = colnames(outputs)
+if(isolated_repetitions==FALSE){
+    outputs$repetition = 0
+    outputs = aggregate(average_holdout_cost_performance ~ . -cost_intervals,
+                        outputs, 
+                        function(x) mean(x, na.rm=T))
+    outputs = outputs[col_names]
+}# end isolated_repetitions
 head(outputs)
 
 
@@ -33,7 +44,6 @@ report_param = unique(outputs[,report_div])
 ##########################################
 # Export "AUC as function of Cost" table #
 ##########################################
-isolated_repetitions=FALSE
 for(k in 1:nrow(report_param))
 {
     lower_bound = 50

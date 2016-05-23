@@ -7,9 +7,7 @@
 #' 4. Cost.as.a.function.of.AUC;
 #' Helper functions
 #' 1. create_report; Create report template
-#' 2. interpolation.kernel.multiple.repetitions
-#' 3. interpolation.kernel.single.repetition
-#' 4. interpolation.kernel.customized
+#' 2. interpolation.kernel.customized
 
 
 ##################
@@ -76,8 +74,7 @@ import.reports <- function(reports_folder="./reports",
 #######################
 interpolate.reports <- function(reports_folder="./reports",
                                 na.rm=FALSE,
-                                interval_size=1,
-                                isolated_repetitions=FALSE){
+                                interval_size=1){
     ################
     # Get the data #
     ################
@@ -154,17 +151,22 @@ interpolate.reports <- function(reports_folder="./reports",
         max_cost = floor(min(final_model_costs))
         
         
-        #### Set intervals
-        cost_intervals = seq(from = min_cost, to = max_cost, by = interval_size)
+        report_interpolation = data.frame()
+        for(r in unique(report$repetition))
+        {
+            x    = subset(report, repetition==r, select="cost_so_far")
+            y    = subset(report, repetition==r, select="AUC_holdout")
+            xout = seq(from = min_cost, to = max_cost, by = interval_size)
+            yout = interpolation.kernel.customized(x,y,xout)[["yout"]]
+            new_entry = data.frame(repetition=r,
+                                   cost_intervals=xout,
+                                   average_holdout_cost_performance=yout)
+            report_interpolation = rbind(report_interpolation, new_entry)
+        }# end for repetition
         
-        if(isolated_repetitions)
-            report_interpolation = interpolation.kernel.single.repetition(cost_intervals, report)
-        else
-            report_interpolation = interpolation.kernel.multiple.repetitions(cost_intervals, report)
-        
-        output = data.frame(repetition                       = report_interpolation$repetition,
-                            cost_intervals                   = report_interpolation$cost_intervals,
-                            average_holdout_cost_performance = report_interpolation$average_holdout_cost_performance)
+        output = data.frame(repetition=report_interpolation$repetition,
+                            cost_intervals=report_interpolation$cost_intervals,
+                            average_holdout_cost_performance=report_interpolation$average_holdout_cost_performance)
         
         
         ###  Add metadata
@@ -294,86 +296,18 @@ create_report <- function()
 } # end create_report
 
 
-#############################################
-# interpolation.kernel.multiple.repetitions #
-#############################################
-interpolation.kernel.multiple.repetitions <- function(cost_intervals, report){
-    
-    num_cost_intervals = length(cost_intervals)
-    ind_repetitions    = unique(report$repetition)
-    num_repetitions    = length(ind_repetitions)
-    
-    for (repetition_counter in ind_repetitions){
-        ## Subset the repetition across all reports
-        current_repeatition=subset(report, repetition==repetition_counter)
-        num_lines=nrow(current_repeatition)
-        
-        
-        #####generating calculated performance for fixed cost intervals
-        interval_cost_performance=numeric()
-        
-        for (i in 1:num_cost_intervals){
-            #print (i)
-            line_counter=1
-            current_interval_cost=cost_intervals[i]
-            
-            while ((line_counter<=num_lines)&(current_interval_cost>=current_repeatition$cost_so_far[line_counter])){
-                interval_cost_performance[i]=current_repeatition$AUC_holdout[line_counter]
-                line_counter=line_counter+1
-            }
-        }
-        ###########
-        if (repetition_counter==1){
-            #contains the performance per cost intervals
-            sum_interval_cost_performance = interval_cost_performance 
-        } else { 
-            # contains the performance per cost intervals
-            sum_interval_cost_performance = sum_interval_cost_performance + interval_cost_performance
-            
-        }
-    }
-    
-    average_holdout_cost_performance = sum_interval_cost_performance/num_repetitions    
-    return(data.frame(repetition=0,cost_intervals,average_holdout_cost_performance))
-} # end iinterpolation.kernel.multiple.repetitions
-
-
-##########################################
-# interpolation.kernel.single.repetition #
-##########################################
-interpolation.kernel.single.repetition <-  function(cost_intervals, report){
-    
-    outputs = data.frame()
-    # Subset report
-    ind_repetitions = unique(report$repetition)
-    
-    for (r in ind_repetitions){
-        x = data.matrix(subset(report,repetition==r,select=cost_so_far))
-        y = data.matrix(subset(report,repetition==r,select=AUC_holdout))
-        ## Linear interpolation
-        app     = approx(x,y,cost_intervals) 
-        output  = data.frame("cost_intervals"                  = cost_intervals,
-                             "average_holdout_cost_performance"= app$y)
-        outputs = rbind(outputs,cbind(repetition=r,output))
-    }#end for ind_repetitions
-    
-    
-    return(outputs)
-} # end interpolation.kernel.single.repetition 
-
-
 ###################################
 # interpolation.kernel.customized #
 ###################################
 interpolation.kernel.customized <- function(x,y,xout){
-    #
     # Initialization
-    #
+    x    = unlist(x)
+    y    = unlist(y)
+    xout = unlist(xout)
     xout = sort(xout)
     xout_ind = c()
-    #
+    
     # Shift the max value within an interval into the right end 
-    #
     for(i in 1:length(xout)){
         ## Find which numbers in x are within the interval
         if(i==1)
@@ -384,15 +318,13 @@ interpolation.kernel.customized <- function(x,y,xout){
         ind = ifelse(length(j)==0, NA, max(j))
         xout_ind = c(xout_ind,ind)
     }
-    #
+    
     # Fill blank spots with their right neighbor☺'s value
-    #
     for(i in 2:length(xout))
         if(is.na(xout_ind[i])) 
             xout_ind[i] = xout_ind[i-1]
-    #
+    
     # Assign the corresponding y values
-    #
     yout = y[xout_ind]
     
     return(list(x=x, y=y, xout=xout, yout=yout))
