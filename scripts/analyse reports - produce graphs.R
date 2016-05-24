@@ -31,7 +31,7 @@ param <- expand.grid(
                  "Min-Max-Random",   # 3 Random, Minimum Payment, Maximum Payment
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
-                 "Main results")[6], # 6 Random, Max Ratio 100, Max Total Ratio 100
+                 "Main results")[1], # 6 Random, Max Ratio 100, Max Total Ratio 100
     
     stringsAsFactors=FALSE)
 
@@ -42,8 +42,17 @@ for(l in 1:nrow(param))
     
     
     # Calculate AUC(Cost)
-    outputs    = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
+    outputs = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
+    # Aggregate outputs
+    col_names = colnames(outputs)
+    outputs$repetition = 0
+    outputs = aggregate(average_holdout_cost_performance ~ . -cost_intervals,
+                        outputs, 
+                        function(x) mean(x, na.rm=T))
+    outputs = outputs[col_names]
+     
     plot_param = unique(outputs[,plot_div])
+    
     
     ############################
     # ggplot legend attributes #
@@ -134,7 +143,7 @@ for(l in 1:nrow(param))
         else if(benchmarks=="Main results")
             plot_name = paste0(plot_name,'(Main results)')
         
-            
+        
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            
