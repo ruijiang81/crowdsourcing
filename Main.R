@@ -20,7 +20,7 @@ DATABASE_NAME=
       "Adult",                # 7
       "Pen Digits",           # 8
       "Movies Reviews"        # 9      
-    )[8]
+    )[1]
 
 cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
@@ -32,7 +32,7 @@ num_batches_per_cost_initial_training_set=10 # 5 e.g., if the batch size is 10, 
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-max_total_cost = 300 # should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -56,14 +56,14 @@ param <- expand.grid(
                                  "max_pay_per_label",   # 3
                                  "max_quality",         # 4
                                  "max_ratio",           # 5
-                                 "max_total_ratio")[5], # 6
+                                 "max_total_ratio")[6], # 6
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[4], # 6
+                              "Asymptotic3Labels")[3], # 6
     stringsAsFactors=FALSE)
 
 ## Fix value
