@@ -15,7 +15,7 @@ reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
 interval_size = 1
-isolated_repetitions = FALSE
+isolated_repetitions = TRUE
 outputs = interpolate.reports(reports_folder,
                               na.rm=FALSE,
                               interval_size)
@@ -48,17 +48,17 @@ for(k in 1:nrow(report_param))
 {
     lower_bound = 50
     upper_bound = 150
-    
+
     # Subset the output
     cases = !logical(nrow(outputs))
-    for(p in 1:length(report_div)) 
+    for(p in 1:length(report_div))
         cases = (cases & outputs[,report_div[p]] %in% report_param[k,p])
     output = outputs[cases,]
-    
+
     # Calculation
     AUC.tabel = AUC.as.a.function.of.Cost(output,
                                           query_points=lower_bound:upper_bound)
-    
+
     report_dir = file.path(getwd(),"results")
     file_name  = paste0('(','Auc as a function of Cost',')',
                         '(','Intervales of size ',interval_size,')',
@@ -75,61 +75,67 @@ for(k in 1:nrow(report_param))
 ##########################################
 # Export "Cost as function of AUC" table #
 ##########################################
-for(k in 1:nrow(report_param))
+params = unique(outputs[,c("DATABASE_NAME","model_inducer","cost_function_type","payment_selection_criteria","repetition")])
+params = arrange(params,DATABASE_NAME,model_inducer,cost_function_type,repetition,payment_selection_criteria)
+params$AUC  = NA
+params$Cost = NA
+
+# Find reference points, that is, for each "random" rule find a tuple {cost,auc}
+# to query the other rules within the same category
+params$random_flag = FALSE
+for(p in 1:nrow(params))
 {
-    lower_bound = 50
-    upper_bound = 150
-    
-    # Subset the output
-    cases = !logical(nrow(outputs))
-    for(p in 1:length(report_div)) 
-        cases = (cases & outputs[,report_div[p]] %in% report_param[k,p])
-    output = outputs[cases,]
-    output = subset(output, cost_intervals<=upper_bound)
-    
-    key_dic = unique(output[,c("key","payment_selection_criteria")])
-    random_value  = key_dic[tolower(substr(key_dic$payment_selection_criteria,1,6)) %in% "random","payment_selection_criteria"]
-    random_key    = key_dic[tolower(substr(key_dic$payment_selection_criteria,1,6)) %in% "random","key"]
-    random_output = subset(output, key==random_key)
-    
-    
-    # Find the AUC(Cost=50) and max(AUC) of the random rule, create 100 linear 
-    # spaced values among them, and query the other methods what is the price to 
-    # get the same AUC
-    random_AUC_at_50 = subset(random_output, cost_intervals==50, select=average_holdout_cost_performance) 
-    random_AUC_max   = max(random_output[,"average_holdout_cost_performance"], na.rm=T)
-    query_points     = seq(random_AUC_at_50[[1]], random_AUC_max, length.out=100)
-    
-    Cost.tabel = Cost.as.a.function.of.AUC(output, query_points)
-    Cost.tabel
-    
-    
-    # Find the index for a reference AUC value within random. 
-    # there are 2 options:
-    # (1) Find the max(AUC) of the random rule, and query the other methods  
-    #     what is the price to get the same AUC
-    # (2) Take the AUC of the random rule with the max cost (typically 150$)
-    
-    # Option (1)
-    comparison_cost_point_index = which.max(random_output[,"average_holdout_cost_performance"])
-    # Option (2)
-    # comparison_cost_point_index = which.max(random_output[,"cost_intervals"])
-    
-    
-    random_tuple = random_output[comparison_cost_point_index,c("cost_intervals","average_holdout_cost_performance")]
-    Cost.tabel   = Cost.as.a.function.of.AUC(output, query_points=random_tuple[,"average_holdout_cost_performance"])
-    Cost.tabel[,random_value] = random_tuple[,"cost_intervals"] # append random real cost value
-    Cost.tabel
-    
-    # Export results to csv file
-    report_dir = file.path(getwd(),"results")
-    file_name  = paste0('(','Cost as a function of AUC',')',
-                        '(','Intervales of size ',interval_size,')',
-                        '(',unique(tolower(output$DATABASE_NAME)),')',
-                        '(',unique(toupper(output$model_inducer)),')',
-                        '(',unique(tolower(output$cost_function_type)),')',
-                        '(',Sys.Date(),')',".csv")
-    dir.create(report_dir, show=FALSE, recursive=TRUE)
-    write.csv(Cost.tabel, file=file.path(report_dir,file_name), row.names=F)
-    head(Cost.tabel)
-} # end for Cost as a function of AUC
+    ## Find which rule is "random"
+    if(tolower(substr(params[p,"payment_selection_criteria"],1,6)) == "random")
+        params[p,"random_flag"] = TRUE
+    ## Find the reference point
+    if(params[p,"random_flag"]){ # "random" rule
+        
+        x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
+        y = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["average_holdout_cost_performance"]] 
+        params[p,"AUC"]  = max(y, na.rm=TRUE)
+        params[p,"Cost"] = x[y %in% params[p,"AUC"]][1]
+        
+    }# end if "random" rule
+}# find reference points
+
+# Query the other rules within the same category
+for(p in 1:nrow(params)){
+    if(!params[p,"random_flag"]){ # NOT "random" rule
+        ## Find the reference AUC value
+        data_ref = subset_params(data=params,
+                             colnames=colnames(params)[c(1:3,5)],
+                             values=params[p,c(1:3,5)])
+        AUC_ref = data_ref[data_ref$random_flag,"AUC"]
+        ## Find the corresponding value for that reference
+        x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
+        y = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["average_holdout_cost_performance"]] 
+        ## Check that f(x) is monotonic nonincreasing function. 
+        ## If f(x) not monotnic then append the value in index i to index i+1
+        for(i in 2:length(x)) 
+            if(!any(is.na(y[(i-1):i])) & y[i]<y[i-1])
+                y[i] = y[i-1]
+        ## Find f(x)^-1 and query it at the desired auc values via linear 
+        ## interpolation
+        app = approx(x=y, y=x, AUC_ref)
+        params[p,"AUC"]  = AUC_ref
+        params[p,"Cost"] = app$y
+    }# end if not "random" rule
+}# find corresponding points
+
+# Store the results
+## Make the data frame wide
+library(tidyr)
+results_wide = spread(params[,-8], 
+                      key=payment_selection_criteria, 
+                      value=Cost)
+## Save on hard disk
+report_dir = file.path(getwd(),"results")
+file_name  = paste0('(','Cost as a function of AUC',')',
+                    '(',Sys.Date(),')',".csv")
+dir.create(report_dir, show=FALSE, recursive=TRUE)
+write.csv(results_wide, file=file.path(report_dir,file_name), row.names=F)
+
+
+
+

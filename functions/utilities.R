@@ -3,7 +3,7 @@
 #' 1. oneVsAll
 #' 2. change_level_value
 #' 3. setVariablesNames
-#' 
+#' 4. subset_params
 
 
 ################################################################################
@@ -56,3 +56,17 @@ setVariablesNames <- function(fulldataset){
     colnames(fulldataset)[-Ncols]  <- paste0('X',1:(Ncols-1))
     return(fulldataset)
 } # end setVariablesNames
+
+
+################################################################################
+#' subset_params
+subset_params <- function(data, colnames, values)
+{
+    colnames = unlist(colnames)
+    values  = unlist(values)
+    
+    for(p in 1:length(colnames))
+        data = data[data[,colnames[p]] %in% values[p],]
+    
+    return(data)
+}
