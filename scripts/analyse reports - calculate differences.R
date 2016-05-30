@@ -110,16 +110,30 @@ for(p in 1:nrow(params)){
         ## Find the corresponding value for that reference
         x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
         y = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["average_holdout_cost_performance"]] 
-        ## Check that f(x) is monotonic nonincreasing function. 
+        ## Check that f(x) is monotonic nonincreasing function.
         ## If f(x) not monotnic then append the value in index i to index i+1
-        for(i in 2:length(x)) 
+        for(i in 2:length(x))
             if(!any(is.na(y[(i-1):i])) & y[i]<y[i-1])
                 y[i] = y[i-1]
-        ## Find f(x)^-1 and query it at the desired auc values via linear 
+        ## Find f(x)^-1 and query it at the desired auc values via linear
         ## interpolation
-        app = approx(x=y, y=x, AUC_ref)
-        params[p,"AUC"]  = AUC_ref
-        params[p,"Cost"] = app$y
+        candidates = c()
+        for(k in 2:length(x)){
+            if(any(is.na(y[(k-1):k])))
+                next
+            if(y[k-1]<=AUC_ref & y[k]>=AUC_ref)
+                candidates = c(candidates,x[k])
+            if(y[k-1]>=AUC_ref & y[k]<=AUC_ref)
+                candidates = c(candidates,x[k])
+        }# end for
+        if(is.null(candidates)){ # In case "random" is better then the other policy
+            params[p,"Cost"] = NA
+            params[p,"AUC"]  = AUC_ref
+        } else {
+            params[p,"Cost"] = max(candidates)
+            params[p,"AUC"]  = AUC_ref
+        }# end if random is better
+
     }# end if not "random" rule
 }# find corresponding points
 
