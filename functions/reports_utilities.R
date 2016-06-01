@@ -5,6 +5,7 @@
 #' 2. interpolate.reports; Calculate the AUC per cost from the reports
 #' 3. AUC.as.a.function.of.Cost;
 #' 4. Cost.as.a.function.of.AUC;
+#' 5. AUC_by_curve_integration
 #' Helper functions
 #' 1. create_report; Create report template
 #' 2. interpolation.kernel.customized
@@ -280,6 +281,50 @@ Cost.as.a.function.of.AUC <- function(outputs, query_points){
     return(results)
 } # end Cost.as.a.function.of.AUC
 
+
+############################
+# AUC_by_curve_integration #
+############################
+#' @x x coordinate
+#' @y y coordinate
+#'
+AUC_by_curve_integration <- function(x,y,
+                                     xmin=NA,xmax=NA,
+                                     ymin=NA,ymax=NA)
+{
+    x = unlist(x)
+    y = unlist(y)
+    if(is.na(xmin)) xmin = min(x)
+    if(is.na(xmax)) xmax = max(x)
+    if(is.na(ymin)) ymin = min(y)
+    if(is.na(ymax)) ymax = max(y)
+    #          a
+    #     ___________
+    #    /           \
+    #   /          h \ S_max = (a+b)*h/2
+    #  /      b      \
+    #  ---------------
+    # a = ymax + xmin
+    # b = xmax - xmin
+    # h = ymax - ymin
+    # S_max = (a+b)*h/2
+    
+    x = x/(xmax-xmin)
+    y = y/(ymax-ymin)
+    
+    S = vector("numeric",length(x)-1)
+    for(i in 2:length(x)){
+        a = x[i-1]
+        b = x[i]
+        f_a = y[i-1]
+        f_b = y[i]
+        # Trapezoidal rule
+        # https://en.wikipedia.org/wiki/Trapezoidal_rule
+        S[i] = ((b-a)/2)*(f_a+f_b)
+    }
+    
+    return(sum(S))
+} #end AUC_by_curve_integration
 
 
 # ---------------------------------------------------------------------------- #

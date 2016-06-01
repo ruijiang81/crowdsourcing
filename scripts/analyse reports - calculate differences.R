@@ -93,8 +93,20 @@ for(p in 1:nrow(params))
         
         x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
         y = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["average_holdout_cost_performance"]] 
+        
+        # Find the index for a reference AUC value within random. 
+        # there are 2 options:
+        # (1) Find the max(AUC) of the random rule, and query the other methods  
+        #     what is the price to get the same AUC
+        # (2) Take the AUC of the random rule with the max cost (typically 150$)
+        
+        # Option (1)
         params[p,"AUC"]  = max(y, na.rm=TRUE)
         params[p,"Cost"] = x[y %in% params[p,"AUC"]][1]
+        # Option (2)
+        # params[p,"Cost"] = 150   
+        # params[p,"AUC"]  = y[x %in% 300]
+
         
     }# end if "random" rule
 }# find reference points
@@ -143,13 +155,11 @@ library(tidyr)
 results_wide = spread(params[,-8], 
                       key=payment_selection_criteria, 
                       value=Cost)
+results_wide = dplyr::arrange(results_wide,DATABASE_NAME,model_inducer,cost_function_type)
 ## Save on hard disk
 report_dir = file.path(getwd(),"results")
 file_name  = paste0('(','Cost as a function of AUC',')',
                     '(',Sys.Date(),')',".csv")
 dir.create(report_dir, show=FALSE, recursive=TRUE)
 write.csv(results_wide, file=file.path(report_dir,file_name), row.names=F)
-
-
-
 

@@ -70,8 +70,8 @@ for(l in 1:nrow(param))
     
     for(k in 1:nrow(plot_param))
     {
-        xlim=c(40,150) # The range of x axis
-        
+        # xlim=c(140,300) # The range of x axis
+        xlim=c(40,150)
         # Subset the output
         cases = !logical(nrow(outputs))
         for(p in 1:length(plot_div)) cases = (cases & outputs[,plot_div[p]] %in% plot_param[k,p])

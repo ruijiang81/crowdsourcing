@@ -17,7 +17,7 @@ reports = import.reports(reports_folder,
 
 
 
-lower_bound = 50
+lower_bound = 40
 upper_bound = 150
 
 
@@ -48,26 +48,19 @@ for(s in 1:nrow(params)){
     ######################
     x = report[,"cost_so_far"]
     y = report[,"AUC_holdout"]
-    # stopifnot(!any(is.na(x)), !any(is.na(y)))
     xout = seq(lower_bound, upper_bound, by=1)
+    # Linear Interpolation
     yout = approx(x, y, xout)[["y"]] 
+    # Customized Interpolation
+    yout = interpolation.kernel.customized(x, y, xout)[["yout"]] 
     
     
     ###################    
     # Integrate curve # 
     ###################
-    S = vector("numeric",length(xout)-1)
-    for(i in 2:length(xout))
-    {
-        a = xout[i-1]
-        b = xout[i]
-        f_a = yout[i-1]
-        f_b = yout[i]
-        # Trapezoidal rule
-        # https://en.wikipedia.org/wiki/Trapezoidal_rule
-        S[i] = ((b-a)/2)*(f_a+f_b)
-    } # end for Integrate curve
-    Area = sum(S) / ( diff(range(xout)) * 1 )
+    Area = AUC_by_curve_integration(x=xout, y=yout,
+                                    xmin=lower_bound, xmax=upper_bound,
+                                    ymin=0, ymax=1)
     
     
     #################
