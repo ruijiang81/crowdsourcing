@@ -31,7 +31,7 @@ param <- expand.grid(
                  "Min-Max-Random",   # 3 Random, Minimum Payment, Maximum Payment
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
-                 "Main results")[1], # 6 Random, Max Ratio 100, Max Total Ratio 100
+                 "Main results")[5], # 6 Random, Max Ratio 100, Max Total Ratio 100
     
     stringsAsFactors=FALSE)
 
@@ -142,7 +142,10 @@ for(l in 1:nrow(param))
             plot_name = paste0(plot_name,'(benchmarks)')
         else if(benchmarks=="Main results")
             plot_name = paste0(plot_name,'(Main results)')
-        
+        else if(benchmarks=="MR")
+            plot_name = paste0(plot_name,'(MR)')
+        else if(benchmarks=="MTR")
+            plot_name = paste0(plot_name,'(MTR)')
         
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
