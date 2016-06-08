@@ -61,7 +61,7 @@ for(l in 1:nrow(param))
     names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "max_total_ratio1e+06", "min_pay_per_label100", "random100")
     #names_new     = c("Maximum Payment",      "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Max Total Ratio",      "Minimum Payment",      "Random")
     #names_new     = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
-    names_new      = c("Maximum Payment",      "ALP-MR",        "ALP-MR-h",       "ALP-TR",              "ALP-TR-h",             "Minimum Payment",      "Uniform")
+    names_new      = c("Maximum Payment",      "ALP-MR",        "ALP-MR-h",       "ALP-MTR",              "ALP-MTR-h",           "Minimum Payment",      "Uniform")
     
     # Change legend title
     #legend_title = "Payment Selection Criteria"
