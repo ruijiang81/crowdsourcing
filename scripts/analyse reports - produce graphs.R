@@ -47,9 +47,7 @@ param <- expand.grid(
 
 for(l in 1:nrow(param))
 {
-    benchmarks    = param[l,"benchmarks"]
-    
-    
+    # Aggregate the output
     outputs   = reports
     col_names = colnames(outputs)
     outputs$repetition = 0
@@ -57,20 +55,9 @@ for(l in 1:nrow(param))
                         outputs, 
                         function(x) mean(x, na.rm=T))
     outputs = outputs[col_names]
-     
+    
+    
     plot_param = unique(outputs[,plot_div])
-    
-    
-    ############################
-    # ggplot legend attributes #
-    ############################
-    # Change rules' names
-    names_original = c("max_pay_per_label100", "max_ratio100",  "max_ratio1e+06", "max_total_ratio100",  "max_total_ratio1e+06", "min_pay_per_label100", "random100")
-    #names_new     = c("Maximum Payment",      "Max Ratio 100", "Max Ratio",      "Max Total Ratio 100", "Max Total Ratio",      "Minimum Payment",      "Random")
-    #names_new     = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
-    names_new      = c("Maximum Payment",      "ALP-MR",        "ALP-MR-h",       "ALP-MTR",              "ALP-MTR-h",           "Minimum Payment",      "Uniform")
-    
-    
     for(k in 1:nrow(plot_param))
     {
         # Subset the output
@@ -79,6 +66,7 @@ for(l in 1:nrow(param))
         output = outputs[cases,]
         output = output[output$cost_intervals>=xlim[1] & output$cost_intervals<=xlim[2],]
         # Include/Exclude the min_pay and max_pay benchmarks
+        benchmarks = param[l,"benchmarks"]
         if(benchmarks=="No") 
             output = output[!substr(output$payment_selection_criteria, 1, 6) %in% c("min_pa","max_pa"),]
         else if(benchmarks=="Min-Max-Random")
@@ -89,16 +77,18 @@ for(l in 1:nrow(param))
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_to"),]
         else if(benchmarks=="Main results")
             output = output[output$payment_selection_criteria %in% c("random100","max_ratio100","max_total_ratio100"),]
+        # Change policies names (source: Environment Variables)
+        for(p in 1:length(policies_names_original))
+            output[output$payment_selection_criteria %in% policies_names_original[p],"payment_selection_criteria"] = policies_names_new[p]
+        # Convert character 2 factor
+        output$payment_selection_criteria = factor(output$payment_selection_criteria)
         
         
-        # Change rules names
-        for(n in 1:length(names_original))
-            output[output$payment_selection_criteria %in% names_original[n],"payment_selection_criteria"] <- names_new[n]
-        
-        # Setup
-        
+        ####################
+        # Render the plots #
+        ####################
         # Create plots directory
-        plot_dir  = file.path(getwd(),"plots")
+        plot_dir = file.path(getwd(),"plots")
         dir.create(plot_dir,showWarnings=F)
         
         # Plot AUC as function of number of observations
