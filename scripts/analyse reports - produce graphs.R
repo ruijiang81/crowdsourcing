@@ -11,9 +11,22 @@ sapply(list.files(pattern="[.]R$",path="./functions/",full.names=TRUE), source)
 ## Get the data
 ################################################################################
 reports_folder = file.path(getwd(),"reports")
-reports = import.reports(reports_folder,
-                         # Remove the "random" rule metadata
-                         random.rm=FALSE)
+## Define interval ticks [in $]
+interval_size = 1
+## Calculate AUC(Cost)
+reports = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
+
+
+#####################
+# ggplot attributes #
+#####################
+## Change legend title
+#legend_title = "Payment Selection Criteria"
+legend_title = "" # No title
+
+## x # The range of x axis
+xlim=c(40,150) 
+#xlim=c(140,300)
 
 
 ################################################################################
@@ -23,8 +36,6 @@ reports = import.reports(reports_folder,
 plot_div = c("DATABASE_NAME","model_inducer","cost_function_type")
 # Control plot nuances
 param <- expand.grid(
-    # Define interval ticks [in $]
-    interval_size=c(1,5)[1],
     # Should min and max benchmarks be added to the plot?
     benchmarks=c("Yes",              # 1 Every rule
                  "No",               # 2 Every rule except for Minimum Payment & Maximum Payment
@@ -32,18 +43,14 @@ param <- expand.grid(
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
                  "Main results")[5], # 6 Random, Max Ratio 100, Max Total Ratio 100
-    
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
 {
-    interval_size = param[l,"interval_size"]
     benchmarks    = param[l,"benchmarks"]
     
     
-    # Calculate AUC(Cost)
-    outputs = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
-    # Aggregate outputs
+    outputs   = reports
     col_names = colnames(outputs)
     outputs$repetition = 0
     outputs = aggregate(average_holdout_cost_performance ~ . -cost_intervals,
@@ -63,15 +70,9 @@ for(l in 1:nrow(param))
     #names_new     = c("Maximum Payment",      "ALP-MR100",     "ALP-MR",         "ALP-TR100",           "ALP-TR",               "Minimum Payment",      "Uniform")
     names_new      = c("Maximum Payment",      "ALP-MR",        "ALP-MR-h",       "ALP-MTR",              "ALP-MTR-h",           "Minimum Payment",      "Uniform")
     
-    # Change legend title
-    #legend_title = "Payment Selection Criteria"
-    legend_title = "" # No title
-    
     
     for(k in 1:nrow(plot_param))
     {
-        # xlim=c(140,300) # The range of x axis
-        xlim=c(40,150)
         # Subset the output
         cases = !logical(nrow(outputs))
         for(p in 1:length(plot_div)) cases = (cases & outputs[,plot_div[p]] %in% plot_param[k,p])
