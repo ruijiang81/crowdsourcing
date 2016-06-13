@@ -78,8 +78,25 @@ for(l in 1:nrow(param))
         else if(benchmarks=="Main results")
             output = output[output$payment_selection_criteria %in% c("random100","max_ratio100","max_total_ratio100"),]
         # Change policies names (source: Environment Variables)
-        for(p in 1:length(policies_names_original))
-            output[output$payment_selection_criteria %in% policies_names_original[p],"payment_selection_criteria"] = policies_names_new[p]
+        for(p in 1:nrow(policies_metadata))
+        {
+            original_name = policies_metadata[p,"names_original"]
+            new_name      = policies_metadata[p,"names_new"]
+            output[output$payment_selection_criteria %in% original_name,"payment_selection_criteria"] = new_name
+        }# end changing policies names
+        
+        # Add plots attributes
+        output$linetype = "solid" # default value
+        output$color    = "black" # default value
+        for(p in 1:nrow(policies_metadata))
+        {
+            policy_name     = policies_metadata[p,"names_new"]
+            policy_linetype = policies_metadata[p,"linetype"] 
+            policy_color    = policies_metadata[p,"color"]
+            output[output$payment_selection_criteria %in% policy_name, "linetype"] = policy_linetype
+            output[output$payment_selection_criteria %in% policy_name, "color"]    = policy_color
+        }# end setting policies attributes
+        
         # Convert character 2 factor
         output$payment_selection_criteria = factor(output$payment_selection_criteria)
         
@@ -92,30 +109,42 @@ for(l in 1:nrow(param))
         dir.create(plot_dir,showWarnings=F)
         
         # Plot AUC as function of number of observations
-        fig <- ggplot(output, aes(x=cost_intervals, y=average_holdout_cost_performance, group=payment_selection_criteria)) +
+        fig <- ggplot(output, aes(x=cost_intervals, 
+                                  y=average_holdout_cost_performance, 
+                                  group=payment_selection_criteria,
+                                  col=payment_selection_criteria,
+                                  linetype=payment_selection_criteria)) +
+            
             # Add lines to the plot
-            geom_line(aes(colour = payment_selection_criteria), size=2) +
-            #geom_hline(aes(yintercept=0.5)) + 
+            geom_line(size=2,show.legend=T) +
+            scale_linetype_manual(values = unique(output[,c("payment_selection_criteria","linetype")])$linetype) +
+            scale_colour_manual(values = unique(output[,c("payment_selection_criteria","color")])$color) + 
             # Add scatter points to the plot
             #geom_point(aes(colour = payment_selection_criteria), size=4) +
+            
             # X axis attributes
             ## Set axis label
             #xlab("Cost of Model [$]") + 
             xlab("Cost") +
             ## Set axis limits and ticks
-            scale_x_continuous(breaks = seq(40,300,10), limits = xlim) +
+            scale_x_continuous(breaks=seq(0,300,10), limits=xlim) +
+            
             # Y axis attributes
             ## Set axis label
             ylab("AUC") +
             ## Set axis limits and ticks
             # scale_y_continuous(breaks = signif(seq(y_range[1], y_range[2], length.out=10),1)) +
+            
             # Theme settings
-            theme_bw() + theme(strip.text.x = element_blank(),
-                               strip.background = element_rect(colour="white", fill="white"),
-                               legend.position=c(.75,.2),
-                               text=element_text(size=20)) +
-            # Legend Title
-            labs(colour = legend_title) 
+            theme_bw() + 
+            theme(strip.text.x = element_blank(),
+                  strip.background = element_rect(colour="white", fill="white"),
+                  # legend.position = "bottom",
+                  legend.position=c(.75,.2),
+                  text=element_text(size=20)) +
+            # Legend title
+            labs(colour=legend_title, linetype=legend_title)
+        
         plot(fig)
         ### Export "Auc vs. Cost" plot
         plot_name = paste0('(',unique(output$DATABASE_NAME),')',
