@@ -30,7 +30,7 @@ packages.list = c("testthat",                                                   
                   "randomForest","ROCR","e1071", #"RWeka",                      # Classification Algorithms
                   "doParallel","foreach",                                       # Parallel Tools
                   "knitr","pander",                                             # Dynamic Report Generation in R
-                  "ggplot2","manipulate",                                       # Visualization tools
+                  "ggplot2","gridExtra","manipulate",                           # Visualization tools
                   "kernlab")#,                                                  # Spam dataset
 #"markovchain")
 

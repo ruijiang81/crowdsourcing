@@ -20,6 +20,9 @@ reports = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 #####################
 # ggplot attributes #
 #####################
+## How many plots are in one row?
+tandem = 2
+
 ## Change legend title
 #legend_title = "Payment Selection Criteria"
 legend_title = "" # No title
@@ -145,7 +148,8 @@ for(l in 1:nrow(param))
             # Legend title
             labs(colour=legend_title, linetype=legend_title)
         
-        plot(fig)
+        # plot(fig)
+        grid.arrange(fig, ncol=tandem, nrow=1)
         ### Export "Auc vs. Cost" plot
         plot_name = paste0('(',unique(output$DATABASE_NAME),')',
                            '(',unique(output$model_inducer),')',
@@ -170,6 +174,13 @@ for(l in 1:nrow(param))
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
         plot_name = paste0(plot_name,".png")            
-        ggsave(file=file.path(plot_dir,plot_name), fig,width=12, height=8)
+        # ggsave(file=file.path(plot_dir,plot_name), fig, width=12, height=8)
+        ggsave(file=file.path(plot_dir,plot_name), 
+               arrangeGrob(fig, ncol=tandem, nrow=tandem),
+               #width=8.3, height=11.7) # A4 size
+               width=8.3, height=8.3)
+        
+        
+        
     } # end for plot_param
 } # end for param
