@@ -45,13 +45,13 @@ rm(packages.list)
 ################################################################################
 policies_metadata = data.frame(
     matrix(
-        c("max_pay_per_label100", "Maximum Payment", "blue",   "solid",
-          "max_ratio100",         "ALP-MR",          "red",    "solid",
-          "max_ratio1e+06",       "ALP-MR-h",        "green",  "solid",
-          "max_total_ratio100",   "ALP-MTR",         "orange", "solid",
-          "max_total_ratio1e+06", "ALP-MTR-h",       "pink",   "solid",
-          "min_pay_per_label100", "Minimum Payment", "gold",   "solid",
-          "random100",            "Uniform",         "black",  "dotted"),
+        c("max_pay_per_label100", "MaxPay",    "blue",   "solid",
+          "max_ratio100",         "ALP-MR",    "red",    "solid",
+          "max_ratio1e+06",       "ALP-MR-h",  "green",  "solid",
+          "max_total_ratio100",   "ALP-MTR",   "orange", "solid",
+          "max_total_ratio1e+06", "ALP-MTR-h", "pink",   "solid",
+          "min_pay_per_label100", "MinPay",    "gold",   "solid",
+          "random100",            "Uniform",   "black",  "dotted"),
         ncol=4,byrow=T),stringsAsFactors=FALSE)  
 colnames(policies_metadata) = c("names_original","names_new","color","linetype")
 
