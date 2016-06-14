@@ -21,7 +21,11 @@ reports = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 2
+tandem = 3
+
+## Text size
+text_size = rel(0.8)
+line_size = rel(0.8)
 
 ## Change legend title
 #legend_title = "Payment Selection Criteria"
@@ -29,7 +33,7 @@ legend_title = "" # No title
 
 ## x # The range of x axis
 xlim=c(40,150) 
-#xlim=c(140,300)
+# xlim=c(140,300)
 
 
 ################################################################################
@@ -45,7 +49,7 @@ param <- expand.grid(
                  "Min-Max-Random",   # 3 Random, Minimum Payment, Maximum Payment
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
-                 "Main results")[5], # 6 Random, Max Ratio 100, Max Total Ratio 100
+                 "Main results")[1], # 6 Random, Max Ratio 100, Max Total Ratio 100
     stringsAsFactors=FALSE)
 
 for(l in 1:nrow(param))
@@ -119,7 +123,7 @@ for(l in 1:nrow(param))
                                   linetype=payment_selection_criteria)) +
             
             # Add lines to the plot
-            geom_line(size=2,show.legend=T) +
+            geom_line(size=line_size,show.legend=T) +
             scale_linetype_manual(values = unique(output[,c("payment_selection_criteria","linetype")])$linetype) +
             scale_colour_manual(values = unique(output[,c("payment_selection_criteria","color")])$color) + 
             # Add scatter points to the plot
@@ -140,11 +144,16 @@ for(l in 1:nrow(param))
             
             # Theme settings
             theme_bw() + 
-            theme(strip.text.x = element_blank(),
-                  strip.background = element_rect(colour="white", fill="white"),
-                  # legend.position = "bottom",
-                  legend.position=c(.75,.2),
-                  text=element_text(size=20)) +
+            theme(axis.text.y=element_text(angle=0 ,vjust=0,size=text_size),
+                  axis.text.x=element_text(angle=90,hjust=1,size=text_size),
+                  axis.title.x=element_text(size=text_size),
+                  axis.title.y=element_text(size=text_size),
+                  text=element_text(size=25-tandem*5),
+                  legend.background=element_rect(fill="transparent"),
+                  
+                  # legend.position = "bottom"
+                  legend.position=c(.75,.2)
+                  ) +
             # Legend title
             labs(colour=legend_title, linetype=legend_title)
         
@@ -173,7 +182,7 @@ for(l in 1:nrow(param))
         
         
         plot_name = paste0(plot_name,'(','interval size=',interval_size,')')
-        plot_name = paste0(plot_name,".png")            
+        plot_name = paste0(plot_name,'(',tandem,' in a row',')',".png")            
         # ggsave(file=file.path(plot_dir,plot_name), fig, width=12, height=8)
         ggsave(file=file.path(plot_dir,plot_name), 
                arrangeGrob(fig, ncol=tandem, nrow=tandem),
