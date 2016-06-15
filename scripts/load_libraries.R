@@ -45,15 +45,15 @@ rm(packages.list)
 ################################################################################
 policies_metadata = data.frame(
     matrix(
-        c("max_pay_per_label100", "MaxPay",    "blue",   "dotdash",
-          "max_ratio100",         "ALP-MR",    "blue",   "dotted",
-          "max_ratio1e+06",       "ALP-MR-h",  "green",  "dotdash",
-          "max_total_ratio100",   "ALP-MTR",   "red",    "solid",
-          "max_total_ratio1e+06", "ALP-MTR-h", "orange", "dotdash",
-          "min_pay_per_label100", "MinPay",    "red",    "solid",
-          "random100",            "Uniform",   "black",  "twodash"),
-        ncol=4,byrow=T),stringsAsFactors=FALSE)  
-colnames(policies_metadata) = c("names_original","names_new","color","linetype")
+        c("max_pay_per_label100", "MaxPay",    "blue",   "solid", "0",
+          "max_ratio100",         "ALP-MR",    "blue",   "solid", "1",
+          "max_ratio1e+06",       "ALP-MR-h",  "green",  "solid", "2",
+          "max_total_ratio100",   "ALP-MTR",   "red",    "solid", "3",
+          "max_total_ratio1e+06", "ALP-MTR-h", "orange", "solid", "4",
+          "min_pay_per_label100", "MinPay",    "red",    "solid", "5",
+          "random100",            "Uniform",   "black",  "solid", "6"),
+        ncol=5,byrow=T),stringsAsFactors=FALSE)  
+colnames(policies_metadata) = c("names_original","names_new","color","linetype","pch")
 
 # http://sape.inf.usi.ch/quick-reference/ggplot2/linetype
 # "blank", "solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "1F", "F1", "4C88C488", "12345678"
@@ -61,7 +61,8 @@ colnames(policies_metadata) = c("names_original","names_new","color","linetype")
 # ggplot2 legend : Easy steps to change the position and the appearance of a graph legend in R software
 # http://www.sthda.com/english/wiki/ggplot2-legend-easy-steps-to-change-the-position-and-the-appearance-of-a-graph-legend-in-r-software
 
-
+# Piont types
+# http://sape.inf.usi.ch/quick-reference/ggplot2/shape
 
 
 

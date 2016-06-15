@@ -21,7 +21,7 @@ reports = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 3
+tandem = 1
 
 ## Text size
 text_size = rel(0.8)
@@ -32,8 +32,8 @@ line_size = rel(0.8)
 legend_title = "" # No title
 
 ## x # The range of x axis
-xlim=c(40,150) 
-# xlim=c(140,300)
+# xlim=c(40,150) 
+xlim=c(140,300)
 
 
 ################################################################################
@@ -95,13 +95,17 @@ for(l in 1:nrow(param))
         # Add plots attributes
         output$linetype = "solid" # default value
         output$color    = "black" # default value
+        output$pch      = "0"     # default value
         for(p in 1:nrow(policies_metadata))
         {
             policy_name     = policies_metadata[p,"names_new"]
             policy_linetype = policies_metadata[p,"linetype"] 
             policy_color    = policies_metadata[p,"color"]
+            policy_pch      = policies_metadata[p,"pch"]
+            
             output[output$payment_selection_criteria %in% policy_name, "linetype"] = policy_linetype
             output[output$payment_selection_criteria %in% policy_name, "color"]    = policy_color
+            output[output$payment_selection_criteria %in% policy_name, "pch"]      = as.numeric(policy_pch)
         }# end setting policies attributes
         
         # Convert character 2 factor
@@ -120,14 +124,16 @@ for(l in 1:nrow(param))
                                   y=average_holdout_cost_performance, 
                                   group=payment_selection_criteria,
                                   col=payment_selection_criteria,
-                                  linetype=payment_selection_criteria)) +
+                                  linetype=payment_selection_criteria,
+                                  shape=payment_selection_criteria)) +
             
             # Add lines to the plot
             geom_line(size=line_size,show.legend=T) +
             scale_linetype_manual(values = unique(output[,c("payment_selection_criteria","linetype")])$linetype) +
             scale_colour_manual(values = unique(output[,c("payment_selection_criteria","color")])$color) + 
+            
             # Add scatter points to the plot
-            #geom_point(aes(colour = payment_selection_criteria), size=4) +
+            geom_point() +
             
             # X axis attributes
             ## Set axis label
@@ -153,9 +159,9 @@ for(l in 1:nrow(param))
                   
                   # legend.position = "bottom"
                   legend.position=c(.75,.2)
-                  ) +
+            ) +
             # Legend title
-            labs(colour=legend_title, linetype=legend_title)
+            labs(colour=legend_title, linetype=legend_title, shape=legend_title)
         
         # plot(fig)
         grid.arrange(fig, ncol=tandem, nrow=1)
@@ -188,8 +194,5 @@ for(l in 1:nrow(param))
                arrangeGrob(fig, ncol=tandem, nrow=tandem),
                #width=8.3, height=11.7) # A4 size
                width=8.3, height=8.3)
-        
-        
-        
     } # end for plot_param
 } # end for param
