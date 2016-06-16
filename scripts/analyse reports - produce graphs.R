@@ -11,30 +11,31 @@ sapply(list.files(pattern="[.]R$",path="./functions/",full.names=TRUE), source)
 ## Get the data
 ################################################################################
 reports_folder = file.path(getwd(),"reports")
-## Define interval ticks [in $]
-interval_size = 1
 ## Calculate AUC(Cost)
-reports = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
+interval_size = 1
+reports       = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 
 
 #####################
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 3
+tandem = 1
 
 ## Text size
 text_size = rel(0.8)
 line_size = rel(0.8)
+
 ## Points lag
 if(tandem==1) lag=1 else if(tandem==2) lag=5 else if(tandem==3) lag=10
+
 ## Change legend title
 #legend_title = "Payment Selection Criteria"
 legend_title = "" # No title
 
 ## x # The range of x axis
-# xlim=c(40,150) 
-xlim=c(140,300)
+xlim=c(40,150)
+# xlim=c(140,300)
 
 
 ################################################################################
@@ -50,7 +51,8 @@ param <- expand.grid(
                  "Min-Max-Random",   # 3 Random, Minimum Payment, Maximum Payment
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
-                 "Main results")[1], # 6 Random, Max Ratio 100, Max Total Ratio 100
+                 "Main results")     # 6 Random, Max Ratio 100, Max Total Ratio 100
+    [c(1)],
     stringsAsFactors=FALSE)
 include_uniform = TRUE
 
@@ -114,7 +116,7 @@ for(l in 1:nrow(param))
         }# end setting policies attributes
         
         # Convert character 2 factor
-        output$payment_selection_criteria = factor(output$payment_selection_criteria)
+        output$payment_selection_criteria = factor(output$payment_selection_criteria, levels=unique(output$payment_selection_criteria))
         
         
         ####################

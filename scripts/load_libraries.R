@@ -45,15 +45,17 @@ rm(packages.list)
 ################################################################################
 policies_metadata = data.frame(
     matrix(
-        c("max_pay_per_label100", "MaxPay",    "blue",   "solid", "0",
-          "max_ratio100",         "ALP-MR",    "blue",   "solid", "1",
-          "max_ratio1e+06",       "ALP-MR-h",  "green",  "solid", "2",
-          "max_total_ratio100",   "ALP-MTR",   "red",    "solid", "3",
-          "max_total_ratio1e+06", "ALP-MTR-h", "orange", "solid", "4",
-          "min_pay_per_label100", "MinPay",    "red",    "solid", "5",
-          "random100",            "Uniform",   "black",  "solid", "6",
-          # Single-CV
-          "max_total_ratio100-rcv",   "ALP-MTR-SINGLE-CV",           "gold",   "solid", "3",
+        c("max_pay_per_label100", "MaxPay",    "deepskyblue4", "solid", "0",
+          "max_ratio100",         "ALP-MR",    "blue",         "solid", "1",
+          "max_ratio1e+06",       "ALP-MR-h",  "green",        "solid", "2",
+          "max_total_ratio100",   "ALP-MTR",   "red",          "solid", "3",
+          "max_total_ratio1e+06", "ALP-MTR-h", "orange",       "solid", "4",
+          "min_pay_per_label100", "MinPay",    "brown",        "solid", "5",
+          "random100",            "Uniform",   "black",        "solid", "6",
+          # SINGLE-CV
+          "max_total_ratio100-rcv",              "ALP-MTR-SINGLE-CV",       "gold",   "solid", "0",
+          # SINGLE-OMISSION
+          "max_total_ratio100-1_batch_omission", "ALP-MTR-SINGLE-OMISSION", "gold",   "solid", "0",
           # Repeated Labeling
           "max_ratio100-rl3",         "ALP-MR-REPEATED-LABELING",    "blue",   "solid", "1",
           "max_ratio1e+06-rl3",       "ALP-MR-h-REPEATED-LABELING",  "green",  "solid", "2",
