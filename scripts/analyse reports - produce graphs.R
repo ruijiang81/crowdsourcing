@@ -51,6 +51,8 @@ param <- expand.grid(
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
                  "Main results")[1], # 6 Random, Max Ratio 100, Max Total Ratio 100
     stringsAsFactors=FALSE)
+include_uniform = TRUE
+
 
 for(l in 1:nrow(param))
 {
@@ -84,6 +86,8 @@ for(l in 1:nrow(param))
             output = output[substr(output$payment_selection_criteria, 1, 6) %in% c("random","max_to"),]
         else if(benchmarks=="Main results")
             output = output[output$payment_selection_criteria %in% c("random100","max_ratio100","max_total_ratio100"),]
+        if(!include_uniform)
+            output = output[!substr(output$payment_selection_criteria, 1, 6) %in% "random",]
         # Change policies names (source: Environment Variables)
         for(p in 1:nrow(policies_metadata))
         {
@@ -133,7 +137,7 @@ for(l in 1:nrow(param))
             scale_colour_manual(values = unique(output[,c("payment_selection_criteria","color")])$color) + 
             
             # Add scatter points to the plot
-            geom_point() +
+            geom_point(data=subset(output,cost_intervals %in% seq(10,300,by=ifelse(tandem==1,1,5))),size=2)+
             
             # X axis attributes
             ## Set axis label
