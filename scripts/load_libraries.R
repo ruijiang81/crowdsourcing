@@ -45,23 +45,23 @@ rm(packages.list)
 ################################################################################
 policies_metadata = data.frame(
     matrix(
-        c("max_pay_per_label100", "MaxPay",    "deepskyblue4", "solid", "0",
-          "max_ratio100",         "ALP-MR",    "blue",         "solid", "1",
-          "max_ratio1e+06",       "ALP-MR-h",  "green",        "solid", "2",
-          "max_total_ratio100",   "ALP-MTR",   "red",          "solid", "3",
-          "max_total_ratio1e+06", "ALP-MTR-h", "orange",       "solid", "4",
-          "min_pay_per_label100", "MinPay",    "brown",        "solid", "5",
-          "random100",            "Uniform",   "black",        "solid", "6",
+        c("max_pay_per_label100", "MaxPay",          "deepskyblue4", "solid", "0",
+          "max_ratio100",         "ALP-MR",          "blue",         "solid", "1",
+          "max_ratio1e+06",       "ALP-MR-HISTORY",  "green",        "solid", "2",
+          "max_total_ratio100",   "ALP-MTR",         "red",          "solid", "3",
+          "max_total_ratio1e+06", "ALP-MTR-HISTORY", "orange",       "solid", "4",
+          "min_pay_per_label100", "MinPay",          "brown",        "solid", "5",
+          "random100",            "Uniform",         "black",        "solid", "6",
           # SINGLE-CV
           "max_total_ratio100-rcv",              "ALP-MTR-SINGLE-CV",       "gold",   "solid", "0",
           # SINGLE-OMISSION
           "max_total_ratio100-1_batch_omission", "ALP-MTR-SINGLE-OMISSION", "gold",   "solid", "0",
           # Repeated Labeling
-          "max_ratio100-rl3",         "ALP-MR-REPEATED-LABELING",    "blue",   "solid", "1",
-          "max_ratio1e+06-rl3",       "ALP-MR-h-REPEATED-LABELING",  "green",  "solid", "2",
-          "max_total_ratio100-rl3",   "ALP-MTR-REPEATED-LABELING",   "red",    "solid", "3",
-          "max_total_ratio1e+06-rl3", "ALP-MTR-h-REPEATED-LABELING", "orange", "solid", "4",
-          "random100-rl3",            "Uniform-REPEATED-LABELING",   "black",  "solid", "6"
+          "max_ratio100-rl3",         "ALP-MR-REPEATED-LABELING",          "blue",   "solid", "1",
+          "max_ratio1e+06-rl3",       "ALP-MR-HISTORY-REPEATED-LABELING",  "green",  "solid", "2",
+          "max_total_ratio100-rl3",   "ALP-MTR-REPEATED-LABELING",         "red",    "solid", "3",
+          "max_total_ratio1e+06-rl3", "ALP-MTR-HISTORY-REPEATED-LABELING", "orange", "solid", "4",
+          "random100-rl3",            "Uniform-REPEATED-LABELING",         "black",  "solid", "6"
         ),
         ncol=5,byrow=T),stringsAsFactors=FALSE)  
 colnames(policies_metadata) = c("names_original","names_new","color","linetype","pch")

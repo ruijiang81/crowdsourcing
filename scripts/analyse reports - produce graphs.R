@@ -20,7 +20,7 @@ reports       = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 1
+tandem = 2
 
 ## Text size
 text_size = rel(0.8)
@@ -52,7 +52,7 @@ param <- expand.grid(
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
                  "Main results")     # 6 Random, Max Ratio 100, Max Total Ratio 100
-    [c(1)],
+    [c(5)],
     stringsAsFactors=FALSE)
 include_uniform = TRUE
 
@@ -118,6 +118,10 @@ for(l in 1:nrow(param))
         # Convert character 2 factor
         output$payment_selection_criteria = factor(output$payment_selection_criteria, levels=unique(output$payment_selection_criteria))
         
+        # What is the max number of characters ? (for legend offset purposes)
+        n_char = max(nchar(levels(output$payment_selection_criteria)))
+        legend_W = max(0.5, 1 - (n_char/100)*1.8)
+        legend_H = nlevels(output$payment_selection_criteria)/10
         
         ####################
         # Render the plots #
@@ -165,7 +169,7 @@ for(l in 1:nrow(param))
                   legend.background=element_rect(fill="transparent"),
                   
                   # legend.position = "bottom"
-                  legend.position=c(.75,.2)
+                  legend.position=c(legend_W,legend_H)
             ) +
             # Legend title
             labs(colour=legend_title, linetype=legend_title, shape=legend_title)
@@ -198,7 +202,7 @@ for(l in 1:nrow(param))
         plot_name = paste0(plot_name,'(',tandem,' in a row',')',".png")            
         # ggsave(file=file.path(plot_dir,plot_name), fig, width=12, height=8)
         ggsave(file=file.path(plot_dir,plot_name), 
-               arrangeGrob(fig, ncol=tandem, nrow=tandem),
+               arrangeGrob(fig, ncol=tandem, nrow=ifelse(tandem==1,1,3)),
                #width=8.3, height=11.7) # A4 size
                width=8.3, height=8.3)
     } # end for plot_param
