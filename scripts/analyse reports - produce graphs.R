@@ -120,6 +120,7 @@ for(l in 1:nrow(param))
         
         # What is the max number of characters ? (for legend offset purposes)
         n_char = max(nchar(levels(output$payment_selection_criteria)))
+        n_char = max(n_char,10)
         legend_W = max(0.5, 1 - (n_char/100)*1.8)
         legend_H = nlevels(output$payment_selection_criteria)/10
         
