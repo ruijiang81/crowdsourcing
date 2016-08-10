@@ -20,7 +20,7 @@ reports       = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 2
+tandem = 3
 
 ## Text size
 text_size = rel(0.8)
@@ -52,7 +52,7 @@ param <- expand.grid(
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
                  "Main results")     # 6 Random, Max Ratio 100, Max Total Ratio 100
-    [c(5)],
+    [c(4,5)],
     stringsAsFactors=FALSE)
 include_uniform = TRUE
 
@@ -145,7 +145,7 @@ for(l in 1:nrow(param))
             scale_colour_manual(values = unique(output[,c("payment_selection_criteria","color")])$color) + 
             
             # Add scatter points to the plot
-            geom_point(data=subset(output,cost_intervals %in% seq(10,300,by=lag)),size=2)+
+            # geom_point(data=subset(output,cost_intervals %in% seq(10,300,by=lag)),size=2)+
             
             # X axis attributes
             ## Set axis label
