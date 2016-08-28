@@ -116,7 +116,7 @@ interpolate.reports <- function(reports_folder="./reports",
     min_max_model_cost_value = min(max_model_cost$cost_so_far)[1]    
     cat("\n  Maximal Minimum Model Cost is ", min_max_model_cost_value, "$", sep="")
     # Trim the max model cost
-    cutoff_offset = 10*0.25 # since if there is no problem the difference between the most and least value can be 2.5$ we add an offset
+    cutoff_offset = 10*0.25*interval_size # since if there is no problem the difference between the most and least value can be 2.5$ we add an offset
     reports = subset(reports, cost_so_far<=(min_max_model_cost_value + cutoff_offset))    
     
     
@@ -146,6 +146,7 @@ interpolate.reports <- function(reports_folder="./reports",
         initial_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
                                         function(x) min(x, na.rm=T))["cost_so_far"]
         min_cost = ceiling(min(initial_model_costs)) #dont start from zero. Start with 0+interval_size (or desired value+interval size)
+        min_cost = cutoff_offset
         #### Find the minimum model costs among all the final model costs
         final_model_costs = aggregate(cost_so_far ~ repetition,data=reports,
                                       function(x) max(x, na.rm=T))["cost_so_far"]
