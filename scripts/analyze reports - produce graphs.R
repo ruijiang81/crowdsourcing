@@ -20,7 +20,7 @@ reports       = interpolate.reports(reports_folder, na.rm=FALSE, interval_size)
 # ggplot attributes #
 #####################
 ## How many plots are in one row?
-tandem = 3
+tandem = 2
 
 ## Text size
 text_size = rel(0.8)
@@ -33,7 +33,7 @@ if(tandem==1) lag=1 else if(tandem==2) lag=5 else if(tandem==3) lag=10
 #legend_title = "Payment Selection Criteria"
 legend_title = "" # No title
 
-## x # The range of x axis
+## The range of x axis
 xlim=c(40,150)
 # xlim=c(140,300)
 
@@ -52,7 +52,7 @@ param <- expand.grid(
                  "MR",               # 4 Random, Max Ratio, Max Ratio 100
                  "MTR",              # 5 Random, Max Total Ratio, Max Total Ratio 100
                  "Main results")     # 6 Random, Max Ratio 100, Max Total Ratio 100
-    [c(4,5)],
+    [c(4,5,6)],
     stringsAsFactors=FALSE)
 include_uniform = TRUE
 
