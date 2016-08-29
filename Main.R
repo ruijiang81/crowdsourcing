@@ -22,7 +22,6 @@ DATABASE_NAME=
       "Movies Reviews"        # 9      
     )[1]
 
-cores_not_to_use  = 0 #0 means use all cores
 p_holdout         = 0.3 #percentage of data in external holdout
 initial_seed      = 1811 #large number
 batch_size             <<- 10
@@ -138,7 +137,7 @@ dataset <- setVariablesNames(dataset)
 #' Start simulation
 ################################################################################
 # Detects the number of cores and prepares for parallel run
-cl <- makeCluster(detectCores()-cores_not_to_use,outfile="")   
+cl <- makeCluster(detectCores(),outfile="")   
 registerDoParallel(cl)
 
 for(s in 1:nrow(param)){
