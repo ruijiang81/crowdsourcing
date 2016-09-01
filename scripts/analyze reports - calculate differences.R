@@ -14,11 +14,22 @@ reports_folder = file.path(getwd(),"reports")
 reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
+lower_bound = 50
+upper_bound = 150
 interval_size = 1
 isolated_repetitions = TRUE
 outputs = interpolate.reports(reports_folder,
                               na.rm=FALSE,
                               interval_size)
+# Find the index for a reference AUC value within the random rule. 
+# there are 2 options:
+# (1) Find the max(AUC) of the random rule, and query the other methods  
+#     what is the price to get the same AUC
+# (2) Take the AUC of the random rule with the max cost (typically 150$)
+AUC_REF_OPTION = 1 # 1 or 2
+# In case of option 2, what is the max cost?
+AUC_MAX_COST = 150 # Typically 150, if multiple labeling was applied, then enter 300
+
 
 #####################
 # Aggregate outputs #
@@ -46,19 +57,16 @@ report_param = unique(outputs[,report_div])
 ##########################################
 for(k in 1:nrow(report_param))
 {
-    lower_bound = 50
-    upper_bound = 150
-
     # Subset the output
     cases = !logical(nrow(outputs))
     for(p in 1:length(report_div))
         cases = (cases & outputs[,report_div[p]] %in% report_param[k,p])
     output = outputs[cases,]
-
+    
     # Calculation
     AUC.tabel = AUC.as.a.function.of.Cost(output,
                                           query_points=lower_bound:upper_bound)
-
+    
     report_dir = file.path(getwd(),"results")
     file_name  = paste0('(','Auc as a function of Cost',')',
                         '(','Intervales of size ',interval_size,')',
@@ -94,20 +102,21 @@ for(p in 1:nrow(params))
         x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
         y = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["average_holdout_cost_performance"]] 
         
-        # Find the index for a reference AUC value within random. 
+        # Find the index for a reference AUC value within the random rule. 
         # there are 2 options:
         # (1) Find the max(AUC) of the random rule, and query the other methods  
         #     what is the price to get the same AUC
         # (2) Take the AUC of the random rule with the max cost (typically 150$)
         
-        # Option (1)
-        params[p,"AUC"]  = max(y, na.rm=TRUE)
-        params[p,"Cost"] = x[y %in% params[p,"AUC"]][1]
-        # Option (2)
-        # params[p,"Cost"] = 150   
-        # params[p,"AUC"]  = y[x %in% 300]
-
-        
+        if(AUC_REF_OPTION==1){
+            # Option (1)
+            params[p,"AUC"]  = max(y, na.rm=TRUE)
+            params[p,"Cost"] = x[y %in% params[p,"AUC"]][1]  
+        } else if (AUC_REF_OPTION==2){
+            # Option (2)
+            params[p,"Cost"] = AUC_MAX_COST
+            params[p,"AUC"]  = y[x %in% 300]
+        }
     }# end if "random" rule
 }# find reference points
 
@@ -116,8 +125,8 @@ for(p in 1:nrow(params)){
     if(!params[p,"random_flag"]){ # NOT "random" rule
         ## Find the reference AUC value
         data_ref = subset_params(data=params,
-                             colnames=colnames(params)[c(1:3,5)],
-                             values=params[p,c(1:3,5)])
+                                 colnames=colnames(params)[c(1:3,5)],
+                                 values=params[p,c(1:3,5)])
         AUC_ref = data_ref[data_ref$random_flag,"AUC"]
         ## Find the corresponding value for that reference
         x = subset_params(data=outputs, colnames=colnames(params)[1:5], values=params[p,1:5])[["cost_intervals"]]
@@ -145,7 +154,7 @@ for(p in 1:nrow(params)){
             params[p,"Cost"] = max(candidates)
             params[p,"AUC"]  = AUC_ref
         }# end if random is better
-
+        
     }# end if not "random" rule
 }# find corresponding points
 
