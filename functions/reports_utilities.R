@@ -117,6 +117,7 @@ interpolate.reports <- function(reports_folder="./reports",
     cat("\n  Maximal Minimum Model Cost is ", min_max_model_cost_value, "$", sep="")
     # Trim the max model cost
     cutoff_offset = 10*0.25*interval_size # since if there is no problem the difference between the most and least value can be 2.5$ we add an offset
+    cutoff_offset = ceiling(cutoff_offset) # must be integer for AUC.as.a.function.of.Cost to work
     reports = subset(reports, cost_so_far<=(min_max_model_cost_value + cutoff_offset))    
     
     
