@@ -15,8 +15,6 @@ reports = import.reports(reports_folder,
                          # Remove the "random" rule metadata
                          random.rm=FALSE)
 
-
-
 lower_bound = 40
 upper_bound = 150
 

@@ -17,7 +17,7 @@ reports = import.reports(reports_folder,
 lower_bound = 50
 upper_bound = 150
 interval_size = 1
-isolated_repetitions = TRUE
+isolated_repetitions = FALSE
 outputs = interpolate.reports(reports_folder,
                               na.rm=FALSE,
                               interval_size)
