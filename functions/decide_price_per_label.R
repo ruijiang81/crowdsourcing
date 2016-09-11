@@ -1,5 +1,24 @@
 #' decide_price_per_label
 #' 
+#' What does it do?
+#' (1)	There are two sets of rules: (a) non data-driven (i.e. min_pay_per_label), and (b) data-driven (i.e. max_total_ratio).  According to the selected rule, the function returns a payment for the next iteration.
+#' (2)	If a non data-driven rule was chosen, no model fitting is required and the returning value would be a number from the available costs values.
+#' (3)	If a data-driven rule was chosen, cross validation per each available cost value is performed. In essence, we estimate the changes in AUC when omitting serval instances (a batch) bought at a particular payment value. We call these calculation “partial_model_performance”
+#' (4)	We fit a model to all the data, estimate it’s performance by K-fold CV and call it “full_model_CV_performance”.
+#' (5)	The detla_performance_improvement is the result of subtracting partial_model_performance from full_model_CV_performance. 
+#' (6)	According to the data-driven rule, we decide what should be the next payment, that is, the return value.
+#' INPUTS:
+#' 1.	train; labeled set
+#' 2.	pay_criteria; By which rule to decide how much to pay for the next batch?
+#' 3.	payment_options; Available costs values
+#' 4.	cur_instance_num; How many instances are in the model?
+#' 5.	meta_data; Simulation log
+#' 6.	repeatition_num; The current repetition value
+#' 7.	inducer; What inducer should be used to fit models?
+#' OUTPUT:
+#' A scalar – the payment for the next iteration.
+#' 
+
 
 decide_price_per_label <- function(train,
                                    # By which rule to decide how much to pay for the next batch?

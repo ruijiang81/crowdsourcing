@@ -63,39 +63,6 @@ labelingCostQualityTradeoff <- function(method=c('Fix','Concave','Asymptotic','H
         f4 = function(x) round(0.625 + 1.3*x,4)
         p = f4(C)
         
-        # } else if (method=='fix3labels') {
-        #     N = 1
-        #     n = 2*N + 1        # 2N + 1 labelers
-        #     p = fixProbability # labelers quality 
-        #     q = 0              # integrated labeling quality
-        #     for(k in 0:N){
-        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        #     }
-        #     p = q
-        #     
-        # } else if (method=='concave3labels') {
-        #     N = 1
-        #     n = 2*N + 1                             # 2N + 1 labelers
-        #     p = 0.48+0.066*(100*C)-0.0022*(100*C)^2 # labelers quality 
-        #     q = 0                                   # integrated labeling quality
-        #     for(k in 0:N){
-        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        #     }
-        #     p = q
-        #     
-        # } else if (method=='asymptotic3labels') {
-        #     N = 1
-        #     n = 2*N + 1     # 2N + 1 labelers
-        #     p = 1-1/(C*100) # labelers quality 
-        #     q = 0           # integrated labeling quality
-        #     for(k in 0:N){
-        #         binomial_coeff = factorial(n)/(factorial(k)*factorial(n-k))
-        #         q = q + binomial_coeff*p^(n-k)*(1-p)^k
-        #     }
-        #     p = q   
-        
     } else { # Hashtable
         colnames(fixProbability) = tolower(colnames(fixProbability))
         p = fixProbability[fixProbability$cost %in% C,"probability"]

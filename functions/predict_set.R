@@ -1,5 +1,7 @@
 #' predict_set
 #' 
+#' Given an inducer, the function fits a model to the train_set and evaluate the
+#' AUC using the test_set.
 #' 
 
 predict_set = function(train_set,
@@ -22,18 +24,6 @@ predict_set = function(train_set,
     set.seed(global_seed)
     # Model inducer
     inducer = tolower(inducer[1])
-    
-    
-    #########################
-    ## Data Pre-Processing ##
-    #########################
-    ## Check which variables in the train-set have less then two levels, that is ZV 
-    ## (Zero Variance)
-    # zv_var = apply(train_set, 2, function(x) length(unique(x))<2)
-    # if(sum(zv_var)>0) {
-    #    cat('\n Removed', sum(zv_var), "independent variables with zero variance from the train-set")
-    #    train_set = train_set[,!zv_var]
-    # }
     
     
     ########################
