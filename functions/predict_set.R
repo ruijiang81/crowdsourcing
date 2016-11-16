@@ -9,21 +9,40 @@ predict_set = function(train_set,
                        inducer=c("RF","GLM","J48","SVM"),
                        verbose=TRUE)
 {
-    ###############################
-    # Standardize variables names #
-    ###############################
-    train_set = setVariablesNames(train_set)
-    test_set  = setVariablesNames(test_set)
-    
-    
-    #######################
-    # Validate assumption #
-    #######################
+    #########
+    # Setup #
+    #########
     # Global seed number
     if(!exists("global_seed")) global_seed <- 1992
     set.seed(global_seed)
     # Model inducer
     inducer = tolower(inducer[1])
+    
+    
+    ######################
+    # Data Preprecessing #
+    ######################
+    # 1. Remove variables with no variance (in the train set)
+    if(inducer=="svm"){
+        for(i in (ncol(train_set)-1):1){
+            if(is.factor(train_set[,i])){               ## Is it a factor variable?
+                if((sum(table(train_set[,i])>0)) < 2){  ## Does it have less than 2 unique values?
+                    train_set = train_set[,-i]          ## Drop the variable form the training set
+                    test_set = test_set[,-i]            ## Drop the variable form the test set
+                }
+            } else if (is.integer(train_set[,i]) |
+                       is.numeric(train_set[,i])) {     ## Is it a numeric/integer variable?
+                if(length(unique(train_set[,i])) <2 ){  ## Does it have less than 2 unique values?
+                    train_set = train_set[,-i]          ## Drop the variable form the training set
+                    test_set = test_set[,-i]            ## Drop the variable form the test set
+                }
+            }
+        }# end removing zero varince variables
+    }
+    
+    # 2. Standardize variables names 
+    train_set = setVariablesNames(train_set)
+    test_set  = setVariablesNames(test_set)
     
     
     ########################
@@ -61,7 +80,7 @@ predict_set = function(train_set,
                 model = e1071::svm(y ~ ., data=train_set, scale=T, cost=1e0, probability=TRUE)
                 y_hat = predict(model, test_set, probability=TRUE)
                 y_hat = attr(y_hat, "probabilities")
-                predictions = as.vector(y_hat[,1])
+                predictions = as.vector(y_hat[,"level2"])
                 
             } else {
                 warning("Unknown inducer in predict_set")
