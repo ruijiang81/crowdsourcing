@@ -6,7 +6,7 @@
 
 predict_set = function(train_set,
                        test_set,
-                       inducer=c("RF","GLM","J48","SVM"),
+                       inducer=c("RF","GLM","J48","SVM","BAG"),
                        verbose=TRUE)
 {
     #########
@@ -23,7 +23,7 @@ predict_set = function(train_set,
     # Data Preprecessing #
     ######################
     # 1. Remove variables with no variance (in the train set)
-    if(inducer=="svm"){
+    if(inducer!="rf"){
         for(i in (ncol(train_set)-1):1){
             if(is.factor(train_set[,i])){               ## Is it a factor variable?
                 if((sum(table(train_set[,i])>0)) < 2){  ## Does it have less than 2 unique values?
@@ -32,7 +32,7 @@ predict_set = function(train_set,
                 }
             } else if (is.integer(train_set[,i]) |
                        is.numeric(train_set[,i])) {     ## Is it a numeric/integer variable?
-                if(length(unique(train_set[,i])) <2 ){  ## Does it have less than 2 unique values?
+                if(length(unique(train_set[,i])) < 2 ){ ## Does it have less than 2 unique values?
                     train_set = train_set[,-i]          ## Drop the variable form the training set
                     test_set = test_set[,-i]            ## Drop the variable form the test set
                 }
@@ -80,6 +80,11 @@ predict_set = function(train_set,
                 model = e1071::svm(y ~ ., data=train_set, scale=T, cost=1e0, probability=TRUE)
                 y_hat = predict(model, test_set, probability=TRUE)
                 y_hat = attr(y_hat, "probabilities")
+                predictions = as.vector(y_hat[,"level2"])
+                
+            } else if(inducer=="bag") { # Bagging
+                model = ipred::bagging(y ~ ., data=train_set)
+                y_hat = predict(model, test_set, type="prob")
                 predictions = as.vector(y_hat[,"level2"])
                 
             } else {

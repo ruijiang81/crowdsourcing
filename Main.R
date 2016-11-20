@@ -42,13 +42,13 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 cross_validation_folds  <<- 8 #global10
 cross_validation_reruns <<- 4 #global5
-repeatitions <- 20 #10
+repeatitions <- 20 #20
 
 
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","GLM","J48","SVM")[c(1)],
+    model_inducer=c("RF","SVM","GLM","BAG","J48")[4],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random",              # 1
                                  "min_pay_per_label",   # 2
@@ -91,7 +91,7 @@ if(primary_cost_function %in% "fix3labels"){
 
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
-secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[1]
+secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[2]
 model_cost_for_changing_cost_function = 75
 
 

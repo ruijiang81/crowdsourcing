@@ -27,13 +27,11 @@ packages.loader <- function(packages.list){
 } # end functions packages.loader
 packages.list = c("testthat",                                                   # Development tools for R
                   "dplyr","plyr","tidyr",                                       # Data Manipulation
-                  "randomForest","ROCR","e1071", #"RWeka",                      # Classification Algorithms
+                  "randomForest","ROCR","e1071","ipred",#"RWeka",               # Classification Algorithms
                   "doParallel","foreach",                                       # Parallel Tools
                   "knitr","pander",                                             # Dynamic Report Generation in R
                   "ggplot2","gridExtra","manipulate",                           # Visualization tools
-                  "kernlab")#,                                                  # Spam dataset
-#"markovchain")
-
+                  "kernlab")                                                    # Spam dataset
 packages.loader(packages.list)
 ## Clean Up
 rm(packages.list)
