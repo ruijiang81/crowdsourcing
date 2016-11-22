@@ -54,12 +54,17 @@ for (p in 1:nrow(param)){
 }# end for loop
 
 
-table(results[,"0.02"])
-table(results[,"0.14"])
-table(results[,"0.25"])
+resultsLong = reshape2::melt(results[,3:5], value.name="Count", variable.name="Payment")
+resultsLong = resultsLong[complete.cases(resultsLong),]
+# remove lags of 1 and subtract 1
+resultsLong = resultsLong[resultsLong$Count>1,]
+resultsLong[,"Count"] = resultsLong[,"Count"] - 1
 
+barplot(table(resultsLong$Payment,resultsLong$Count), 
+        main="Stacked Bar Plot", col=c("darkblue","red","green"),
+        legend = unique(resultsLong$Payment))
 
-
-
-
+barplot(table(resultsLong$Payment,resultsLong$Count), 
+        main="Grouped Bar Plot", col=c("darkblue","red","green"),
+        legend = unique(resultsLong$Payment), beside=TRUE)
 
