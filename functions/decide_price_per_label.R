@@ -91,7 +91,7 @@ decide_price_per_label <- function(train,
         
         
         ## Store results
-        dir_path = file.path(getwd(),"results","temp folder")
+        dir_path = file.path(getwd(),"results","temp folder",runID)
         unlink(dir_path, recursive=TRUE, force=TRUE)     # Delete the folder
         dir.create(dir_path, show=FALSE, recursive=TRUE) # Create the folder
 

@@ -7,6 +7,8 @@ options(digits=4)
 
 
 ## Setup
+### Get unique ID for the run
+runID <<- paste0(sample(c(letters,0:9),20),collapse="")
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24*3, units="hours")
 ### Dataset
@@ -48,7 +50,7 @@ repeatitions <- 20 #20
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","SVM","GLM","BAG","J48")[4],
+    model_inducer=c("RF","SVM","GLM","BAG","J48")[2],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random",              # 1
                                  "min_pay_per_label",   # 2
