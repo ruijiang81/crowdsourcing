@@ -8,7 +8,7 @@ options(digits=4)
 
 ## Setup
 ### Get unique ID for the run
-runID <<- paste0(sample(c(letters,0:9),20),collapse="")
+runID <<- paste0(sample(c(letters,0:9),20,replace=T),collapse="")
 ### Worst-case execution time
 watchdog_simulation = as.difftime(24*3, units="hours")
 ### Dataset
