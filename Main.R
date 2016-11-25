@@ -14,13 +14,13 @@ watchdog_simulation = as.difftime(24*3, units="hours")
 ### Dataset
 DATABASE_NAME=
     c("Spam",                 # 1
-      "Otto",                 # 2
-      "Synthetic_Balanced",   # 3
-      "Synthetic_Unbalanced", # 4
-      "Tax Audit",            # 5
-      "Mushroom",             # 6
-      "Adult",                # 7
-      "Pen Digits",           # 8
+      "Mushroom",             # 2
+      "Pen Digits",           # 3
+      "Otto",                 # 4
+      "Synthetic_Balanced",   # 5
+      "Synthetic_Unbalanced", # 6
+      "Tax Audit",            # 7
+      "Adult",                # 8
       "Movies Reviews"        # 9      
     )[1]
 
@@ -147,8 +147,8 @@ for(s in 1:nrow(param)){
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
     cost_function_type         = param[s,"primary_cost_function"]
-    
-    
+
+        
     ## Allocate report
     report   = create_report()
     metadata = create_report()
@@ -395,7 +395,7 @@ for(s in 1:nrow(param)){
                     new_item$full_AUC = NA
                     new_item$subset_AUC = NA
                     ## Add data from text file
-                    dir_path = file.path(getwd(),"results","temp folder")
+                    dir_path = file.path(getwd(),"results","temp folder",runID)
                     delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
                     full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
                     ## Add full performance
