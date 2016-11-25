@@ -143,6 +143,9 @@ cl <- makeCluster(detectCores(),outfile="")
 registerDoParallel(cl)
 
 for(s in 1:nrow(param)){
+    startSimTime  = Sys.time()
+
+        
     ## Setup simulation parameters
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
@@ -429,6 +432,8 @@ for(s in 1:nrow(param)){
     } #repetitions
     
     ## Save report on hard drive
+    finishSimTime      = Sys.time()
+    Time.Diff          = round(as.numeric(finishSimTime-startSimTime, units = "mins"),0)
     report_dir         = file.path(getwd(),"results")
     metadata_dir       = file.path(report_dir,"metadata")
     primary_cost_function = param[s,"primary_cost_function"]
@@ -437,7 +442,9 @@ for(s in 1:nrow(param)){
                                 '(',toupper(model_inducer),')',
                                 '(',tolower(cost_function_type),')',
                                 '(',tolower(payment_selection_criteria),max_instances_in_history,')',
-                                '(',Sys.Date(),')',".csv")
+                                '(',Sys.Date(),')',
+                                '(',paste0(Time.Diff,' minutes'),')',
+                                ".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
@@ -445,5 +452,9 @@ for(s in 1:nrow(param)){
     write.csv(metadata, file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
-stopCluster(cl) 
-stop.time<- Sys.time()
+stopCluster(cl)
+
+stop.time <- Sys.time()
+cat("\n",rep("#",40),
+    "\n# Completed in ", round(as.numeric(stop.time-start.time, units = "mins"),0), " [mins]",
+    "\n",rep("#",40), sep="")
