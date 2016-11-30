@@ -10,7 +10,7 @@ options(digits=4)
 ### Get unique ID for the run
 runID <<- paste0(sample(c(letters,0:9),20,replace=T),collapse="")
 ### Worst-case execution time
-# watchdog_simulation = as.difftime(24*3, units="hours")
+watchdog_simulation = as.difftime(24*7, units="hours")
 ### Dataset
 DATABASE_NAME=
     c("Spam",                 # 1
