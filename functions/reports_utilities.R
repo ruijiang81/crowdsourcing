@@ -34,7 +34,7 @@ import.reports <- function(reports_folder="./reports",
         index_metadata = gregexpr("\\((.*?)\\)", reports_list[k], TRUE)
         #' Check that the number of sub string composing the file name is as 
         #' defined in reports_metadata
-        stopifnot(ncol(reports_metadata)==length(index_metadata[[1]]))
+        stopifnot(ncol(reports_metadata)<=length(index_metadata[[1]]))
         ## Extract the sub string to the metadata data frame
         for(l in 1:ncol(reports_metadata)){
             match_start  = index_metadata[[1]][l]
