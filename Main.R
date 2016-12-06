@@ -26,12 +26,18 @@ DATABASE_NAME=
 
 p_holdout         = 0.3 #percentage of data in external holdout
 initial_seed      = 1811 #large number
-batch_size             <<- 10
-number_batch_omissions <<- 10
-num_batches_per_cost_initial_training_set=10 # 5 e.g., if the batch size is 10, num_price_per_label_values=5 and num_batches_per_cost_initial_training_set=5 then this will purchase 250 instances
-#for random payment selection best to use 0
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
+
+batch_size                                  <<- 5
+num_price_per_label_values                  <-  length(price_per_label_values) 
+num_batches_per_cost_initial_training_set   <-  ceiling(300/(batch_size*num_price_per_label_values))
+# if the batch_size is 10, 
+# num_price_per_label_values=3 and 
+# num_batches_per_cost_initial_training_set=5 then 
+# this will purchase 150 instances.
+# for random payment selection best to use 0
+
 
 max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
 
@@ -40,31 +46,30 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 
 #if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
 #max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
-
-
-cross_validation_folds  <<- 8 #global10
-cross_validation_reruns <<- 4 #global5
+number_batch_omissions  <<- 10
+cross_validation_folds  <<- 8
+cross_validation_reruns <<- 4
 repeatitions <- 20 #20
 
 
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","SVM","GLM","BAG","J48")[2],
+    model_inducer=c("RF","SVM","GLM","BAG","J48")[1],
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria=c("random",              # 1
                                  "min_pay_per_label",   # 2
                                  "max_pay_per_label",   # 3
                                  "max_quality",         # 4
                                  "max_ratio",           # 5
-                                 "max_total_ratio")[6], # 6
+                                 "max_total_ratio")[c(1,6)], # 6
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[3], # 6
+                              "Asymptotic3Labels")[1:3], # 6
     stringsAsFactors=FALSE)
 
 ## Fix value
@@ -202,7 +207,6 @@ for(s in 1:nrow(param)){
             ####################################################################
             #' purchasing intial training set using different prices
             # Cost to pay for each intial batch 
-            num_price_per_label_values = length(price_per_label_values) 
             cost_so_far = 0
             current_instance_num = 1
             
