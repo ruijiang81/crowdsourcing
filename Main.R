@@ -25,13 +25,14 @@ DATABASE_NAME=
     )[1]
 
 p_holdout         = 0.3 #percentage of data in external holdout
+p_holdout         = 0.3  #percentage of data in external holdout
 initial_seed      = 1811 #large number
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
-batch_size                                  <<- 5
-num_price_per_label_values                  <-  length(price_per_label_values) 
-num_batches_per_cost_initial_training_set   <-  ceiling(300/(batch_size*num_price_per_label_values))
+batch_size                                <<- 10
+num_price_per_label_values                <-  length(price_per_label_values) 
+num_batches_per_cost_initial_training_set <-  ceiling(300/(batch_size*num_price_per_label_values))
 # if the batch_size is 10, 
 # num_price_per_label_values=3 and 
 # num_batches_per_cost_initial_training_set=5 then 
@@ -49,9 +50,8 @@ max_instances_in_history <<- 100 #the size (in terms of instances) of the number
 number_batch_omissions  <<- 10
 cross_validation_folds  <<- 8
 cross_validation_reruns <<- 4
+
 repeatitions <- 20 #20
-
-
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
@@ -69,7 +69,7 @@ param <- expand.grid(
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[1:3], # 6
+                              "Asymptotic3Labels")[3:1], # 6
     stringsAsFactors=FALSE)
 
 ## Fix value
@@ -149,14 +149,14 @@ registerDoParallel(cl)
 
 for(s in 1:nrow(param)){
     startSimTime  = Sys.time()
-
-        
+    
+    
     ## Setup simulation parameters
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
     cost_function_type         = param[s,"primary_cost_function"]
-
-        
+    
+    
     ## Allocate report
     report   = create_report()
     metadata = create_report()
@@ -271,15 +271,9 @@ for(s in 1:nrow(param)){
                         calculated_AUC = predict_set(training_set,
                                                      holdout_data,
                                                      inducer=model_inducer)
-                        ## Top N measures
-                        # topN = top_n(training_set,
-                        #              holdout_data,
-                        #              inducer=model_inducer)
                         
                         #printing out to report
                         rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                        # for(col_name in colnames(topN))
-                        #     rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                         new_item            = rep_metadata[current_instance_num-1,]
                         new_item$repetition = counter_repetitions
                         new_item$batch      = counter_batches-1
@@ -383,15 +377,9 @@ for(s in 1:nrow(param)){
                                              holdout_data,
                                              inducer=model_inducer)
                 cat('\n',"AUC =",calculated_AUC)
-                ## Top N measures
-                # topN = top_n(training_set,
-                #              holdout_data,
-                #              inducer=model_inducer)
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                # for(col_name in colnames(topN))
-                #     rep_metadata[current_instance_num-1,col_name] = topN[1,col_name]
                 new_item            = rep_metadata[current_instance_num-1,]
                 new_item$repetition = counter_repetitions
                 new_item$batch      = counter_batches
@@ -453,7 +441,7 @@ for(s in 1:nrow(param)){
     dir.create(report_dir, show=FALSE, recursive=TRUE)
     write.csv(report, file=file.path(report_dir,file_name), row.names=F)
     dir.create(metadata_dir, show=FALSE, recursive=TRUE)
-    write.csv(metadata, file=file.path(metadata_dir,file_name), row.names=F)
+    write.csv(dplyr::arrange(metadata,repetition,batch), file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
 stopCluster(cl)
