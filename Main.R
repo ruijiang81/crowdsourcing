@@ -159,8 +159,8 @@ for(s in 1:nrow(param)){
     
     ## Allocate report
     report   = create_report()
-    metadata = create_report()
-    
+    metadata = cbind(create_report(),svm_bug=data.frame())
+    svm_bug  = NA
     
     ## Start simulation timer
     start.time = Sys.time()
@@ -256,7 +256,8 @@ for(s in 1:nrow(param)){
                                                    "change"=change,
                                                    "cost_so_far"=cost_so_far,
                                                    "updated_label"=training_set$y[current_instance_num],
-                                                   "batch"=counter_batches)
+                                                   "batch"=counter_batches,
+                                                   "svm_bug"=NA)
                             rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                             
                             current_instance_num = current_instance_num+1 # updating the instance counter
@@ -360,7 +361,8 @@ for(s in 1:nrow(param)){
                                            "change"=change,
                                            "cost_so_far"=cost_so_far,
                                            "updated_label"=training_set$y[current_instance_num],
-                                           "batch"=counter_batches)
+                                           "batch"=counter_batches,
+                                           "svm_bug"=NA)
                     rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
                     
                     current_instance_num<-current_instance_num+1 # updating the instance counter
@@ -377,6 +379,13 @@ for(s in 1:nrow(param)){
                                              holdout_data,
                                              inducer=model_inducer)
                 cat('\n',"AUC =",calculated_AUC)
+                
+                # Fix SVM bug
+                if(tolower(model_inducer)=="svm"){
+                    rep_metadata[current_instance_num-1,"svm_bug"] = calculated_AUC < 1-calculated_AUC
+                    calculated_AUC = max(calculated_AUC,1-calculated_AUC)
+                }
+                
                 
                 ## Store iteration metadata in the report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
