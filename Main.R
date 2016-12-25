@@ -448,7 +448,7 @@ for(s in 1:nrow(param)){
                                 ".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)
-    write.csv(report, file=file.path(report_dir,file_name), row.names=F)
+    write.csv(subset(report, select = -svm_bug), file=file.path(report_dir,file_name), row.names=F)
     dir.create(metadata_dir, show=FALSE, recursive=TRUE)
     write.csv(dplyr::arrange(metadata,repetition,batch), file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
