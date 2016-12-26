@@ -29,7 +29,7 @@ p_holdout         = 0.3  # percentage of data in external holdout
 initial_seed      = 1811 # large number
 price_per_label_values = c(0.02,0.14,0.25)
 # What shoud be the timeframe in which each payment should be paid?
-max_period_per_price = 3
+max_period_per_price = 10
 
 batch_size                                <<- 10
 num_price_per_label_values                <-  length(price_per_label_values) 
@@ -63,7 +63,7 @@ param <- expand.grid(
                                  "max_pay_per_label",   # 3
                                  "max_quality",         # 4
                                  "max_ratio",           # 5
-                                 "max_total_ratio")[1], # 6
+                                 "max_total_ratio")[6], # 6
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
