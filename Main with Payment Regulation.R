@@ -76,27 +76,6 @@ param <- expand.grid(
 ## Fix value
 fixProbability = 0.85
 
-## Hash-table
-primary_cost_function = tolower(param[1,"primary_cost_function"])
-# if(primary_cost_function %in% c("fix3labels","concave3labels","asymptotic3labels")))
-if(primary_cost_function %in% "fix3labels"){
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.93925,0.93925,0.93925))
-    
-} else if (primary_cost_function %in% "concave3labels") {
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.6526018,0.9978207,0.8493373))
-    
-} else if (primary_cost_function %in% "asymptotic3labels") {
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.5000000,0.9854227,0.9953280))
-    
-}
-
-
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
 secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[2]
@@ -468,7 +447,7 @@ for(s in 1:nrow(param)){
     file_name          = paste0('(',tolower(DATABASE_NAME),')',
                                 '(',toupper(model_inducer),')',
                                 '(',tolower(cost_function_type),')',
-                                '(',tolower(payment_selection_criteria),max_instances_in_history,')',
+                                '(',tolower(payment_selection_criteria),max_instances_in_history,'_reg)',
                                 '(',Sys.Date(),')',
                                 '(',paste0(Time.Diff,' minutes'),')',
                                 ".csv")
