@@ -25,3 +25,5 @@ Dropbox/
 *.csv
 *.dominokeep
 .Rproj.user
+*.xlsx
+*.ini
