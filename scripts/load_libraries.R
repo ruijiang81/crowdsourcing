@@ -1,43 +1,100 @@
-# Sys.setlocale("LC_TIME", "English") #uses english opertaing system naming convention
-#' 1. Load Libraries
-#' 2. Environment Variables
-
-
 ################################################################################
-## Load Libraries
+#                           Load project's libraries                           #     
 ################################################################################
-## Github packages
-# if (!require("devtools")) {
-#         install.packages("devtools")
-#         require("devtools")
-# }
-## Rtools
-# if (!require("installr")) install.packages("installr")
-# installr::install.Rtools()
-## CRAN packages
-packages.loader <- function(packages.list){
+message("############################\n# Load project's libraries #\n############################")
+#'
+#' There are three groups for the project's packages:
+#' 1. Package is on GitHub; install and load the latest package from GitHub.
+#' 2. Package is on MRAN; install and load a spesific package version from CRAN.
+#' Comments:
+#' * The 1nd group can include:
+#'    * Packages that were not present during the original experiment, or 
+#'    * packages that are not relevant for reproducibility (e.g. ggplot2) or
+#'    * packages from CRAN which should be in their latest version (e.g. dropbox).
+#' * The 2nd group is usful for reproducible research
+#'   
+Sys.setlocale("LC_TIME", "English")
+paste0(R.Version())[c("major","minor")]
+k_snapshot_date <<- "2016-05-26"
+k_path_project <<- getwd()
+k_path_checkpoint <<- file.path(k_path_project, ".checkpoint")
+#'
+####################
+# Input validation #
+####################
+stopifnot(exists("create_requirements_file"))
+#' Check R version
+d1 <- as.numeric(R.Version()$major)
+d2 <- as.numeric(substr(R.Version()$minor, 1, 1))
+d3 <- as.numeric(substr(R.Version()$minor, 3, 3))
+if(d1 != 3 | d2 > 4)
+    stop("\nThe project was tasted with R version 3.4.3",
+         "\nYou are using R version ", paste0(R.Version()[6:7], collapse = "."),
+         "\nWe can't guarantee the results are reproducible")
+#'
+#######################
+# Define Requirements #
+#######################
+libraries_on_CRAN = c(
+    # Development tools for R
+    "testthat",              
+    # Data Manipulation
+    "tidyverse", "dplyr", "plyr",
+    # Classification Algorithms
+    "randomForest", "ROCR", "e1071", "ipred", 
+    # Parallel Tools
+    "doParallel", "foreach",   
+    # Dynamic Report Generation in R
+    "knitr", "pander",     
+    # Visualization tools
+    "ggplot2", "gridExtra", "manipulate", 
+    # Spam dataset
+    "kernlab"
+) 
+#'
+libraries_on_GitHub <- c(
+    # Required by ROCR
+    "cran/gtools", "cran/gplots",
+    # Conflict packages resolution strategy; filter <- dplyr::filter
+    # "r-lib/conflicted",
+    # Addin to RStudio, which finds all TODO, FIXME, CHANGED
+    "dokato/todor"
+)
+#'
+###########################
+# Install & Load Packages #
+###########################
+if(!require("pacman"))
+    install.packages("pacman"); require("pacman")
+#' Step 1: Explicitly tell the package manager what libraries to include
+create_requirements_file(libraries_on_CRAN)
+#' Step 2: Install and load packages from MRAN
+message("# Install and load packages from MRAN")
+p_load("checkpoint", character.only = TRUE, update = FALSE)
+libraries_on_MRAN <- checkpoint(snapshotDate = k_snapshot_date,
+                                # <https://cran.r-project.org/bin/windows/base/old/
+                                # R.version = "3.4.4",
+                                scanForPackages = TRUE,
+                                project = k_path_project,
+                                checkpointLocation = k_path_project,
+                                verbose = TRUE)$pkgs_found
+packages_to_load  <- !libraries_on_MRAN %in% c("RWeka","ggplot2","domino")
+k_path_libraries <<- .libPaths()[which.max(nchar(.libPaths()))]
+suppressMessages(
     suppressPackageStartupMessages(
-        for (p in packages.list){
-            if(!require(p, character.only=TRUE)){
-                install.packages(p,dep=TRUE) # install form CRAN
-                require(p, character.only=TRUE)
-            } # end if require
-        } # end for packages list
-    ) # end suppressPackageStartupMessages
-} # end functions packages.loader
-packages.list = c("testthat",                                                   # Development tools for R
-                  "dplyr","plyr","tidyr",                                       # Data Manipulation
-                  "randomForest","ROCR","e1071","ipred",#"RWeka",               # Classification Algorithms
-                  "doParallel","foreach",                                       # Parallel Tools
-                  "knitr","pander",                                             # Dynamic Report Generation in R
-                  "ggplot2","gridExtra","manipulate",                           # Visualization tools
-                  "kernlab")                                                    # Spam dataset
-packages.loader(packages.list)
-## Clean Up
-rm(packages.list)
-# rm(list = ls()); cat("\014")
-
-
+        invisible(
+            sapply(libraries_on_MRAN[packages_to_load], require,
+                   character.only = TRUE)
+        )
+    )
+)
+#' Step 3: Install and load GitHub packages
+message("# Install and load GitHub packages")
+try(withr::with_libpaths(
+    new = k_path_libraries,
+    code = p_load_gh(char = libraries_on_GitHub)),
+    silent = FALSE)
+#'
 ################################################################################
 ## Environment Variables
 ################################################################################

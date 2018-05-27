@@ -1,17 +1,18 @@
 ## Initialization
 cat("\014"); rm(list = ls())
-source("scripts/load_libraries.R")
 sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source)
+source("scripts/load_libraries.R")
 # options(error=recover) # debugging mode
 options(digits=4)
-
-
-## Setup
-### Get unique ID for the run
-runID <<- paste0(sample(c(letters,0:9),20,replace=T),collapse="")
-### Worst-case execution time
+#'
+#########
+# Setup #
+#########
+# Get unique ID for the run
+runID <<- stringi::stri_rand_strings(n = 1, length = 20)
+# Worst-case execution time
 watchdog_simulation = as.difftime(24*7, units="hours")
-### Dataset
+# Dataset
 DATABASE_NAME=
     c("Spam",                 # 1
       "Mushroom",             # 2
@@ -22,9 +23,7 @@ DATABASE_NAME=
       "Tax Audit",            # 7
       "Adult",                # 8
       "Movies Reviews"        # 9      
-    )[1]
-
-p_holdout         = 0.3 #percentage of data in external holdout
+    )[2]
 p_holdout         = 0.3  #percentage of data in external holdout
 initial_seed      = 1811 #large number
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
@@ -57,20 +56,21 @@ param <- expand.grid(
     # What inducer should be used to fit models?
     model_inducer=c("RF","SVM","GLM","BAG","J48")[1],
     # By which rule to decide how much to pay for the next batch?
-    payment_selection_criteria=c("random",              # 1
-                                 "min_pay_per_label",   # 2
-                                 "max_pay_per_label",   # 3
-                                 "max_quality",         # 4
-                                 "max_ratio",           # 5
-                                 "max_total_ratio")[c(1,6)], # 6
+    payment_selection_criteria=c("random",            # 1
+                                 "min_pay_per_label", # 2
+                                 "max_pay_per_label", # 3
+                                 "max_quality",       # 4
+                                 "max_ratio",         # 5
+                                 "max_total_ratio")   # 6
+    [c(6)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[3:1], # 6
-    stringsAsFactors=FALSE)
+                              "Asymptotic3Labels")[2], # 6
+    stringsAsFactors = FALSE)
 
 ## Fix value
 fixProbability = 0.85

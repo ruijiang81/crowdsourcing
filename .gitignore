@@ -1,3 +1,15 @@
+########################################
+# Ignore all files in specific folders #
+########################################
+/.checkpoint/*
+
+#########################
+# Include .folder flags #
+#########################
+!.folder
+
+
+
 # History files
 .Rhistory
 .Rapp.history
@@ -27,3 +39,4 @@ Dropbox/
 .Rproj.user
 *.xlsx
 *.ini
+requirements.R
