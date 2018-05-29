@@ -18,6 +18,8 @@ paste0(R.Version())[c("major","minor")]
 k_snapshot_date <<- "2016-05-26"
 k_path_project <<- getwd()
 k_path_checkpoint <<- file.path(k_path_project, ".checkpoint")
+k_path_libraries <<- .libPaths()[which.min(nchar(.libPaths()))]
+stopifnot(grepl("C:/Program Files(.*)/library", k_path_libraries))
 #'
 ####################
 # Input validation #
@@ -32,25 +34,37 @@ if(d1 != 3 | d2 > 4)
          "\nYou are using R version ", paste0(R.Version()[6:7], collapse = "."),
          "\nWe can't guarantee the results are reproducible")
 #'
-#######################
-# Define Requirements #
-#######################
-libraries_on_CRAN = c(
+############################
+# Define project libraries #
+############################
+#' The packages are grouped in three categories:
+#' 1. libraries_on_MRAN; these packages are installed at their past versions for 
+#'    research reproducibility purposes.
+#' 2. libraries_on_CRAN; these packages are installed at their latest versions.
+#' 3. libraries_on_GitHub; these packages are usually not on CRAN and therefore 
+#'    we install from GitHub
+#' 
+libraries_on_MRAN <- c(
+    # Classification Algorithms
+    "randomForest", "e1071", "ipred", 
+    # Evaluating learning algorithms
+    "ROCR", "AUC",
+    # Parallel Tools
+    "doParallel", "foreach",   
+    # Spam dataset
+    "kernlab"
+) 
+#'
+libraries_on_CRAN <- c(
     # Development tools for R
     "testthat",              
     # Data Manipulation
     "tidyverse", "dplyr", "plyr",
-    # Classification Algorithms
-    "randomForest", "ROCR", "e1071", "ipred", 
-    # Parallel Tools
-    "doParallel", "foreach",   
     # Dynamic Report Generation in R
-    "knitr", "pander",     
+    "knitr", "pander",  
     # Visualization tools
-    "ggplot2", "gridExtra", "manipulate", 
-    # Spam dataset
-    "kernlab"
-) 
+    "ggplot2", "gridExtra", "manipulate" 
+)
 #'
 libraries_on_GitHub <- c(
     # Required by ROCR
@@ -64,31 +78,35 @@ libraries_on_GitHub <- c(
 ###########################
 # Install & Load Packages #
 ###########################
-if(!require("pacman"))
-    install.packages("pacman"); require("pacman")
+suppressMessages({
+    if(!require("versions"))
+        install.packages("versions"); require("versions")
+})
 #' Step 1: Explicitly tell the package manager what libraries to include
-create_requirements_file(libraries_on_CRAN)
+create_requirements_file(libraries_on_MRAN)
 #' Step 2: Install and load packages from MRAN
-message("# Install and load packages from MRAN")
-p_load("checkpoint", character.only = TRUE, update = FALSE)
-libraries_on_MRAN <- checkpoint(snapshotDate = k_snapshot_date,
-                                # <https://cran.r-project.org/bin/windows/base/old/
-                                # R.version = "3.4.4",
-                                scanForPackages = TRUE,
-                                project = k_path_project,
-                                checkpointLocation = k_path_project,
-                                verbose = TRUE)$pkgs_found
-packages_to_load  <- !libraries_on_MRAN %in% c("RWeka","ggplot2","domino")
-k_path_libraries <<- .libPaths()[which.max(nchar(.libPaths()))]
-suppressMessages(
+message("# Install and load MRAN packages")
+for(package in libraries_on_MRAN){
     suppressPackageStartupMessages(
-        invisible(
-            sapply(libraries_on_MRAN[packages_to_load], require,
-                   character.only = TRUE)
-        )
+        suppressMessages({
+            if(!require(package, character.only = TRUE))
+                install.dates(package, k_snapshot_date, k_path_libraries)
+            require(package, character.only = TRUE)
+        })
     )
-)
-#' Step 3: Install and load GitHub packages
+}
+#' Step 3: Install and load packages from CRAN
+message("# Install and load CRAN packages")
+for(package in libraries_on_MRAN){
+    suppressPackageStartupMessages(
+        suppressMessages({
+            if(!require(package, character.only = TRUE))
+                install.packages(package, k_path_libraries)
+            require(package, character.only = TRUE)
+        })
+    )
+}
+#' Step 4: Install and load GitHub packages
 message("# Install and load GitHub packages")
 try(withr::with_libpaths(
     new = k_path_libraries,
