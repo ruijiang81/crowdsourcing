@@ -81,6 +81,8 @@ libraries_on_GitHub <- c(
 suppressMessages({
     if(!require("versions"))
         install.packages("versions"); require("versions")
+    if(!require("pacman"))
+        install.packages("pacman"); require("pacman")
 })
 #' Step 1: Explicitly tell the package manager what libraries to include
 create_requirements_file(libraries_on_MRAN)
