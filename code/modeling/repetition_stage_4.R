@@ -12,8 +12,16 @@ repetition_stage_4 <- function(){
                                          "rep_metadata",
                                          "rep_report",
                                          "unlabeled_data",
-                                         "holdout_data"))
+                                         "holdout_data",
+                                         "k_path_temporary",
+                                         "UID"))
     )
+    #'
+    #########
+    # Setup #
+    #########
+    path_repetition <- file.path(k_path_temporary, "report")
+    dir.create(path_repetition, show = FALSE, recursive = TRUE) 
     #'
     ################
     # Stage Kernel #
@@ -120,9 +128,8 @@ repetition_stage_4 <- function(){
             new_item$full_AUC = NA
             new_item$subset_AUC = NA
             ## Add data from text file
-            dir_path = file.path(getwd(),"results","temp folder",runID)
-            delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
-            full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
+            delta_performance = read.csv(file.path(k_path_temporary,"delta_performance_improvements.txt"), header = FALSE)
+            full_performance  = read.csv(file.path(k_path_temporary,"full_performance_improvements.txt"), header = FALSE)
             ## Add full performance
             new_item$full_AUC = full_performance[1,"V2"]
             ## Add delta performance
@@ -142,6 +149,12 @@ repetition_stage_4 <- function(){
         current_report_line <- current_report_line+1
     } # end Running the rest of the simulation
     rep_metadata$repetition <- counter_repetitions
+    #'
+    ################
+    # Save Results #
+    ################
+    path_output <- file.path(path_repetition, paste0(counter_repetitions,".csv"))
+    write_csv(rep_report %>% filter(repetition == counter_repetitions), path_output)
     #'
     ##########
     # Return #

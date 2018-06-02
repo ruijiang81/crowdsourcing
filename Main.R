@@ -7,8 +7,6 @@ source(file.path(getwd(), "code", "scripts", "setup.R"))
 #########
 # Setup #
 #########
-# Get unique ID for the run
-runID <<- stringi::stri_rand_strings(n = 1, length = 20)
 # Worst-case execution time
 watchdog_simulation = as.difftime(24*7, units="hours")
 # Dataset

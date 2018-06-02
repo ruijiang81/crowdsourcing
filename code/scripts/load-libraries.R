@@ -130,7 +130,6 @@ for(package in libraries_on_CRAN){
 }
 message("")
 #' Step 4: Install and load GitHub packages
-#' 
 message("# Install and load GitHub packages")
 pb <- txtProgressBar(0, length(libraries_on_GitHub), style = 3)
 i <- 0
@@ -148,6 +147,10 @@ for(package in libraries_on_GitHub){
     })
 }
 message("")
+#' Step 5: Make sure all packages were installed correctly
+libraries_on_System <- row.names(installed.packages())
+assertive::assert_is_subset(libraries_on_MRAN, libraries_on_System)
+assertive::assert_is_subset(libraries_on_CRAN, libraries_on_System)
 #'
 ################################################################################
 ## Environment Variables
