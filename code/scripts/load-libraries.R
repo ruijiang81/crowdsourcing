@@ -1,8 +1,8 @@
 ################################################################################
 #                           Load project's libraries                           #     
 ################################################################################
-message("############################\n# Load project's libraries #\n############################")
-#'
+#' browseVignettes()
+#' 
 #' There are three groups for the project's packages:
 #' 1. Package is on GitHub; install and load the latest package from GitHub.
 #' 2. Package is on MRAN; install and load a spesific package version from CRAN.
@@ -13,7 +13,6 @@ message("############################\n# Load project's libraries #\n###########
 #'    * packages from CRAN which should be in their latest version (e.g. dropbox).
 #' * The 2nd group is usful for reproducible research
 #'   
-Sys.setlocale("LC_TIME", "English")
 paste0(R.Version())[c("major","minor")]
 k_snapshot_date <<- "2016-05-26"
 k_path_project <<- getwd()
@@ -56,10 +55,17 @@ libraries_on_MRAN <- c(
 ) 
 #'
 libraries_on_CRAN <- c(
-    # Development tools for R
-    "testthat",              
+    # Defensive R Programming
+    # <https://mllg.github.io/checkmate/reference/index.html>
+    "checkmate",
+    # Check Functions to Ensure Code Integrity
+    # <https://bitbucket.org/richierocks/assertive>
+    "assertive",
+    # Unit Testing
+    # <http://r-pkgs.had.co.nz/tests.html>
+    "testthat",
     # Data Manipulation
-    "tidyverse", "dplyr", "plyr",
+    "tidyverse", "dplyr", "plyr", "magrittr",
     # Dynamic Report Generation in R
     "knitr", "pander",  
     # Visualization tools
@@ -78,6 +84,9 @@ libraries_on_GitHub <- c(
 ###########################
 # Install & Load Packages #
 ###########################
+#' Remove all packages that do not come with R
+#' remove.packages( installed.packages( priority = "NA" )[,1] )
+#' 
 suppressMessages({
     if(!require("versions"))
         install.packages("versions"); require("versions")
@@ -88,32 +97,57 @@ suppressMessages({
 create_requirements_file(libraries_on_MRAN)
 #' Step 2: Install and load packages from MRAN
 message("# Install and load MRAN packages")
+pb <- txtProgressBar(0, length(libraries_on_MRAN), style = 3)
+i <- 0
 for(package in libraries_on_MRAN){
-    suppressPackageStartupMessages(
+    suppressPackageStartupMessages({
         suppressMessages({
             if(!require(package, character.only = TRUE))
                 install.dates(package, k_snapshot_date, k_path_libraries)
             require(package, character.only = TRUE)
         })
-    )
+        # Advance Progress Bar
+        i <- i + 1
+        setTxtProgressBar(pb, i)
+    })
 }
+message("")
 #' Step 3: Install and load packages from CRAN
 message("# Install and load CRAN packages")
-for(package in libraries_on_MRAN){
-    suppressPackageStartupMessages(
+pb <- txtProgressBar(0, length(libraries_on_CRAN), style = 3)
+i <- 0
+for(package in libraries_on_CRAN){
+    suppressPackageStartupMessages({
         suppressMessages({
             if(!require(package, character.only = TRUE))
-                install.packages(package, k_path_libraries)
+                install.packages(pkgs = package, lib = k_path_libraries)
             require(package, character.only = TRUE)
         })
-    )
+        # Advance Progress Bar
+        i <- i + 1
+        setTxtProgressBar(pb, i)
+    })
 }
+message("")
 #' Step 4: Install and load GitHub packages
+#' 
 message("# Install and load GitHub packages")
-try(withr::with_libpaths(
-    new = k_path_libraries,
-    code = p_load_gh(char = libraries_on_GitHub)),
-    silent = FALSE)
+pb <- txtProgressBar(0, length(libraries_on_GitHub), style = 3)
+i <- 0
+for(package in libraries_on_GitHub){
+    suppressPackageStartupMessages({
+        suppressMessages({
+            try(withr::with_libpaths(
+                new = k_path_libraries,
+                code = p_load_gh(char = package)),
+                silent = FALSE)
+        })
+        # Advance Progress Bar
+        i <- i + 1
+        setTxtProgressBar(pb, i)
+    })
+}
+message("")
 #'
 ################################################################################
 ## Environment Variables

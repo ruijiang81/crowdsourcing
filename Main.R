@@ -1,9 +1,8 @@
-## Initialization
-cat("\014"); rm(list = ls())
-sapply(list.files(pattern="[.]R$", path="./functions/", full.names=TRUE), source)
-source("scripts/load_libraries.R")
-# options(error=recover) # debugging mode
-options(digits=4)
+##################
+# Initialization #
+##################
+message("##################\n# Initialization #\n##################")
+source(file.path(getwd(), "code", "scripts", "setup.R"))
 #'
 #########
 # Setup #
@@ -50,7 +49,7 @@ number_batch_omissions  <<- 10
 cross_validation_folds  <<- 8
 cross_validation_reruns <<- 4
 
-repeatitions <- 20 #20
+repeatitions <- 1 #20
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
@@ -62,7 +61,7 @@ param <- expand.grid(
                                  "max_quality",       # 4
                                  "max_ratio",         # 5
                                  "max_total_ratio")   # 6
-    [c(6)], 
+    [c(1)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
@@ -165,272 +164,18 @@ for(s in 1:nrow(param)){
     ## Start simulation timer
     start.time = Sys.time()
     
-    
     for(counter_repetitions in 1:repeatitions)
     {
-        cost_function_type = param[s,"primary_cost_function"]
-        #' In order to handle repetitions failure we encapsulate the repetitions  
-        #' in tryCatch.
-        #' For example, initial batches don't encompass all the available costs.
-        # tryCatch({
-        ####################################################################
-        #' Repetition setup
-        ####################################################################
-        if (Sys.time()-start.time >= watchdog_simulation) break # watchdog stop execution
-        global_seed <<- initial_seed*counter_repetitions
-        rep_metadata = create_report()
-        rep_report   = create_report()
-        counter_batches = 1
-        current_report_line = 1
-        # Display repetition info
-        cat('\n', rep('#',40), 
-            '\n', "current repeatition: ", counter_repetitions,
-            '\n', rep('#',40),
-            sep="")
-        
-        
-        ####################################################################
-        #' Split the data to 'unlabeled' and 'holdout'
-        ####################################################################
-        #' The holdout-set is fixed throughout the simulation
-        #' The unlabeled-set is shuffled differently in each repetition
-        set.seed(global_seed)
-        index_holdout  = sample(nrow(dataset), round(nrow(dataset)*p_holdout))
-        holdout_data   = dataset[index_holdout,]
-        unlabeled_data = dataset[-index_holdout,]
-        unlabeled_data = unlabeled_data[sample(nrow(unlabeled_data)),]
-        max_size_training_data = nrow(unlabeled_data) #used later for sanity check
-        
-        
-        ####################################################################
-        #' Purchase initial batches and fit model on them
-        ####################################################################
-        #' purchasing intial training set using different prices
-        # Cost to pay for each intial batch 
-        cost_so_far = 0
-        current_instance_num = 1
-        
-        if (num_batches_per_cost_initial_training_set>0){
-            #' num_batches_per_cost_initial_training_set may be set to zero when 
-            #' using random or other non algorthmic payment selection methods
-            for (i in 1:num_price_per_label_values){
-                for (j in 1:num_batches_per_cost_initial_training_set){
-                    
-                    set.seed(current_instance_num*global_seed)
-                    pay_per_label<-sample(price_per_label_values,1)
-                    
-                    if (secondary_cost_function_flag & (cost_so_far>model_cost_for_changing_cost_function))
-                        cost_function_type = secondary_cost_function
-                    
-                    labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                                                                   pay_per_label,
-                                                                   fixProbability)  
-                    
-                    ########################################################
-                    #' Change label quality (instance-wise implementation)
-                    ########################################################
-                    for (k in 1:batch_size) {
-                        ## Bind train-set and labeled-set
-                        if (current_instance_num==1){
-                            training_set = unlabeled_data[1,]
-                        } 
-                        else {
-                            training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
-                        } # end binding train/labeled sets
-                        
-                        
-                        ## Alternate true label (instance-wise operation)
-                        set.seed(current_instance_num*global_seed)
-                        random_number <- runif(1)
-                        if (random_number>labeling_accuracy){
-                            training_set$y[current_instance_num] <- change_level_value(training_set$y[current_instance_num])
-                            change<-1
-                        } else {
-                            change<-0
-                        } 
-                        
-                        #cost_so_far=cost_so_far+price_per_label_values[i]
-                        cost_so_far=cost_so_far+pay_per_label
-                        new_entry = data.frame("instance_num"=current_instance_num,
-                                               "pay"=pay_per_label,
-                                               "change"=change,
-                                               "cost_so_far"=cost_so_far,
-                                               "updated_label"=training_set$y[current_instance_num],
-                                               "batch"=counter_batches,
-                                               "svm_bug"=NA)
-                        rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
-                        
-                        current_instance_num = current_instance_num+1 # updating the instance counter
-                    } # end for change instance quality
-                    
-                    counter_batches = counter_batches+1 # updating the batch counter
-                    
-                    #################################
-                    # Evaluate model on unseen data #
-                    #################################
-                    ## AUC
-                    calculated_AUC = predict_set(training_set,
-                                                 holdout_data,
-                                                 inducer=model_inducer)
-                    
-                    #printing out to report
-                    rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-                    new_item            = rep_metadata[current_instance_num-1,]
-                    new_item$repetition = counter_repetitions
-                    new_item$batch      = counter_batches-1
-                    rep_report = rbind(rep_report,new_item)
-                    current_report_line <- current_report_line+1  
-                    
-                } # end for batch purchase
-                
-            } 
-            
-            
-            cat('\n',"Finished purchasing initial training set")
-            cat('\n',"AUC =",calculated_AUC)
-            
-            
-            
-            
-            
-        } # end Purchase initial batches
-        
-        
-        # ---------------------------------------------------------------- #
-        
-        
-        ####################################################################
-        #' Running the rest of the simulation
-        ####################################################################
-        
-        
-        #while (current_instance_num<=max_number_of_training_instance) {
-        while ((cost_so_far <= max_total_cost) & 
-               (Sys.time()-start.time < watchdog_simulation)){
-            cat("\n","Total model cost",paste0(round(cost_so_far,1),"$"))
-            cat("\n","Total instances in the model",current_instance_num)
-            
-            
-            ##################
-            #' Sanity Checks #
-            ##################
-            # Handle the "run out of instances" issue
-            if(current_instance_num + batch_size > max_size_training_data){
-                cat("\n", "Out of unlabeled instances")
-                break
-            } 
-            
-            
-            ################################################################
-            #' Choose next cost to pay
-            ################################################################
-            pay_per_label = decide_price_per_label(training_set,
-                                                   payment_selection_criteria,
-                                                   price_per_label_values,
-                                                   current_instance_num,
-                                                   rep_metadata,
-                                                   counter_repetitions,
-                                                   inducer=model_inducer)
-            
-            for (k in 1:batch_size) {
-                
-                if (current_instance_num==1){
-                    training_set<-unlabeled_data[1,]
-                } 
-                else {
-                    training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
-                }
-                
-                if (secondary_cost_function_flag & (cost_so_far>model_cost_for_changing_cost_function))
-                    cost_function_type = secondary_cost_function
-                labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
-                                                               pay_per_label,
-                                                               fixProbability)
-                set.seed(current_instance_num*global_seed)
-                random_number <- runif(1)
-                if (random_number>labeling_accuracy){
-                    training_set$y[current_instance_num]<-change_level_value(training_set$y[current_instance_num])
-                    change<-1
-                }
-                else {
-                    change<-0
-                }
-                cost_so_far=cost_so_far+pay_per_label
-                new_entry = data.frame("instance_num"=current_instance_num,
-                                       "pay"=pay_per_label,
-                                       "change"=change,
-                                       "cost_so_far"=cost_so_far,
-                                       "updated_label"=training_set$y[current_instance_num],
-                                       "batch"=counter_batches,
-                                       "svm_bug"=NA)
-                rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
-                
-                current_instance_num<-current_instance_num+1 # updating the instance counter
-            }
-            
-            #counter_batches = counter_batches+1 # updating the batch counter
-            
-            
-            #################################
-            # Evaluate model on unseen data #
-            #################################
-            ## AUC
-            calculated_AUC = predict_set(training_set,
-                                         holdout_data,
-                                         inducer=model_inducer)
-            cat('\n',"AUC =",calculated_AUC)
-            
-            # Fix SVM bug
-            if(tolower(model_inducer)=="svm"){
-                rep_metadata[current_instance_num-1,"svm_bug"] = calculated_AUC < 1-calculated_AUC
-                calculated_AUC = max(calculated_AUC,1-calculated_AUC)
-            }
-            
-            
-            ## Store iteration metadata in the report
-            rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
-            new_item            = rep_metadata[current_instance_num-1,]
-            new_item$repetition = counter_repetitions
-            new_item$batch      = counter_batches
-            
-            
-            
-            if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
-                new_item$full_AUC = NA
-                new_item$subset_AUC = NA
-                ## Add data from text file
-                dir_path = file.path(getwd(),"results","temp folder",runID)
-                delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
-                full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
-                ## Add full performance
-                new_item$full_AUC = full_performance[1,"V2"]
-                ## Add delta performance
-                dn = nrow(delta_performance)
-                dm = ncol(delta_performance)
-                ### Duplicate new_item
-                for(i in 2:(dm-1)) new_item[i,] = new_item[i-1,]
-                ### Store subset AUC
-                for(i in 2:dm) new_item[i-1,"subset_AUC"] = delta_performance[i]
-            } else {
-                new_item$full_AUC   = NA
-                new_item$subset_AUC = NA
-            }
-            
-            rep_report = rbind(rep_report,new_item)
-            counter_batches = counter_batches+1 # updating the batch counter
-            current_report_line <- current_report_line+1
-        } # end Running the rest of the simulation
-        
-        report   = rbind(report, rep_report)
-        rep_metadata$repetition = counter_repetitions
-        metadata = merge(metadata, rep_metadata, all=TRUE)
-        # },
-        # error = function(cond){ # if the model fitting or the evaluation failed, return AUC = 0.5 with a warning
-        #     warning(paste0("failed to run repetition #",counter_repetitions,"; ignoring repetition"))
-        #     return(NA)
-        # } # end error
-        # ) # end tryCatch
-    } #repetitions
+        cost_function_type <- param[s,"primary_cost_function"]
+        #' (1) Setup
+        repetition_stage_1()
+        #' (2) Split the data to 'unlabeled' and 'holdout'
+        repetition_stage_2()
+        #' (3) Purchase initial batches and fit model on them
+        repetition_stage_3()
+        #' (4) Running the rest of the simulation
+        repetition_stage_4()
+    }# repetitions for loop 
     
     ## Save report on hard drive
     finishSimTime      = Sys.time()
@@ -448,9 +193,9 @@ for(s in 1:nrow(param)){
                                 ".csv")
     
     dir.create(report_dir, show=FALSE, recursive=TRUE)
-    write.csv(subset(report, select = -svm_bug), file=file.path(report_dir,file_name), row.names=F)
+    write.csv(report %>% select(-svm_bug), file=file.path(report_dir,file_name), row.names=F)
     dir.create(metadata_dir, show=FALSE, recursive=TRUE)
-    write.csv(dplyr::arrange(metadata,repetition,batch), file=file.path(metadata_dir,file_name), row.names=F)
+    write.csv(metadata %>% arrange(repetition, batch), file=file.path(metadata_dir,file_name), row.names=F)
 } # end simulation
 
 stopCluster(cl)

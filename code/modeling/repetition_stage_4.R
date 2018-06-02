@@ -1,0 +1,153 @@
+################################################################################
+# Repetition Stage 4: Running the rest of the simulation                       #
+################################################################################
+repetition_stage_4 <- function(){
+    ####################
+    # Input validation #
+    ####################
+    checkmate::assert(
+        # Check if argumenta are in the global environment
+        check_environment(globalenv(), c("counter_batches",
+                                         "current_report_line",
+                                         "rep_metadata",
+                                         "rep_report",
+                                         "unlabeled_data",
+                                         "holdout_data"))
+    )
+    #'
+    ################
+    # Stage Kernel #
+    ################
+    #' Check if argumenta are in the global environment
+    assert_environment(globalenv(), c("cost_so_far",
+                                      "current_instance_num",
+                                      "training_set",
+                                      "rep_report"))
+    #' Check the report quality
+    report_quality_assurance(rep_report)
+    report_quality_assurance(rep_metadata)
+    
+    #'
+    while ((cost_so_far <= max_total_cost) & 
+           (Sys.time() - start.time < watchdog_simulation)){
+        cat("\n","Total model cost",paste0(round(cost_so_far,1),"$"))
+        cat("\n","Total instances in the model",current_instance_num)
+        
+        
+        ##################
+        #' Sanity Checks #
+        ##################
+        # Handle the "run out of instances" issue
+        if(current_instance_num + batch_size > max_size_training_data){
+            cat("\n", "Out of unlabeled instances")
+            break
+        } 
+        
+        
+        ################################################################
+        #' Choose next cost to pay
+        ################################################################
+        pay_per_label = decide_price_per_label(training_set,
+                                               payment_selection_criteria,
+                                               price_per_label_values,
+                                               current_instance_num,
+                                               rep_metadata,
+                                               counter_repetitions,
+                                               inducer=model_inducer)
+        
+        for (k in 1:batch_size) {
+            
+            if (current_instance_num==1){
+                training_set<-unlabeled_data[1,]
+            } 
+            else {
+                training_set<-rbind(training_set,unlabeled_data[current_instance_num,])
+            }
+            
+            if (secondary_cost_function_flag & (cost_so_far>model_cost_for_changing_cost_function))
+                cost_function_type = secondary_cost_function
+            labeling_accuracy<-labelingCostQualityTradeoff(cost_function_type,
+                                                           pay_per_label,
+                                                           fixProbability)
+            set.seed(current_instance_num*global_seed)
+            random_number <- runif(1)
+            if (random_number>labeling_accuracy){
+                training_set$y[current_instance_num]<-change_level_value(training_set$y[current_instance_num])
+                change<-1
+            }
+            else {
+                change<-0
+            }
+            cost_so_far=cost_so_far+pay_per_label
+            new_entry = data.frame("instance_num"=current_instance_num,
+                                   "pay"=pay_per_label,
+                                   "change"=change,
+                                   "cost_so_far"=cost_so_far,
+                                   "updated_label"=training_set$y[current_instance_num],
+                                   "batch"=counter_batches,
+                                   "svm_bug"=NA)
+            rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
+            
+            current_instance_num<-current_instance_num+1 # updating the instance counter
+        }
+        
+        #counter_batches = counter_batches+1 # updating the batch counter
+        
+        
+        #################################
+        # Evaluate model on unseen data #
+        #################################
+        ## AUC
+        calculated_AUC = predict_set(training_set,
+                                     holdout_data,
+                                     inducer=model_inducer)
+        cat('\n',"AUC =",calculated_AUC)
+        
+        # Fix SVM bug
+        if(tolower(model_inducer)=="svm"){
+            rep_metadata[current_instance_num-1,"svm_bug"] = calculated_AUC < 1-calculated_AUC
+            calculated_AUC = max(calculated_AUC,1-calculated_AUC)
+        }
+        
+        
+        ## Store iteration metadata in the report
+        rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
+        new_item            = rep_metadata[current_instance_num-1,]
+        new_item$repetition = counter_repetitions
+        new_item$batch      = counter_batches
+        
+        if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
+            new_item$full_AUC = NA
+            new_item$subset_AUC = NA
+            ## Add data from text file
+            dir_path = file.path(getwd(),"results","temp folder",runID)
+            delta_performance = read.csv(file.path(dir_path,"delta_performance_improvements.txt"), header = FALSE)
+            full_performance  = read.csv(file.path(dir_path,"full_performance_improvements.txt"), header = FALSE)
+            ## Add full performance
+            new_item$full_AUC = full_performance[1,"V2"]
+            ## Add delta performance
+            dn = nrow(delta_performance)
+            dm = ncol(delta_performance)
+            ### Duplicate new_item
+            for(i in 2:(dm-1)) new_item[i,] = new_item[i-1,]
+            ### Store subset AUC
+            for(i in 2:dm) new_item[i-1,"subset_AUC"] = delta_performance[i]
+        } else {
+            new_item$full_AUC   = NA
+            new_item$subset_AUC = NA
+        }
+        
+        rep_report = rbind(rep_report,new_item)
+        counter_batches = counter_batches+1 # updating the batch counter
+        current_report_line <- current_report_line+1
+    } # end Running the rest of the simulation
+    rep_metadata$repetition <- counter_repetitions
+    #'
+    ##########
+    # Return #
+    ##########
+    report <<- rbind(report, rep_report)
+    rep_metadata <<- rep_metadata
+    metadata <<- merge(metadata, rep_metadata, all = TRUE)
+    return(invisible())
+}
