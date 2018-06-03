@@ -1,42 +1,40 @@
-########################################
-# Ignore all files in specific folders #
-########################################
-/.checkpoint/*
+#####################
+# Ignore everything #
+#####################
+/*
+/*/
+
 
 #########################
-# Include .folder flags #
+# Un-ignore directories #
 #########################
+!/code/
+!/data/
+!/docs/
+
+
+###################
+# Un-ignore files #
+###################
 !.folder
+!*.Rproj
+!.gitignore
 
 
+##########################
+# Ignore specific folders #
+###########################
+packrat/lib*/
+packrat/src/packrat/packrat_0.4.9-1.tar.gz
+packrat/src/
 
-# History files
-.Rhistory
-.Rapp.history
 
-# Example code in package build process
-*-Ex.R
-
-# RStudio files
-.Rproj.user/
-
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
-#*.csv
-results/stdout.txt
-
-# Domino
-domino.log
-.httr-oauth
-Dropbox/
-*.txt
-*.png
-*.rda
-*.RData
-*.csv
-*.dominokeep
-.Rproj.user
-*.xlsx
+#########################
+# Ignore specific files #
+#########################
 *.ini
-requirements.R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.rds

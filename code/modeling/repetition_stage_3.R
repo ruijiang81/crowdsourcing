@@ -5,15 +5,15 @@ repetition_stage_3 <- function(){
     ####################
     # Input validation #
     ####################
-    checkmate::assert(
-        # Check if argumenta are in the global environment
-        check_environment(globalenv(), c("counter_batches",
-                                         "current_report_line",
-                                         "rep_metadata",
-                                         "rep_report",
-                                         "unlabeled_data",
-                                         "holdout_data"))
-    )
+    #' Check if argumenta are in the global environment
+    assertive::assert_all_are_existing(envir = globalenv(), c("counter_batches",
+                                                              "secondary_cost_function_flag",
+                                                              "current_report_line",
+                                                              "rep_metadata",
+                                                              "rep_report",
+                                                              "unlabeled_data",
+                                                              "holdout_data",
+                                                              "current_repetition"))
     #'
     ################
     # Stage Kernel #
@@ -89,7 +89,7 @@ repetition_stage_3 <- function(){
                 #printing out to report
                 rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
                 new_item            = rep_metadata[current_instance_num-1,]
-                new_item$repetition = counter_repetitions
+                new_item$repetition = current_repetition
                 new_item$batch      = counter_batches-1
                 rep_report = rbind(rep_report,new_item)
                 current_report_line <- current_report_line+1  

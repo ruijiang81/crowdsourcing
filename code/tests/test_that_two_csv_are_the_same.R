@@ -23,20 +23,21 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
     ####################
     # Subset the files #
     ####################
-    S2 <- file_2 %>% group_by(repetition) %>% summarise(batch = max(batch)) %>% as.data.frame()
-    file_1_subset <- data.frame()
-    for(i in 1:nrow(S2)){
-        file_1_subset <- 
+    file_temp <- data.frame()
+    for(r in unique(file_2$repetition)){
+        S <- file_2 %>% filter(repetition == r) %>% 
+            summarise(batch = max(batch), repetition = max(repetition))
+        file_temp <- 
             bind_rows(
-                file_1_subset,
-                file_1 %>% dplyr::filter(repetition == S2[i,"repetition"], batch <= S2[i,"batch"])
+                file_temp,
+                file_1 %>% filter(repetition == S$repetition, batch <= S$batch)
             )
     }
+    file_1 <- file_temp
     #'
     #########
     # Tests #
     #########
-    file_1 <- file_1_subset
     #' test that columns are identical
     assert_set_equal(colnames(file_1), colnames(file_2), add = collection)
     reportAssertions(collection)
@@ -54,6 +55,7 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
     ##########
     # Return #
     ##########
+    message("###############################\n# Test Completed Successfully #\n###############################")
     return(invisible())
 }
 # ---------------------------------------------------------------------------- #

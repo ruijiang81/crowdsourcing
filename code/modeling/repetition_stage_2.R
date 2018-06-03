@@ -7,12 +7,10 @@ repetition_stage_2 <- function(){
     ####################
     # Input validation #
     ####################
-    checkmate::assert(
-        checkEnvironment(globalenv(), c("global_seed",
-                                        "dataset",
-                                        "p_holdout",
-                                        "counter_repetitions"))
-        )
+    #' Check if argumenta are in the global environment
+    assertive::assert_all_are_existing(envir = globalenv(), c("global_seed",
+                                                              "dataset",
+                                                              "p_holdout"))
     #'
     ################
     # Stage Kernel #

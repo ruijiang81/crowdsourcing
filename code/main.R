@@ -7,20 +7,20 @@ source(file.path(getwd(), "code", "scripts", "setup.R"))
 #########
 # Setup #
 #########
-# Worst-case execution time
+#' Worst-case execution time
 watchdog_simulation = as.difftime(24*7, units="hours")
-# Dataset
-DATABASE_NAME=
-    c("Spam",                 # 1
-      "Mushroom",             # 2
-      "Pen Digits",           # 3
-      "Otto",                 # 4
-      "Synthetic_Balanced",   # 5
-      "Synthetic_Unbalanced", # 6
-      "Tax Audit",            # 7
-      "Adult",                # 8
-      "Movies Reviews"        # 9      
-    )[2]
+#' Dataset
+DATABASE_NAME <- c("Spam",                 # 1
+                   "Mushroom",             # 2
+                   "Pen Digits",           # 3
+                   "Otto",                 # 4
+                   "Synthetic_Balanced",   # 5
+                   "Synthetic_Unbalanced", # 6
+                   "Tax Audit",            # 7
+                   "Adult",                # 8
+                   "Movies Reviews")[2]    # 9      
+get_the_data(DATABASE_NAME)
+#'
 p_holdout         = 0.3  #percentage of data in external holdout
 initial_seed      = 1811 #large number
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
@@ -91,55 +91,16 @@ if(primary_cost_function %in% "fix3labels"){
                                 probability=c(0.5000000,0.9854227,0.9953280))
     
 }
-
-
+#'
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
 secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[2]
 model_cost_for_changing_cost_function = 75
-
-
-## Get the data
-DATABASE_NAME <- tolower(DATABASE_NAME)
-if(DATABASE_NAME=="otto"){
-    source("./data/Otto/import dataset.R")
-    
-} else if (DATABASE_NAME=="spam") {
-    library("kernlab")  
-    data(spam)
-    dataset <- spam
-    
-} else if (DATABASE_NAME=="synthetic_balanced") {
-    source("scripts/generate_balanced_dataset.R")
-    
-} else if (DATABASE_NAME=="synthetic_unbalanced") {
-    source("scripts/generate_unbalanced_dataset.R")
-    
-} else if (DATABASE_NAME=="tax audit") {
-    source("./data/Tax Audit/import dataset.R")
-    
-} else if (DATABASE_NAME=="mushroom") {
-    source("./data/Mushroom/import dataset.R")
-    
-} else if (DATABASE_NAME=='adult') {
-    source("./data/Adult/import dataset.R")
-    
-} else if (DATABASE_NAME=='pen digits') {
-    source("./data/Pen Digits/import dataset.R")
-    
-} else if (DATABASE_NAME=='movies reviews') {
-    source("./data/Movie Review/import dataset.R")
-    
-} else {
-    error("Unknow dataset")
-} # end get the data
-
-dataset <- setVariablesNames(dataset)
-
-
+#'
 ################################################################################
 #' Start simulation
 ################################################################################
+message("##############\n# Simulation #\n##############")
 # Detects the number of cores and prepares for parallel run
 cl <- makeCluster(detectCores(),outfile="")   
 registerDoParallel(cl)
@@ -162,7 +123,7 @@ for(s in 1:nrow(param)){
     ## Start simulation timer
     start.time = Sys.time()
     
-    for(counter_repetitions in 1:repeatitions)
+    for(current_repetition in 1:repeatitions)
     {
         cost_function_type <- param[s,"primary_cost_function"]
         #' (1) Setup

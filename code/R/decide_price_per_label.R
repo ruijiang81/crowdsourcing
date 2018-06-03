@@ -1,25 +1,38 @@
 #' decide_price_per_label
 #' 
+#' @description 
 #' What does it do?
-#' (1)	There are two sets of rules: (a) non data-driven (i.e. min_pay_per_label), and (b) data-driven (i.e. max_total_ratio).  According to the selected rule, the function returns a payment for the next iteration.
-#' (2)	If a non data-driven rule was chosen, no model fitting is required and the returning value would be a number from the available costs values.
-#' (3)	If a data-driven rule was chosen, cross validation per each available cost value is performed. In essence, we estimate the changes in AUC when omitting serval instances (a batch) bought at a particular payment value. We call these calculation “partial_model_performance”
-#' (4)	We fit a model to all the data, estimate it’s performance by K-fold CV and call it “full_model_CV_performance”.
-#' (5)	The detla_performance_improvement is the result of subtracting partial_model_performance from full_model_CV_performance. 
-#' (6)	According to the data-driven rule, we decide what should be the next payment, that is, the return value.
+#' (1)	There are two sets of rules:
+#'     (a) non data-driven (i.e. min_pay_per_label), and
+#'     (b) data-driven (i.e. max_total_ratio).
+#' According to the selected rule, the function returns a payment for the next 
+#' iteration.
+#' (2)	If a non data-driven rule was chosen, no model fitting is required and 
+#'      the returning value would be a number from the available costs values.
+#' (3)	If a data-driven rule was chosen, cross validation per each available 
+#'      cost value is performed. In essence, we estimate the changes in AUC when 
+#'      omitting serval instances (a batch) bought at a particular payment 
+#'      value. We call these calculation “partial_model_performance”
+#' (4)	We fit a model to all the data, estimate it’s performance by K-fold CV 
+#'      and call it “full_model_CV_performance”.
+#' (5)	The detla_performance_improvement is the result of subtracting 
+#'      partial_model_performance from full_model_CV_performance. 
+#' (6)	According to the data-driven rule, we decide what should be the next
+#'      payment, that is, the return value.
+#'      
 #' INPUTS:
-#' 1.	train; labeled set
-#' 2.	pay_criteria; By which rule to decide how much to pay for the next batch?
-#' 3.	payment_options; Available costs values
-#' 4.	cur_instance_num; How many instances are in the model?
-#' 5.	meta_data; Simulation log
-#' 6.	repeatition_num; The current repetition value
-#' 7.	inducer; What inducer should be used to fit models?
-#' OUTPUT:
-#' A scalar – the payment for the next iteration.
+#' @param train; labeled set
+#' @param pay_criteria; By which rule to decide how much to pay for the next
+#'        batch?
+#' @param payment_options; Available costs values
+#' @param cur_instance_num; How many instances are in the model?
+#' @param meta_data; Simulation log
+#' @param repeatition_num; The current repetition value
+#' @param inducer; What inducer should be used to fit models?
 #' 
-
-
+#' OUTPUT:
+#' @return A scalar – the payment for the next iteration.
+#' 
 decide_price_per_label <- function(train,
                                    # By which rule to decide how much to pay for the next batch?
                                    pay_criteria,
@@ -37,8 +50,7 @@ decide_price_per_label <- function(train,
     ####################
     # Input Validation #
     ####################
-    assertive::assert_all_are_existing(c("UID",
-                                         "k_path_temporary"))
+    assertive::assert_all_are_existing(c("k_path_temporary"))
     #'
     #########
     # Setup #
@@ -62,21 +74,17 @@ decide_price_per_label <- function(train,
         pay <- substr(pay_criteria, 8, nchar(pay_criteria))
         
     } else if (pay_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
-        # for testing  
-        #payment_options<-price_per_label_values
-        #train<-training_set
-        #meta_data<-metadata
-        #cur_instance_num<-250
-        #
+        
         columns_names <- c(payment_options)
         summary_partial_model_performance <- read.table(text = "", col.names = columns_names)
         
-        num_payment_options<-length(payment_options) 
-        full_model_CV_performance<-cross_validation(train,
-                                                    cross_validation_folds,
-                                                    cross_validation_reruns,
-                                                    inducer=inducer)
-        full_model_CV_performance
+        num_payment_options <- length(payment_options) 
+        
+        full_model_CV_performance <- cross_validation(train,
+                                                      cross_validation_folds,
+                                                      cross_validation_reruns,
+                                                      inducer = inducer)
+        #'
         for (i in 1:num_payment_options) {
             #print (i)
             for (j in 1:number_batch_omissions){
@@ -93,18 +101,22 @@ decide_price_per_label <- function(train,
                 summary_partial_model_performance[j,i] <- cross_validation(randomly_remaining_instances,
                                                                            cross_validation_folds,
                                                                            cross_validation_reruns,
-                                                                           inducer=inducer)
+                                                                           inducer = inducer)
             }
         }  
-        partial_model_performance<-colMeans(summary_partial_model_performance, na.rm = FALSE, dims = 1) #vector with the average performance of the partial models per payment option
-        delta_performance_improvement<-full_model_CV_performance-partial_model_performance #vector with average delta improvement over a the full model    
-        
-        out_delta <- toString(c(cur_instance_num,delta_performance_improvement))
-        out_full  <- toString(c(cur_instance_num,full_model_CV_performance))
-        
+        #' Vector with the average performance of the partial models per payment
+        #' option
+        partial_model_performance <- 
+            colMeans(summary_partial_model_performance, na.rm = FALSE, dims = 1) 
+        #' Vector with average delta improvement over a the full model    
+        delta_performance_improvement <- 
+            full_model_CV_performance - partial_model_performance 
+        #'
         #################
         # Store results #
         #################
+        out_delta <- toString(c(cur_instance_num, delta_performance_improvement))
+        out_full <- toString(c(cur_instance_num, full_model_CV_performance))
         cat(out_full, file = output_full, sep = "\n", append = TRUE) 
         cat(out_delta, file = output_delta, sep = "\n", append = TRUE) 
         #'

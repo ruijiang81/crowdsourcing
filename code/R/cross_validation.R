@@ -1,4 +1,6 @@
 #' cross_validation
+#' 
+#' @description 
 #' What does it do?
 #' (1)	Splits the dataset into num_folds folds (sample with replacement).
 #' (2)	Fits a classification model with inducer as base-learner to num_folds-1 folds.
@@ -6,17 +8,19 @@
 #' (4)	Does the same as in step 2-3 but with a different fold put aside.
 #' (5)	Repeats steps 1-4 num_reruns times.
 #' (6)	Returns a scalar - the mean AUC across all num_folds* num_reruns runs.
+#'
 #' INPUTS:
-#' 1.	cv_data; the data to evaluate
-#' 2.	num_folds; the number of folds in the K-fold CV
-#' 3.	num_reruns; the number of repetitions for the K-fold CV
-#' 4.	inducer; the base-learner for modeling the data (options: RF,GLM,J48)
-
-
+#' @param cv_data; the data to evaluate
+#' @param num_folds; the number of folds in the K-fold CV
+#' @param num_reruns; the number of repetitions for the K-fold CV
+#' @param inducer; the base-learner for modeling the data (options: RF,GLM,J48)
+#' 
 cross_validation <- function(cv_data, 
-                             num_folds,  # Number of folds
-                             num_reruns, # Number repetition
-                             inducer=c("RF","GLM","J48"))
+                             # Number of folds
+                             num_folds, 
+                             # Number repetition
+                             num_reruns, 
+                             inducer = c("RF","GLM","J48"))
 {  
     # Validate assumption
     require("foreach")
