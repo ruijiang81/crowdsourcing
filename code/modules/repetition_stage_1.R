@@ -21,13 +21,11 @@ repetition_stage_1 <- function(){
     global_seed <<- initial_seed * current_repetition
     rep_metadata <<- create_report()
     rep_report <<- create_report()
-    counter_batches <<- 1
+    rep_ledger <<- data.frame()
+    current_batch <<- 1
     current_report_line <<- 1
     #' Display repetition info
-    cat('\n', rep('#',40), 
-        '\n', "current repeatition: ", current_repetition,
-        '\n', rep('#',40),
-        sep="")
+    cat_40("Current repeatition: " %+% current_repetition)
     #'
     ##########
     # Return #

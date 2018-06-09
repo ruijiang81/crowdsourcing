@@ -34,6 +34,7 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
             )
     }
     file_1 <- file_temp
+    assertive::assert_is_non_empty(file_1)
     #'
     #########
     # Tests #

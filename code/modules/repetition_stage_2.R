@@ -10,7 +10,10 @@ repetition_stage_2 <- function(){
     #' Check if argumenta are in the global environment
     assertive::assert_all_are_existing(envir = globalenv(), c("global_seed",
                                                               "dataset",
-                                                              "p_holdout"))
+                                                              "p_holdout",
+                                                              "rep_ledger"))
+    assertive::assert_is_data.frame(rep_ledger)
+    assertive::assert_is_empty(rep_ledger)
     #'
     ################
     # Stage Kernel #

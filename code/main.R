@@ -7,8 +7,6 @@ source(file.path(getwd(), "code", "scripts", "setup.R"))
 #########
 # Setup #
 #########
-#' Worst-case execution time
-watchdog_simulation = as.difftime(24*7, units="hours")
 #' Dataset
 DATABASE_NAME <- c("Spam",                 # 1
                    "Mushroom",             # 2
@@ -21,8 +19,8 @@ DATABASE_NAME <- c("Spam",                 # 1
                    "Movies Reviews")[2]    # 9      
 get_the_data(DATABASE_NAME)
 #'
-p_holdout         = 0.3  #percentage of data in external holdout
-initial_seed      = 1811 #large number
+p_holdout    <- 0.3  # percentage of data in external holdout
+initial_seed <- 1811 # large number
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
 price_per_label_values = c(0.02,0.14,0.25)
 
@@ -36,7 +34,7 @@ num_batches_per_cost_initial_training_set <-  ceiling(300/(batch_size*num_price_
 # for random payment selection best to use 0
 
 
-max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
+max_total_cost = 65 # should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -59,7 +57,7 @@ param <- expand.grid(
                                  "max_quality",       # 4
                                  "max_ratio",         # 5
                                  "max_total_ratio")   # 6
-    [c(1)], 
+    [c(6)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",                   # 1
                               "Concave",               # 2   
@@ -68,13 +66,12 @@ param <- expand.grid(
                               "Concave3Labels",        # 5
                               "Asymptotic3Labels")[2], # 6
     stringsAsFactors = FALSE)
-
+#'
 ## Fix value
 fixProbability = 0.85
-
+#'
 ## Hash-table
 primary_cost_function = tolower(param[1,"primary_cost_function"])
-# if(primary_cost_function %in% c("fix3labels","concave3labels","asymptotic3labels")))
 if(primary_cost_function %in% "fix3labels"){
     price_per_label_values = 3*price_per_label_values
     fixProbability = data.frame(cost=price_per_label_values,
@@ -100,7 +97,7 @@ model_cost_for_changing_cost_function = 75
 ################################################################################
 #' Start simulation
 ################################################################################
-message("##############\n# Simulation #\n##############")
+cat_80("Start simulation")
 # Detects the number of cores and prepares for parallel run
 cl <- makeCluster(detectCores(),outfile="")   
 registerDoParallel(cl)
@@ -117,7 +114,8 @@ for(s in 1:nrow(param)){
     
     ## Allocate report
     report   = create_report()
-    metadata = cbind(create_report(),svm_bug=data.frame())
+    ledger   = data.frame()
+    metadata = cbind(create_report(), svm_bug = data.frame())
     svm_bug  = NA
     
     ## Start simulation timer
@@ -135,31 +133,18 @@ for(s in 1:nrow(param)){
         #' (4) Running the rest of the simulation
         repetition_stage_4()
     }# repetitions for loop 
-    
+    #'
     ## Save report on hard drive
-    finishSimTime      = Sys.time()
-    Time.Diff          = round(as.numeric(finishSimTime-startSimTime, units = "mins"),0)
-    report_dir         = file.path(getwd(),"results")
-    metadata_dir       = file.path(report_dir,"metadata")
-    primary_cost_function = param[s,"primary_cost_function"]
-    cost_function_type = ifelse(secondary_cost_function_flag,paste0(primary_cost_function,2,secondary_cost_function),primary_cost_function)
-    file_name          = paste0('(',tolower(DATABASE_NAME),')',
-                                '(',toupper(model_inducer),')',
-                                '(',tolower(cost_function_type),')',
-                                '(',tolower(payment_selection_criteria),max_instances_in_history,')',
-                                '(',Sys.Date(),')',
-                                '(',paste0(Time.Diff,' minutes'),')',
-                                ".csv")
-    
-    dir.create(report_dir, show=FALSE, recursive=TRUE)
-    write.csv(report %>% select(-svm_bug), file=file.path(report_dir,file_name), row.names=F)
-    dir.create(metadata_dir, show=FALSE, recursive=TRUE)
-    write.csv(metadata %>% arrange(repetition, batch), file=file.path(metadata_dir,file_name), row.names=F)
+    slug <- generate_file_slug()
+    write_csv(report %>% select(-svm_bug),
+              path = file.path(k_path_reports, slug %+% ".csv"))
+    write_csv(metadata %>% arrange(repetition, batch),
+              path = file.path(k_path_metadata, slug %+% ".csv"))
+    write_csv(ledger,
+              path = file.path(k_path_ledgers, slug %+% ".csv"))
 } # end simulation
-
+#'
 stopCluster(cl)
-
 stop.time <- Sys.time()
-cat("\n",rep("#",40),
-    "\n# Completed in ", round(as.numeric(stop.time-start.time, units = "mins"),0), " [mins]",
-    "\n",rep("#",40), sep="")
+cat_80("Completed in " %+% round(as.numeric(stop.time-start.time, units = "mins"),0) %+% " [mins]")
+#'

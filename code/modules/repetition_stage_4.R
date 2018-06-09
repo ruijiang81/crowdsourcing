@@ -6,24 +6,22 @@ repetition_stage_4 <- function(){
     # Input validation #
     ####################
     #' Check if argumenta are in the global environment
-    assertive::assert_all_are_existing(envir = globalenv(), c("counter_batches",
-                                                              "secondary_cost_function_flag",
-                                                              "current_report_line",
-                                                              "rep_metadata",
-                                                              "unlabeled_data",
-                                                              "holdout_data",
-                                                              "k_path_temporary",
-                                                              "decide_price_per_label",
-                                                              "cost_so_far",
-                                                              "current_instance_num",
-                                                              "training_set",
-                                                              "rep_report"))
-    #'
-    #########
-    # Setup #
-    #########
-    path_repetition <- file.path(k_path_temporary, "report")
-    dir.create(path_repetition, show = FALSE, recursive = TRUE) 
+    assertive::assert_all_are_existing(envir = globalenv(), 
+                                       c("current_batch",
+                                         "payment_selection_criteria",
+                                         "secondary_cost_function_flag",
+                                         "current_report_line",
+                                         "rep_metadata",
+                                         "unlabeled_data",
+                                         "holdout_data",
+                                         "k_path_temporary",
+                                         "decide_price_per_label",
+                                         "cost_so_far",
+                                         "current_instance_num",
+                                         "training_set",
+                                         "rep_report",
+                                         "rep_ledger"))
+    assertive::assert_is_data.frame(rep_ledger)
     #'
     ################
     # Stage Kernel #
@@ -32,10 +30,18 @@ repetition_stage_4 <- function(){
     report_quality_assurance(rep_report)
     report_quality_assurance(rep_metadata)
     #'
+    #' Repetitions while loop
     while((cost_so_far <= max_total_cost) & 
           (Sys.time() - start.time < watchdog_simulation)){
+        #########
+        # Start #
+        #########
         cat("\n","Total model cost",paste0(round(cost_so_far,1),"$"))
         cat("\n","Total instances in the model",current_instance_num)
+        #' Create new ledger record holder
+        new_record <- data.frame(repetition = current_repetition,
+                                 batch = current_batch,
+                                 payment_selection_criteria = payment_selection_criteria)
         #'
         #################
         # Sanity Checks #
@@ -56,6 +62,7 @@ repetition_stage_4 <- function(){
                                                 rep_metadata,
                                                 current_repetition,
                                                 inducer = model_inducer)
+        new_record <- new_record %>% bind_cols(payment_selected = pay_per_label)
         #'
         #############################################
         # Purchase new labels in the selected price #
@@ -94,42 +101,46 @@ repetition_stage_4 <- function(){
             #'
             # Instance-wise logger
             cost_so_far <- cost_so_far + pay_per_label
-            new_entry <- data.frame("instance_num"=current_instance_num,
-                                    "pay"=pay_per_label,
-                                    "change"=change,
-                                    "cost_so_far"=cost_so_far,
-                                    "updated_label"=training_set$y[current_instance_num],
-                                    "batch"=counter_batches,
-                                    "svm_bug"=NA)
+            new_entry <- data.frame("instance_num"  = current_instance_num,
+                                    "pay"           = pay_per_label,
+                                    "change"        = change,
+                                    "cost_so_far"   = cost_so_far,
+                                    "updated_label" = training_set$y[current_instance_num],
+                                    "batch"         = current_batch,
+                                    "svm_bug"       = NA)
             # Repetition-wise logger
-            rep_metadata = merge(rep_metadata, new_entry, all=TRUE)
+            rep_metadata <- merge(rep_metadata, new_entry, all=TRUE)
             #'
             # Update the instance counter
-            current_instance_num <- current_instance_num+1
-        }
+            current_instance_num <- current_instance_num + 1
+            #'
+        }# end for loop (Instance-wise purchase)
         #'
         #################################
         # Evaluate model on unseen data #
         #################################
         ## AUC
-        calculated_AUC = predict_set(training_set,
-                                     holdout_data,
-                                     inducer=model_inducer)
+        calculated_AUC <- predict_set(training_set,
+                                      holdout_data,
+                                      inducer = model_inducer)
         cat('\n',"AUC =",calculated_AUC)
-        
+        cat("\n---")
         # Fix SVM bug
         if(tolower(model_inducer)=="svm"){
             rep_metadata[current_instance_num-1,"svm_bug"] = calculated_AUC < 1-calculated_AUC
             calculated_AUC = max(calculated_AUC,1-calculated_AUC)
         }
-        
-        
+        #'
         ## Store iteration metadata in the report
+        if(exists("logger")){
+            logger_as_data_frame()
+            new_record <- bind_cols(new_record, logger)
+        } 
         rep_metadata[current_instance_num-1,"AUC_holdout"] = calculated_AUC
         new_item            = rep_metadata[current_instance_num-1,]
         new_item$repetition = current_repetition
-        new_item$batch      = counter_batches
-        
+        new_item$batch      = current_batch
+        #'
         if(payment_selection_criteria %in% c("max_quality","max_ratio","max_total_ratio","delta_AUC_div_total_cost")){
             new_item$full_AUC = NA
             new_item$subset_AUC = NA
@@ -149,24 +160,34 @@ repetition_stage_4 <- function(){
             new_item$full_AUC   = NA
             new_item$subset_AUC = NA
         }
-        
-        rep_report = rbind(rep_report,new_item)
-        counter_batches = counter_batches+1 # updating the batch counter
-        current_report_line <- current_report_line+1
+        #'
+        #######
+        # End #
+        #######
+        rep_report <- bind_rows(rep_report, new_item)
+        #' Reord action in the ledger
+        rep_ledger <- bind_rows(rep_ledger, new_record)
+        #' Advance counters
+        current_batch <- current_batch + 1 # updating the batch counter
+        current_report_line <- current_report_line + 1
+        #'
     } # end Running the rest of the simulation
     rep_metadata$repetition <- current_repetition
     #'
     ################
     # Save Results #
     ################
-    path_output <- file.path(path_repetition, paste0(current_repetition,".csv"))
-    write_csv(rep_report %>% filter(repetition == current_repetition), path_output)
+    report_path_output <- file.path(k_path_temporary, "report_" %+% current_repetition %+% ".csv")
+    write_csv(rep_report %>% filter(repetition == current_repetition), report_path_output)
+    #'
+    ledger_path_output <- file.path(k_path_temporary, "ledger_" %+% current_repetition %+% ".csv")
+    write_csv(rep_ledger %>% filter(repetition == current_repetition), ledger_path_output)
     #'
     ##########
     # Return #
     ##########
-    report <<- rbind(report, rep_report)
-    rep_metadata <<- rep_metadata
+    report   <<- bind_rows(report, rep_report)
     metadata <<- merge(metadata, rep_metadata, all = TRUE)
+    ledger   <<- bind_rows(ledger, rep_ledger)
     return(invisible())
 }
