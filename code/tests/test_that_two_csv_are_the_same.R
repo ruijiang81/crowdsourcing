@@ -57,11 +57,16 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
     # Return #
     ##########
     message("###############################\n# Test Completed Successfully #\n###############################")
+    message("# Compared two tables of ",nrow(file_1), " rows and ", ncol(file_1), " columns")
+    
     return(invisible())
 }
 # ---------------------------------------------------------------------------- #
-file_name_1 <- "A"
-file_name_2 <- "B"
+file_name_1 <- "MTR_A"
+file_name_2 <- "MTR_B"
+
+# file_name_1 <- "MR_A"
+# file_name_2 <- "MR_B"
 
 file_path_1 <- file.path(getwd(), "results", paste0(file_name_1, ".csv"))
 file_path_2 <- file.path(getwd(), "results", paste0(file_name_2, ".csv"))
