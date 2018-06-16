@@ -9,6 +9,18 @@ predict_set = function(train_set,
                        inducer=c("RF","GLM","J48","SVM","BAG"),
                        verbose=TRUE)
 {
+    ####################
+    # Input Validation #
+    ####################
+    #' Train set
+    if(missing(train_set)) stop("No train_set is supplied")
+    assertive::assert_is_data.frame(train_set)
+    assertive::assert_is_non_empty(train_set)
+    #' Test set
+    if(missing(test_set)) stop("No test_set is supplied")
+    assertive::assert_is_data.frame(test_set)
+    assertive::assert_is_non_empty(test_set)
+    #'
     #########
     # Setup #
     #########
@@ -17,8 +29,7 @@ predict_set = function(train_set,
     set.seed(global_seed)
     # Model inducer
     inducer = tolower(inducer[1])
-    
-    
+    #'
     ######################
     # Data Preprecessing #
     ######################

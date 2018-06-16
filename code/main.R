@@ -101,29 +101,30 @@ model_cost_for_changing_cost_function = 75
 #' Start simulation
 ################################################################################
 cat_80("Start simulation")
+#'
 # Detects the number of cores and prepares for parallel run
 cl <- makeCluster(detectCores(),outfile="")   
 registerDoParallel(cl)
-
+#'
+# Run multiple simulations
 for(s in 1:nrow(param)){
-    startSimTime  = Sys.time()
-    
-    
-    ## Setup simulation parameters
+    startSimTime <- Sys.time()
+    #'
+    # Setup simulation parameters
     model_inducer              = param[s,"model_inducer"]
     payment_selection_criteria = param[s,"payment_selection_criteria"]
     cost_function_type         = param[s,"primary_cost_function"]
-    
-    
-    ## Allocate report
+    #'  
+    # Allocate report
     report   = create_report()
     ledger   = data.frame()
     metadata = cbind(create_report(), svm_bug = data.frame())
     svm_bug  = NA
-    
-    ## Start simulation timer
+    #'
+    # Start simulation timer
     start.time = Sys.time()
-    
+    #'
+    # Run simulation
     for(current_repetition in 1:repeatitions)
     {
         cost_function_type <- param[s,"primary_cost_function"]
@@ -145,7 +146,7 @@ for(s in 1:nrow(param)){
               path = file.path(k_path_metadata, slug %+% ".csv"))
     write_csv(ledger,
               path = file.path(k_path_ledgers, slug %+% ".csv"))
-} # end simulation
+}# end multiple simulations
 #'
 stopCluster(cl)
 stop.time <- Sys.time()
