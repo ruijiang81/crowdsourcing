@@ -36,41 +36,39 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
             )
     }
     file_1 <- file_temp
-    assertive::assert_is_non_empty(file_1)
-    assertive::assert_have_same_dims(file_1, file_2, severity = "stop")
     #'
     #########
     # Tests #
     #########
+    #' test that data frame is not empty
+    assertive::assert_is_non_empty(file_1)
+    #' test that both files have the same dimensions
+    assertive::assert_have_same_dims(file_1, file_2, severity = "stop")
     #' test that columns are identical
-    assert_set_equal(colnames(file_1), colnames(file_2), add = collection)
-    reportAssertions(collection)
-    #'
+    assertive::assert_are_set_equal(colnames(file_1), colnames(file_2), severity = "stop")
     #' test that columns content is identical  
     for(rep in unique(file_1$repetition)){
-        
         cat_40("Testing Repetition" %+% " " %+% rep)
+        # Subset data by repetition
         R1 <- file_1 %>% filter(repetition == rep)
         R2 <- file_2 %>% filter(repetition == rep)
-        # cat("\n# " %+% nrow(R1) %+% " vs. " %+% nrow(R2) %+%" rows")
-        cat("\n")
         assertive::assert_have_same_dims(file_1, file_2, severity = "message")
+        #'
         for(col_name in colnames(file_1)){
             cat("\n# ->", col_name, "")
-            if(is.numeric(file_1[,col_name])){
-                file_1[,col_name] %<>% round(5)
-                file_2[,col_name] %<>% round(5)
-            }
-            # Subset data
+            # Subset data by column name
             E1 <- R1 %>% .[[col_name]]
             E2 <- R2 %>% .[[col_name]]
-            # Quantify errors
-            if(is.numeric(file_1[,col_name]) & length(E1) == length(E2)){
+            # Perform calculations on numeric variables
+            if(is.numeric(E1)){
+                # Set numerical accuracy
+                E1 %<>% round(5)
+                E2 %<>% round(5)
+                # Quantify errors
                 square_error = (E1-E2)^2
-                cat("\t| SSE =", sum(square_error, rm.na = TRUE))
-                cat("\t| MSE =", mean(square_error, rm.na = TRUE))
+                cat("\t| SSE =", sum(square_error, na.rm = TRUE))
+                cat("\t| MSE =", mean(square_error, na.rm = TRUE))
                 cat('\t| ')
-                file_2[,col_name] %<>% round(5)
             }
             # Check equal values
             assertive::assert_are_set_equal(E1, E2, severity = "message")
