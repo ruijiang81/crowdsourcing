@@ -151,4 +151,5 @@ for(s in 1:nrow(param)){
 stopCluster(cl)
 stop.time <- Sys.time()
 cat_80("Completed in " %+% round(as.numeric(stop.time-start.time, units = "mins"),0) %+% " [mins]")
+cat("\n")
 #'
