@@ -34,7 +34,7 @@ num_batches_per_cost_initial_training_set <-  ceiling(300/(batch_size*num_price_
 # for random payment selection best to use 0
 
 
-max_total_cost = 65 # should be larger than the cost of paying for the initial training batches
+max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
 
 max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
 #to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
@@ -45,7 +45,7 @@ number_batch_omissions  <<- 10
 cross_validation_folds  <<- 8
 cross_validation_reruns <<- 4
 
-repeatitions <- 1 #20
+repeatitions <- 20 #20
 ## Control simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
@@ -64,7 +64,7 @@ param <- expand.grid(
                               "Asymptotic",            # 3
                               "Fix3Labels",            # 4
                               "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[2], # 6
+                              "Asymptotic3Labels")[1:3], # 6
     stringsAsFactors = FALSE)
 #'
 ## Fix value
