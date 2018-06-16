@@ -5,7 +5,9 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
     stopifnot(require(checkmate),
               require(assertthat),
               require(dplyr),
-              require(magrittr))
+              require(magrittr),
+              require(assertive),
+              exists("cat_40"))
     ####################
     # Input validation #
     ####################
@@ -43,32 +45,44 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
     assert_set_equal(colnames(file_1), colnames(file_2), add = collection)
     reportAssertions(collection)
     #' test that columns content is identical  
-    for(col_name in colnames(file_1)){
-        if(is.numeric(file_1[,col_name])){
-            file_1[,col_name] %<>% round(5)
-            file_2[,col_name] %<>% round(5)
-        }
-        assert_set_equal(file_1[,col_name], file_2[,col_name],
-                         .var.name = col_name, add = collection)
-    }
-    reportAssertions(collection)
+    for(rep in unique(file_1$repetition)){
+        cat_40("Testing Repetition" %+% " " %+% rep)
+        for(col_name in colnames(file_1)){
+            cat("\n*\t", col_name)
+            if(is.numeric(file_1[,col_name])){
+                file_1[,col_name] %<>% round(5)
+                file_2[,col_name] %<>% round(5)
+            }
+            # Subset data
+            E1 <- file_1 %>% filter(repetition == rep) %>% .[[col_name]]
+            E2 <- file_2 %>% filter(repetition == rep) %>% .[[col_name]]
+            # Check equal size
+            assertive::assert_are_same_length(E1, E2, severity = "message")
+            assertive::assert_are_same_length(E1, E2, severity = "warning")
+            # Check equal values
+            assertive::assert_are_set_equal(E1, E2, severity = "message")
+            assertive::assert_are_set_equal(E1, E2, severity = "warning")
+            # Show problems
+            # reportAssertions(collection)
+        }# end for col_names
+    }# end for repetitions
     #'
     ##########
     # Return #
     ##########
-    message("###############################\n# Test Completed Successfully #\n###############################")
-    message("# Compared two tables of ",nrow(file_1), " rows and ", ncol(file_1), " columns")
-    
+    cat_80("Test Completed")
+    cat("\n# Compared two tables of",nrow(file_1), "rows and", ncol(file_1), "columns")
+    cat("\n")
+    #'
     return(invisible())
 }
 # ---------------------------------------------------------------------------- #
-file_name_1 <- "MTR_A"
-file_name_2 <- "MTR_B"
+file_name_1 <- "A"
+file_name_2 <- "B"
 
-# file_name_1 <- "MR_A"
-# file_name_2 <- "MR_B"
 
 file_path_1 <- file.path(getwd(), "results", paste0(file_name_1, ".csv"))
 file_path_2 <- file.path(getwd(), "results", paste0(file_name_2, ".csv"))
 
+source(file.path(getwd(), "code", "scripts", "setup.R"))
 test_that_two_csv_files_are_identical(file_path_1, file_path_2)
