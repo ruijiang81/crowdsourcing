@@ -16,37 +16,39 @@ DATABASE_NAME <- c("Spam",                 # 1
                    "Synthetic_Unbalanced", # 6
                    "Tax Audit",            # 7
                    "Adult",                # 8
-                   "Movies Reviews")[2]    # 9      
+                   "Movies Reviews")[1]    # 9      
 get_the_data(DATABASE_NAME)
 #'
 p_holdout    <- 0.3  # percentage of data in external holdout
 initial_seed <- 1811 # large number
+price_per_label_values <- c(0.02,0.14,0.25)
 #price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
-price_per_label_values = c(0.02,0.14,0.25)
-
-batch_size                                <<- 10
-num_price_per_label_values                <-  length(price_per_label_values) 
-num_batches_per_cost_initial_training_set <-  ceiling(300/(batch_size*num_price_per_label_values))
+#'
+batch_size                                <- 10
+num_price_per_label_values                <- length(price_per_label_values) 
+num_batches_per_cost_initial_training_set <- ceiling(300/(batch_size*num_price_per_label_values))
 # if the batch_size is 10, 
-# num_price_per_label_values=3 and 
-# num_batches_per_cost_initial_training_set=5 then 
+# num_price_per_label_values = 3 and 
+# num_batches_per_cost_initial_training_set = 5 then 
 # this will purchase 150 instances.
 # for random payment selection best to use 0
-
-
-max_total_cost = 150 # should be larger than the cost of paying for the initial training batches
-
-max_instances_in_history <<- 100 #the size (in terms of instances) of the number of last instances for each payment option to consider
-#to DEACTIVATE this option use a very large number (larger than all the number of instances in data)
-
-#if reverting to max_number_of_training_instance instead of max_total_cost then activate this manually in the while loop
-#max_number_of_training_instance<-1000 #should at least eqaul to  batch_size*num_batches_per_cost_initial_training_set*(num_price_per_label_values)
+#'
+max_total_cost <- 150 # should be larger than the cost of paying for the initial training batches
+#'
+#' The size (in terms of instances) of the number of last instances for each 
+#' payment option to consider. To DEACTIVATE max_instances_in_history, use a 
+#' very large number (larger than all the number of instances in data), say 1e6.
+max_instances_in_history <- 100 
+#'
 number_batch_omissions  <<- 10
 cross_validation_folds  <<- 8
 cross_validation_reruns <<- 4
-
+#'
+#############################
+# Simulation Configurations #
+#############################
 repeatitions <- 20 #20
-## Control simulation nuances
+#' Simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
     model_inducer=c("RF","SVM","GLM","BAG","J48")[1],
@@ -59,12 +61,13 @@ param <- expand.grid(
                                  "max_total_ratio")   # 6
     [c(6)], 
     # Quality-Cost tradeoff
-    primary_cost_function = c("Fix",                   # 1
-                              "Concave",               # 2   
-                              "Asymptotic",            # 3
-                              "Fix3Labels",            # 4
-                              "Concave3Labels",        # 5
-                              "Asymptotic3Labels")[1:3], # 6
+    primary_cost_function = c("Fix",               # 1
+                              "Concave",           # 2   
+                              "Asymptotic",        # 3
+                              "Fix3Labels",        # 4
+                              "Concave3Labels",    # 5
+                              "Asymptotic3Labels") # 6
+    [c(3)],
     stringsAsFactors = FALSE)
 #'
 ## Fix value
