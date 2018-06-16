@@ -159,8 +159,11 @@ decide_price_per_label <- function(train,
                 pay <- payment_options[which.max(delta_performance_improvement)]
             } else {
                 for (t in 1:num_payment_options){
-                    if (delta_performance_improvement[t]<0)       #using a large negative number to eliminate out of consideration negative delta improvements (in case part of them are negative and part positive)
-                    {delta_performance_improvement[t]=-100000000}
+                    if (delta_performance_improvement[t]<0)
+                        #' Using a large negative number to eliminate out of 
+                        #' consideration negative delta improvements (in case 
+                        #' part of them are negative and part positive)
+                        delta_performance_improvement[t] <- -1e8
                 }
                 expected_performance    <- delta_performance_improvement + full_model_CV_performance
                 expected_total_cost     <- meta_data$cost_so_far[cur_instance_num-1] + batch_size * payment_options
