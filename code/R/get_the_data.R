@@ -1,4 +1,5 @@
 get_the_data <- function(DATABASE_NAME){
+    assertive::is_single_character(DATABASE_NAME)
     switch(tolower(DATABASE_NAME),
            "otto" = source("./data/Otto/import dataset.R"),
            "spam" = {library("kernlab"); data(spam); dataset <- spam},
@@ -7,10 +8,10 @@ get_the_data <- function(DATABASE_NAME){
            "tax audit" = source("./data/Tax Audit/import dataset.R"),
            "mushroom" = source("./data/Mushroom/import dataset.R"),
            "adult" = source("./data/Adult/import dataset.R"),
-           "pen digits" =  source("./data/Adult/import dataset.R"),
+           "pen digits" = source("./data/Pen Digits/import dataset.R"),
            "movies reviews" = source("./data/Movie Review/import dataset.R"),
            stop("Unknown data set")
     )
-dataset <<- setVariablesNames(dataset)
-return(invisible())
+    dataset <<- setVariablesNames(dataset)
+    return(invisible())
 }
