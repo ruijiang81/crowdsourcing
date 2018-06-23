@@ -1,3 +1,9 @@
+#' @title File slug decomposition
+#'
+#' @examples 
+#' file_names <- list.files(pattern = "[.]csv$", path = k_path_ledgers)
+#' slugs_df <- file_slug_decomposition(file_names)
+#'
 file_slug_decomposition <- function(file_names){
     ####################
     # Input validation #
@@ -13,35 +19,17 @@ file_slug_decomposition <- function(file_names){
         slugs_list %>% 
         unlist %>% 
         matrix(nrow=length(file_names), byrow = TRUE) %>% 
-        data.frame() %>%
+        data.frame(stringsAsFactors = FALSE) %>%
         select(X1, X2, X3, X4) %>%
         dplyr::rename("DATABASE_NAME" = "X1",
                       "MODEL_INDUCER" = "X2",
                       "COST_FUNCTION_TYPE" = "X3",
                       "PAYMENT_SELECTION_CRITERIA" = "X4")
     #'
-    #' Create slug
-    finishSimTime         <- Sys.time()
-    Time.Diff             <- round(as.numeric(finishSimTime-startSimTime, units = "mins"),0)
-    report_dir            <- file.path(k_path_project,"results")
-    primary_cost_function <- param[s,"primary_cost_function"]
-    cost_function_type    <- ifelse(secondary_cost_function_flag, 
-                                    primary_cost_function %+% 2 %+% secondary_cost_function,
-                                    primary_cost_function)
-    slug                  <- paste0('(',tolower(DATABASE_NAME),')',
-                                    '(',toupper(model_inducer),')',
-                                    '(',tolower(cost_function_type),')',
-                                    '(',tolower(payment_selection_criteria),max_instances_in_history,')',
-                                    '(',Sys.Date(),')',
-                                    '(',paste0(Time.Diff,' minutes'),')')
-    #'
     ##########
     # Return #
     ##########
-    return(slug)
+    return(slugs_df)
 }
 
 
-file_names <- list.files(pattern = "[.]csv$",
-                         path = k_path_ledgers,
-                         full.names = FALSE)
