@@ -21,10 +21,10 @@ file_slug_decomposition <- function(file_names){
         matrix(nrow=length(file_names), byrow = TRUE) %>% 
         data.frame(stringsAsFactors = FALSE) %>%
         select(X1, X2, X3, X4) %>%
-        dplyr::rename("DATABASE_NAME" = "X1",
-                      "MODEL_INDUCER" = "X2",
-                      "COST_FUNCTION_TYPE" = "X3",
-                      "PAYMENT_SELECTION_CRITERIA" = "X4")
+        dplyr::rename("database_name" = "X1",
+                      "model_inducer" = "X2",
+                      "cost_function_type" = "X3",
+                      "payment_selection_criteria" = "X4")
     #'
     ##########
     # Return #

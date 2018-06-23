@@ -123,6 +123,7 @@ repetition_stage_4 <- function(){
         calculated_AUC <- predict_set(training_set,
                                       holdout_data,
                                       inducer = model_inducer)
+        new_record <- new_record %>% bind_cols(AUC_holdout_set = calculated_AUC)
         cat('\n',"AUC =",calculated_AUC)
         cat("\n---")
         # Fix SVM bug

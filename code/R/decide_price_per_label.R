@@ -82,11 +82,13 @@ decide_price_per_label <- function(train,
         
         num_payment_options <- length(payment_options) 
         
-        full_model_CV_performance <- cross_validation(train,
-                                                      cross_validation_folds,
-                                                      cross_validation_reruns,
-                                                      inducer = inducer)
-        logger_append(list(full = full_model_CV_performance))
+        full_model_CV_performance <- 
+            cross_validation(cv_data = train,
+                             num_folds = cross_validation_folds,
+                             num_reruns = cross_validation_reruns,
+                             inducer = inducer)
+        
+        logger_append(list(AUC_full_train_set = full_model_CV_performance))
         #'
         #' Initialize Progress Bar
         cat("\n")
@@ -104,10 +106,12 @@ decide_price_per_label <- function(train,
                 set.seed(cur_instance_num*global_seed+i+j*1000)
                 random_rows_to_remove_with_payment     <- sample(payment_row_numbers, batch_size) 
                 randomly_remaining_instances           <- train[-random_rows_to_remove_with_payment, ]; 
-                summary_partial_model_performance[j,i] <- cross_validation(randomly_remaining_instances,
-                                                                           cross_validation_folds,
-                                                                           cross_validation_reruns,
-                                                                           inducer = inducer)
+                summary_partial_model_performance[j,i] <- 
+                    cross_validation(
+                        cv_data = randomly_remaining_instances,
+                        num_folds = cross_validation_folds,
+                        num_reruns = cross_validation_reruns,
+                        inducer = inducer)
                 setTxtProgressBar(pb, (i-1) * number_batch_omissions + j)
             }
         }  
@@ -115,11 +119,11 @@ decide_price_per_label <- function(train,
         #' option
         partial_model_performance <- 
             colMeans(summary_partial_model_performance, na.rm = FALSE, dims = 1) 
-        logger_append(list(partial = partial_model_performance))
+        logger_append(list(AUC_partial_train_set = partial_model_performance))
         #' Vector with average delta improvement over a the full model    
         delta_performance_improvement <- 
             full_model_CV_performance - partial_model_performance 
-        logger_append(list(delta = delta_performance_improvement))
+        logger_append(list(AUC_train_set_delta = delta_performance_improvement))
         #'
         #################
         # Store results #
