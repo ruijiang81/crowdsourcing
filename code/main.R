@@ -139,7 +139,7 @@ for(s in 1:nrow(param)){
     }# repetitions for loop 
     #'
     ## Save report on hard drive
-    slug <- generate_file_slug()
+    slug <- file_slug_generate()
     write_csv(report %>% select(-svm_bug),
               path = file.path(k_path_reports, slug %+% ".csv"))
     write_csv(metadata %>% arrange(repetition, batch),

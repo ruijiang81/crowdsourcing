@@ -1,19 +1,24 @@
-generate_file_slug <- function(){
-    #' Input validation
-    assertive::assert_all_are_existing(envir = globalenv(), 
-                                       c("startSimTime",
-                                         "k_path_project",
-                                         "param",
-                                         "secondary_cost_function_flag",
-                                         "primary_cost_function",
-                                         "DATABASE_NAME",
-                                         "model_inducer",
-                                         "cost_function_type",
-                                         "payment_selection_criteria",
-                                         "max_instances_in_history",
-                                         "s"
-                                       ))
-    assertive::assert_is_non_empty(param[s,])
+file_slug_decomposition <- function(file_names){
+    ####################
+    # Input validation #
+    ####################
+    assertive::assert_is_character(file_names)
+    #'
+    ###################
+    # Decompose slugs #
+    ###################
+    slugs_list <- 
+        stringr::str_extract_all(file_names, "(([^()]+))")
+    slugs_df <- 
+        slugs_list %>% 
+        unlist %>% 
+        matrix(nrow=length(file_names), byrow = TRUE) %>% 
+        data.frame() %>%
+        select(X1, X2, X3, X4) %>%
+        dplyr::rename("DATABASE_NAME" = "X1",
+                      "MODEL_INDUCER" = "X2",
+                      "COST_FUNCTION_TYPE" = "X3",
+                      "PAYMENT_SELECTION_CRITERIA" = "X4")
     #'
     #' Create slug
     finishSimTime         <- Sys.time()
@@ -35,3 +40,8 @@ generate_file_slug <- function(){
     ##########
     return(slug)
 }
+
+
+file_names <- list.files(pattern = "[.]csv$",
+                         path = k_path_ledgers,
+                         full.names = FALSE)
