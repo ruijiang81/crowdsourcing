@@ -8,6 +8,7 @@ test_that_two_csv_files_are_identical <- function(file_path_1, file_path_2){
               require(magrittr),
               require(assertive),
               exists("cat_40"))
+    cat_80("Test that two CSV files are identical")
     ####################
     # Input validation #
     ####################
