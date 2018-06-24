@@ -1,4 +1,4 @@
-generate_file_slug <- function(){
+file_slug_generate <- function(){
     #' Input validation
     assertive::assert_all_are_existing(envir = globalenv(), 
                                        c("startSimTime",
