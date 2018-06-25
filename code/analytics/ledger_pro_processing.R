@@ -18,6 +18,7 @@
 #' (5) Finally, the ledgers are stored on disk
 #' 
 source(file.path(getwd(), "code", "scripts", "setup.R"))
+cat_80("Ledger Pro Processing")
 #'
 ########################
 # Get ledgers metadata #
@@ -56,3 +57,4 @@ for(l in 1:length(file_paths)){
 output_path <- file.path(k_path_results, "pro-processed-ledgers.csv") 
 write_csv(ledgers, output_path)
 #'
+cat("\nCompleted")
