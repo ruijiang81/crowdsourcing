@@ -31,6 +31,7 @@ file_paths <-
 #'
 #' 2. Extract ledger metadata from file slugs
 file_slugs <- file_slug_decomposition(file_names)
+assertive::assert_all_are_not_na(file_slugs %>% select(database_name))
 #'
 ##################
 # Pro Processing #
@@ -44,11 +45,11 @@ for(l in 1:length(file_paths)){
     #' 2. Feature extractor
     ledger_data <- ledger_feature_extractor(ledger)
     #' 3. Add ledger metadata
-    ledger_metadata <- file_slugs %>% slice(l) #%>% select(database_name, )
-    ledger_metadata <- ledger_metadata[rep(l, nrow(ledger_data)),]
+    ledger_metadata <- file_slugs[rep(l, nrow(ledger_data)),]
     ledger <- bind_cols(ledger_metadata, ledger_data)
     #' 4. Append leger
     ledgers <- bind_rows(ledgers, ledger)
+    assertive::assert_all_are_not_na(ledgers %>% select(database_name))
 }
 #'
 #################
