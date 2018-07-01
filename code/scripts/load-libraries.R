@@ -65,7 +65,7 @@ libraries_on_CRAN <- c(
     # <http://r-pkgs.had.co.nz/tests.html>
     "testthat",
     # Data Manipulation
-    "tidyverse", "data.table", "dplyr", "plyr", "magrittr",
+    "tidyverse", "data.table", "dplyr", "magrittr",
     # Dynamic Report Generation in R
     "knitr", "pander",  
     # Visualization tools
