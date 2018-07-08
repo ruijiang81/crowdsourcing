@@ -95,7 +95,7 @@ pb <- txtProgressBar(0, K, style = 3)
 for(k in 1:K){
     #' Input validation
     assertive::assert_is_data.frame(ledgers)
-    assertive::assert_all_are_non_missing_nor_empty_character(c(col_x, col_y))
+    assertive::assert_all_are_non_missing_nor_empty_character(c(x_col, y_col))
     assertive::assert_all_are_positive(x_out)
     
     #' Subset the data to hold a single repetition
