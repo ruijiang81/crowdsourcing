@@ -44,21 +44,30 @@ for(l in 1:length(file_paths)){
         ledger <- ledger %>% mutate(payment_selected = factor(payment_selected))
     })
     
-    #' 2. Feature extractor
+    #' 2. If batch_size column doesn't exist, add it with a default value of 10
+    if(!isTRUE("batch_size" %in% colnames(ledger)))
+        ledger <- ledger %>% mutate(batch_size = 10) %>% select(repetition, batch, batch_size, everything())
+
+    #' 3. Feature extractor
     ledger_data <- switch(ledger %>% .$payment_selection_criteria %>% unique(),
                           max_total_ratio = {ledger_feature_extractor(ledger)},
                           ledger %>% select(-payment_selection_criteria))
 
-    #' 3. Add ledger metadata
+    #' 4. Add the total cost
+    ledger_data <-
+        ledger_data %>% 
+        group_by(repetition) %>% 
+        mutate(cost_so_far = cumsum(batch_size * (payment_selected %>% as.character() %>% as.numeric()))) %>% 
+        select(repetition, batch, batch_size, cost_so_far, everything()) %>%
+        ungroup()
+    
+    #' 5. Add ledger metadata
     ledger_metadata <- file_slugs[rep(l, nrow(ledger_data)),]
     ledger <- bind_cols(ledger_metadata, ledger_data)
     
-    #' 4. Append leger
+    #' 6. Append leger
     ledgers <- bind_rows(ledgers, ledger)
     assertive::assert_all_are_not_na(ledgers %>% select(database_name))
-    
-    #' 5. Drop unnecessary columns
-    # ledgers <- ledgers %>% select(-starts_with("payment_selection_criteria"))
 }
 #'
 #################

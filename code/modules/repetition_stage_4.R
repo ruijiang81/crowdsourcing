@@ -15,6 +15,7 @@ repetition_stage_4 <- function(){
                                          "unlabeled_data",
                                          "holdout_data",
                                          "k_path_temporary",
+                                         "k_batch_size",
                                          "decide_price_per_label",
                                          "cost_so_far",
                                          "current_instance_num",
@@ -41,13 +42,14 @@ repetition_stage_4 <- function(){
         #' Create new ledger record holder
         new_record <- data.frame(repetition = current_repetition,
                                  batch = current_batch,
+                                 batch_size = k_batch_size,
                                  payment_selection_criteria = payment_selection_criteria)
         #'
         #################
         # Sanity Checks #
         #################
         # Handle the "run out of instances" issue
-        if(current_instance_num + batch_size > max_size_training_data){
+        if(current_instance_num + k_batch_size > max_size_training_data){
             cat("\n", "Out of unlabeled instances")
             break
         } 
@@ -68,7 +70,7 @@ repetition_stage_4 <- function(){
         # Purchase new labels in the selected price #
         #############################################
         #' Instance-wise purchase 
-        for (k in 1:batch_size) {
+        for (k in 1:k_batch_size) {
             #' Append one new record to training set (without its label)
             if (current_instance_num==1){
                 training_set <- unlabeled_data[1,]

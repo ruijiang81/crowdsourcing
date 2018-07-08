@@ -4,7 +4,7 @@ ledger_feature_extractor <- function(ledger){
     ####################
     assertive::assert_is_data.frame(ledger)
     assertive::assert_is_subset(                                
-        c("repetition", "batch", "payment_selected", "safety_net",
+        c("repetition", "batch", "batch_size", "payment_selected", "safety_net",
           "AUC_partial_train_set_1", "AUC_train_set_delta_1",
           "expected_performance_1"),
         colnames(ledger))
@@ -66,7 +66,7 @@ ledger_feature_extractor <- function(ledger){
                AUC_delta = AUC_delta,
                AUC_expected = AUC_expected,
                safety_net = safety_net_flag) %>%
-        select(repetition, batch, payment_selected, 
+        select(repetition, batch, batch_size, payment_selected, 
                AUC_holdout_set, AUC_full_train_set, AUC_partial_train_set, 
                AUC_delta, AUC_expected, safety_net) 
     #'
