@@ -39,17 +39,26 @@ assertive::assert_all_are_not_na(file_slugs %>% select(database_name))
 ledgers <- data.frame()
 for(l in 1:length(file_paths)){
     #' 1. Import the ledger
-    suppressMessages(
+    suppressMessages({
         ledger <- read_csv(file_paths[l])
-    )
+        ledger <- ledger %>% mutate(payment_selected = factor(payment_selected))
+    })
+    
     #' 2. Feature extractor
-    ledger_data <- ledger_feature_extractor(ledger)
+    ledger_data <- switch(ledger %>% .$payment_selection_criteria %>% unique(),
+                          max_total_ratio = {ledger_feature_extractor(ledger)},
+                          ledger %>% select(-payment_selection_criteria))
+
     #' 3. Add ledger metadata
     ledger_metadata <- file_slugs[rep(l, nrow(ledger_data)),]
     ledger <- bind_cols(ledger_metadata, ledger_data)
+    
     #' 4. Append leger
     ledgers <- bind_rows(ledgers, ledger)
     assertive::assert_all_are_not_na(ledgers %>% select(database_name))
+    
+    #' 5. Drop unnecessary columns
+    # ledgers <- ledgers %>% select(-starts_with("payment_selection_criteria"))
 }
 #'
 #################
