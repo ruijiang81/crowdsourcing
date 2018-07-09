@@ -37,7 +37,7 @@ assertive::assert_all_are_not_na(file_slugs %>% select(database_name))
 # Pro Processing #
 ##################
 cat_40("Aggregating ledgers")
-ledgers <- data.frame()
+results <- data.frame()
 for(l in 1:length(file_paths)){
     #' 1. Import the ledger
     suppressMessages({
@@ -67,8 +67,8 @@ for(l in 1:length(file_paths)){
     ledger <- bind_cols(ledger_metadata, ledger_data)
     
     #' 6. Append ledger
-    ledgers <- bind_rows(ledgers, ledger)
-    assertive::assert_all_are_not_na(ledgers %>% select(database_name))
+    results <- bind_rows(results, ledger)
+    assertive::assert_all_are_not_na(results %>% select(database_name))
 }
 #'
 ####################################
@@ -76,31 +76,31 @@ for(l in 1:length(file_paths)){
 ####################################
 cat_40("Interpulating ledgers")
 #' Configure the loop variables
-ledgers_by_dollar <- data.frame()
+results_by_dollar <- data.frame()
 keys <- 
-    ledgers %>% 
+    results %>% 
     select(database_name, model_inducer, cost_function_type, payment_selection_criteria, repetition) %>%
     unique()
 K <- nrow(keys)
 
 #' Configure the interpolation variables
-x_out_range <- ledgers %>% .$cost_so_far %>% range() %>% ceiling()
+x_out_range <- results %>% .$cost_so_far %>% range() %>% ceiling()
 x_out <- x_out_range[1]:x_out_range[2]
 x_col <- "cost_so_far"
 y_col <- "AUC_holdout_set"
 
-#' Interpolate the ledgers 
+#' Interpolate the results 
 cat("\n")
 pb <- txtProgressBar(0, K, style = 3)
 for(k in 1:K){
     #' Input validation
-    assertive::assert_is_data.frame(ledgers)
+    assertive::assert_is_data.frame(results)
     assertive::assert_all_are_non_missing_nor_empty_character(c(x_col, y_col))
     assertive::assert_all_are_positive(x_out)
     
     #' Subset the data to hold a single repetition
     data <-
-        ledgers %>%
+        results %>%
         filter(database_name              == keys[k, "database_name"],
                model_inducer              == keys[k, "model_inducer"],
                cost_function_type         == keys[k, "cost_function_type"],
@@ -109,7 +109,7 @@ for(k in 1:K){
     
     #' Extract interpolation variables
     x <- data %>% select(x_col, y_col) %>% drop_na() %>% .[[x_col]] 
-    y <- data %>% select(cost_so_far, AUC_holdout_set) %>% drop_na() %>% .[[y_col]] 
+    y <- data %>% select(x_col, y_col) %>% drop_na() %>% .[[y_col]] 
     
     #' Apply interpolation
     y_out <- interpolation.kernel.customized(x, y, x_out)[["yout"]]
@@ -118,7 +118,7 @@ for(k in 1:K){
     interpolated_ledger <- bind_cols(x_col = x_out, y_col = y_out)
     colnames(interpolated_ledger) <- c(x_col, y_col)
     interpolated_ledger <- bind_cols(keys[rep(k, nrow(interpolated_ledger)),], interpolated_ledger)
-    ledgers_by_dollar <- ledgers_by_dollar %>% bind_rows(interpolated_ledger)
+    results_by_dollar <- results_by_dollar %>% bind_rows(interpolated_ledger)
     
     #' Advance the progress bar
     setTxtProgressBar(pb, k)
@@ -130,7 +130,7 @@ for(k in 1:K){
 output_path_1 <- file.path(k_path_results, "pro-processed-ledgers.csv") 
 output_path_2 <- file.path(k_path_results, "pro-processed-ledgers-by-dollar.csv") 
 
-write_csv(ledgers, output_path_1)
-write_csv(ledgers_by_dollar, output_path_2)
+write_csv(results, output_path_1)
+write_csv(results_by_dollar, output_path_2)
 #'
 cat("\nCompleted")
