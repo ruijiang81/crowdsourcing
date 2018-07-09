@@ -7,6 +7,7 @@ repetition_stage_3 <- function(){
     ####################
     #' Check if argumenta are in the global environment
     assertive::assert_all_are_existing(envir = globalenv(), c("current_batch",
+                                                              "k_batch_size",
                                                               "payment_selection_criteria",
                                                               "secondary_cost_function_flag",
                                                               "current_report_line",
@@ -39,6 +40,7 @@ repetition_stage_3 <- function(){
                 #' Create new ledger record holder
                 new_record <- data.frame(repetition = current_repetition,
                                          batch = current_batch,
+                                         batch_size = k_batch_size,
                                          payment_selection_criteria = payment_selection_criteria,
                                          payment_selected = pay_per_label)
                 #' Check if the condition for changing cost function is applicable
@@ -53,7 +55,7 @@ repetition_stage_3 <- function(){
                 ########################################################
                 #' Change label quality (instance-wise implementation) #
                 ########################################################
-                for (k in 1:batch_size) {
+                for (k in 1:k_batch_size) {
                     ## Bind train-set and labeled-set
                     if (current_instance_num==1){
                         training_set <- unlabeled_data[1,]

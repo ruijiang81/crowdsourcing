@@ -50,7 +50,7 @@ decide_price_per_label <- function(train,
     ####################
     # Input Validation #
     ####################
-    assertive::assert_all_are_existing(c("k_path_temporary"))
+    assertive::assert_all_are_existing(c("k_path_temporary", "k_batch_size"))
     assertive::assert_all_are_existing(c("logger_append", "logger_as_data_frame", "logger_create"))
     #'
     #########
@@ -104,7 +104,7 @@ decide_price_per_label <- function(train,
                 }
                 
                 set.seed(cur_instance_num*global_seed+i+j*1000)
-                random_rows_to_remove_with_payment     <- sample(payment_row_numbers, batch_size) 
+                random_rows_to_remove_with_payment     <- sample(payment_row_numbers, k_batch_size) 
                 randomly_remaining_instances           <- train[-random_rows_to_remove_with_payment, ]; 
                 summary_partial_model_performance[j,i] <- 
                     cross_validation(
@@ -170,7 +170,7 @@ decide_price_per_label <- function(train,
                         delta_performance_improvement[t] <- -1e8
                 }
                 expected_performance    <- delta_performance_improvement + full_model_CV_performance
-                expected_total_cost     <- meta_data$cost_so_far[cur_instance_num-1] + batch_size * payment_options
+                expected_total_cost     <- meta_data$cost_so_far[cur_instance_num-1] + k_batch_size * payment_options
                 total_ratio_performance <- expected_performance / expected_total_cost
                 logger_append(list(expected_performance = expected_performance,
                                    expected_total_cost = expected_total_cost,
@@ -187,7 +187,7 @@ decide_price_per_label <- function(train,
                 cat("\nused_safety_net")
                 pay <- payment_options[which.max(delta_performance_improvement)]
             } else {
-                expected_total_cost            <- meta_data$cost_so_far[cur_instance_num-1] + batch_size * payment_options
+                expected_total_cost            <- meta_data$cost_so_far[cur_instance_num-1] + k_batch_size * payment_options
                 ratio_delta_AUC_div_total_cost <- delta_performance_improvement / expected_total_cost
                 #' Select payment
                 pay <- payment_options[which.max(ratio_delta_AUC_div_total_cost)]

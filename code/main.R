@@ -22,11 +22,11 @@ get_the_data(DATABASE_NAME)
 p_holdout    <- 0.3  # percentage of data in external holdout
 initial_seed <- 1811 # large number
 price_per_label_values <- c(0.02,0.14,0.25)
-#price_per_label_values = c(0.02,0.08,0.14,0.19,0.25)
+# price_per_label_values <- c(0.02,0.08,0.14,0.20,0.25)
 #'
-batch_size                                <- 10
-num_price_per_label_values                <- length(price_per_label_values) 
-num_batches_per_cost_initial_training_set <- ceiling(300/(batch_size*num_price_per_label_values))
+k_batch_size <- 10
+num_price_per_label_values <- length(price_per_label_values) 
+num_batches_per_cost_initial_training_set <- ceiling(300 / (k_batch_size * num_price_per_label_values))
 # if the batch_size is 10, 
 # num_price_per_label_values = 3 and 
 # num_batches_per_cost_initial_training_set = 5 then 
@@ -59,7 +59,7 @@ param <- expand.grid(
                                  "max_quality",       # 4
                                  "max_ratio",         # 5
                                  "max_total_ratio")   # 6
-    [c(6)], 
+    [c(1,6)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",               # 1
                               "Concave",           # 2   
