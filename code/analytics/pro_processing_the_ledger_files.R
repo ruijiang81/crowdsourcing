@@ -75,54 +75,11 @@ for(l in 1:length(file_paths)){
 # Interpulate the ledger by dollar #
 ####################################
 cat_40("Interpulating ledgers")
-#' Configure the loop variables
-results_by_dollar <- data.frame()
-keys <- 
-    results %>% 
-    select(database_name, model_inducer, cost_function_type, payment_selection_criteria, repetition) %>%
-    unique()
-K <- nrow(keys)
-
-#' Configure the interpolation variables
-x_out_range <- results %>% .$cost_so_far %>% range() %>% ceiling()
-x_out <- x_out_range[1]:x_out_range[2]
-x_col <- "cost_so_far"
-y_col <- "AUC_holdout_set"
-
-#' Interpolate the results 
-cat("\n")
-pb <- txtProgressBar(0, K, style = 3)
-for(k in 1:K){
-    #' Input validation
-    assertive::assert_is_data.frame(results)
-    assertive::assert_all_are_non_missing_nor_empty_character(c(x_col, y_col))
-    assertive::assert_all_are_positive(x_out)
-    
-    #' Subset the data to hold a single repetition
-    data <-
-        results %>%
-        filter(database_name              == keys[k, "database_name"],
-               model_inducer              == keys[k, "model_inducer"],
-               cost_function_type         == keys[k, "cost_function_type"],
-               payment_selection_criteria == keys[k, "payment_selection_criteria"],
-               repetition                 == keys[k, "repetition"])
-    
-    #' Extract interpolation variables
-    x <- data %>% select(x_col, y_col) %>% drop_na() %>% .[[x_col]] 
-    y <- data %>% select(x_col, y_col) %>% drop_na() %>% .[[y_col]] 
-    
-    #' Apply interpolation
-    y_out <- interpolation.kernel.customized(x, y, x_out)[["yout"]]
-    
-    #' Store results
-    interpolated_ledger <- bind_cols(x_col = x_out, y_col = y_out)
-    colnames(interpolated_ledger) <- c(x_col, y_col)
-    interpolated_ledger <- bind_cols(keys[rep(k, nrow(interpolated_ledger)),], interpolated_ledger)
-    results_by_dollar <- results_by_dollar %>% bind_rows(interpolated_ledger)
-    
-    #' Advance the progress bar
-    setTxtProgressBar(pb, k)
-}
+results <- results %>% group_by(database_name, model_inducer, cost_function_type, payment_selection_criteria, repetition)
+interpolated_results <- interpolate_to_the_nearest_dollar(data = results,
+                                                          x_col = "cost_so_far",
+                                                          y_col = "AUC_holdout_set",
+                                                          x_out = 50:150)
 #'
 #################
 # Store results #
@@ -131,6 +88,6 @@ output_path_1 <- file.path(k_path_results, "pro-processed-ledgers.csv")
 output_path_2 <- file.path(k_path_results, "pro-processed-ledgers-by-dollar.csv") 
 
 write_csv(results, output_path_1)
-write_csv(results_by_dollar, output_path_2)
+write_csv(interpolated_results, output_path_2)
 #'
 cat("\nCompleted")
