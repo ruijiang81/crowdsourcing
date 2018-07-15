@@ -26,7 +26,7 @@ cat_80("Render figure 6")
 # Configure x and y axes #
 ##########################
 x_axis <- "cost_so_far"
-y_axis <- "AUC_holdout"
+y_axis <- c("AUC_holdout", "train_set_label_quality")[1]
 #'
 ################
 # Get the data #
@@ -73,7 +73,7 @@ plot_data <-
     dataset %>% 
     group_by(database_name, cost_function_type, payment_selection_criteria, x_axis) %>%
     summarise(y_axis = mean(y_axis))
-plot_data %>% 
+fig6 <- plot_data %>% 
     ggplot(aes(x = x_axis, y = y_axis, color = payment_selection_criteria)) +
     geom_line(size = rel(1)) + 
     scale_x_continuous(x_axis, breaks = seq(0,300,10)) + 
@@ -82,3 +82,18 @@ plot_data %>%
     theme(aspect.ratio = 1,
           axis.text.x = element_text(angle = 90, hjust = 1)) + 
     facet_grid(database_name ~ cost_function_type, scales = "free")
+plot(fig6)
+#'
+###############
+# Save figure #
+###############
+output_folder <- file.path(k_path_results, "figures")
+output_file <- file.path(output_folder, "(fig6)" %()% x_axis %()% y_axis %+% ".png")
+dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
+
+ggsave(file = output_file, 
+       plot = fig6,
+       #width=8.3, height=11.7) # A4 size
+       width=8.3, height=8.3)
+#'
+cat("\nCompleted")
