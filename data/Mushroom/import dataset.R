@@ -1,1 +1,1 @@
-dataset = read.csv("./data/Mushroom/dataset.csv", colClasses = "factor")
+dataset <- read.csv("./data/Mushroom/dataset.csv", colClasses = "factor")
