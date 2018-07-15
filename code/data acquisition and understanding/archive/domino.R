@@ -9,13 +9,11 @@
 
 ## 1. Login
 require("domino")
-domino.login("Tomer_Geva", "EconUse1!")  
+domino.login("Tomer_Geva", "EconUse1!")
 
 ## 2. Upload new files to the project folder on Domino cloud
 domino.download()
-domino.upload() 
+domino.upload()
 
 ## 3. Runs the project on Domino servers
-#domino.run("Main.R")
-
-
+# domino.run("Main.R")
