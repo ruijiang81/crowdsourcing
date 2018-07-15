@@ -76,17 +76,37 @@ results <-
 # Interpulate the metadata by dollar #
 ######################################
 cat_40("Interpulating metadata reports")
-results <- results %>% group_by(database_name, model_inducer, cost_function_type, payment_selection_criteria, repetition)
-interpolated_results <- interpolate_to_the_nearest_dollar(data = results,
-                                                          x_col = "cost_so_far",
-                                                          y_col = "AUC_holdout",
-                                                          x_out = 50:150)
+results <- 
+    results %>% 
+    group_by(database_name, model_inducer, cost_function_type, 
+             payment_selection_criteria, repetition)
+cat("\n-> AUC_holdout as a function of cost")
+interpolated_results_1 <- 
+    interpolate_to_the_nearest_dollar(data = results,
+                                      x_col = "cost_so_far",
+                                      y_col = "AUC_holdout",
+                                      x_out = 50:150)
+cat("\n-> train_set_label_quality as a function of cost")
+interpolated_results_2 <- 
+    interpolate_to_the_nearest_dollar(data = results,
+                                      x_col = "cost_so_far",
+                                      y_col = "train_set_label_quality",
+                                      x_out = 50:150)
+cat("\n-> Combining the interpolated results")
+suppressMessages(
+    interpolated_results <- 
+        full_join(interpolated_results_1, interpolated_results_2)
+)
+assertive::assert_any_are_not_na(interpolated_results)
 #'
 #################
 # Store results #
 #################
-output_path_1 <- file.path(k_path_results, "pro-processed-metadata.csv") 
-output_path_2 <- file.path(k_path_results, "pro-processed-metadata-by-dollar.csv") 
+output_folder <- file.path(k_path_results, "processed")
+dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
+
+output_path_1 <- file.path(output_folder, "metadata-combined.csv") 
+output_path_2 <- file.path(output_folder, "metadata-by-dollar.csv") 
 
 write_csv(results, output_path_1)
 write_csv(interpolated_results, output_path_2)

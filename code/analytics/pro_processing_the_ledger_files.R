@@ -84,8 +84,11 @@ interpolated_results <- interpolate_to_the_nearest_dollar(data = results,
 #################
 # Store results #
 #################
-output_path_1 <- file.path(k_path_results, "pro-processed-ledgers.csv") 
-output_path_2 <- file.path(k_path_results, "pro-processed-ledgers-by-dollar.csv") 
+output_folder <- file.path(k_path_results, "processed")
+dir.create(output_folder, showWarnings = FALSE, recursive = TRUE)
+
+output_path_1 <- file.path(output_folder, "ledgers-combined.csv") 
+output_path_2 <- file.path(output_folder, "ledgers-by-dollar.csv") 
 
 write_csv(results, output_path_1)
 write_csv(interpolated_results, output_path_2)
