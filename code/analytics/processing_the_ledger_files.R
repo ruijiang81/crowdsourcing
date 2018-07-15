@@ -79,7 +79,7 @@ results <- results %>% group_by(database_name, model_inducer, cost_function_type
 interpolated_results <- interpolate_to_the_nearest_dollar(data = results,
                                                           x_col = "cost_so_far",
                                                           y_col = "AUC_holdout_set",
-                                                          x_out = 50:150)
+                                                          x_out = 40:150)
 #'
 #################
 # Store results #

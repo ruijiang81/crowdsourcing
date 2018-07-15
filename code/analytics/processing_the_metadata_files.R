@@ -85,13 +85,13 @@ interpolated_results_1 <-
     interpolate_to_the_nearest_dollar(data = results,
                                       x_col = "cost_so_far",
                                       y_col = "AUC_holdout",
-                                      x_out = 50:150)
+                                      x_out = 40:150)
 cat("\n-> train_set_label_quality as a function of cost")
 interpolated_results_2 <- 
     interpolate_to_the_nearest_dollar(data = results,
                                       x_col = "cost_so_far",
                                       y_col = "train_set_label_quality",
-                                      x_out = 50:150)
+                                      x_out = 40:150)
 cat("\n-> Combining the interpolated results")
 suppressMessages(
     interpolated_results <- 
