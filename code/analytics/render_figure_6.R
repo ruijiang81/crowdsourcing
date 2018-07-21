@@ -26,7 +26,7 @@ cat_80("Render figure 6")
 # Configure x and y axes #
 ##########################
 x_axis <- "cost_so_far"
-y_axis <- c("AUC_holdout", "train_set_label_quality")[1]
+y_axis <- c("AUC_holdout", "train_set_label_quality", "observations_so_far")[3]
 #'
 ################
 # Get the data #
