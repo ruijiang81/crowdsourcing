@@ -52,8 +52,10 @@ results <-
     summarise(selected_payment = mean(pay),
               batch_cost = selected_payment * n(),
               batch_label_quality = 1-mean(change),
-              AUC_holdout = mean(AUC_holdout, na.rm = TRUE)) %>%
-    mutate(train_set_label_quality = cumsum(batch_label_quality) / seq_along(batch_label_quality))
+              AUC_holdout = mean(AUC_holdout, na.rm = TRUE),
+              observations_so_far = n()) %>%
+    mutate(train_set_label_quality = cumsum(batch_label_quality) / seq_along(batch_label_quality),
+           observations_so_far = cumsum(observations_so_far))
 #'
 #' 3. Summarise metadata on a batch level
 cat("\n-> Summarising metadata on a batch level")
@@ -69,7 +71,7 @@ results <-
     select(database_name, model_inducer, cost_function_type, 
            payment_selection_criteria, repetition, batch,
            AUC_holdout,
-           selected_payment, batch_cost, cost_so_far,
+           selected_payment, observations_so_far, batch_cost, cost_so_far,
            batch_label_quality, train_set_label_quality)
 #'
 ######################################
@@ -92,10 +94,18 @@ interpolated_results_2 <-
                                       x_col = "cost_so_far",
                                       y_col = "train_set_label_quality",
                                       x_out = 40:150)
+cat("\n-> observations_so_far as a function of cost")
+interpolated_results_3 <- 
+    interpolate_to_the_nearest_dollar(data = results,
+                                      x_col = "cost_so_far",
+                                      y_col = "observations_so_far",
+                                      x_out = 40:150)
 cat("\n-> Combining the interpolated results")
 suppressMessages(
     interpolated_results <- 
-        full_join(interpolated_results_1, interpolated_results_2)
+        interpolated_results_1 %>%
+        full_join(interpolated_results_2) %>%
+        full_join(interpolated_results_3)
 )
 assertive::assert_any_are_not_na(interpolated_results)
 #'
