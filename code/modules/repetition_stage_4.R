@@ -90,8 +90,8 @@ repetition_stage_4 <- function() {
             }
             #' Check if the condition for changing cost function is applicable
             if (secondary_cost_function_flag & (cost_so_far > model_cost_for_changing_cost_function)) {
-                  cost_function_type <- secondary_cost_function
-              }
+                cost_function_type <- secondary_cost_function
+            }
             #' Set the quality level for the given cost-function and payment
             #' configuration
             labeling_accuracy <- labelingCostQualityTradeoff(

@@ -12,8 +12,8 @@ ledger_feature_extractor <- function(ledger) {
         colnames(ledger)
     )
     if (ledger %>% select(payment_selection_criteria, repetition, batch) %>% duplicated() %>% any()) {
-          stop("Only one simulation ledger can be processed at a time")
-      }
+        stop("Only one simulation ledger can be processed at a time")
+    }
     #'
     #####################
     # Feature extractor #

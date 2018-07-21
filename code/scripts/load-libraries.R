@@ -64,6 +64,8 @@ libraries_on_CRAN <- c(
     # Check Functions to Ensure Code Integrity
     # <https://bitbucket.org/richierocks/assertive>
     "assertive",
+    # Pretty Printing of R Code
+    "styler",
     # Unit Testing
     # <http://r-pkgs.had.co.nz/tests.html>
     "testthat",

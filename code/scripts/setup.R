@@ -37,7 +37,6 @@ for (folder in folders) {
         )
     }
 }
-
 #'
 #' Load project's functions
 invisible(
@@ -67,8 +66,9 @@ invisible(
 source(file.path(k_path_scripts, "load-libraries.R"))
 #'
 #' Performs various substitutions in all .R files
-# styler::style_dir(k_path_project,
-#     exclude_files = file.path(k_path_project, "code", "scripts", "setup.R"),
-#     transformers = styler::tidyverse_style(indent_by = 4)
+# style_dir(k_path_project,
+#     exclude_files = c(
+#         file.path(k_path_project, "code", "scripts", "setup.R"),
+#         file.path(k_path_project, "code", "main.R")),
+#     transformers = tidyverse_style(indent_by = 4)
 # )
-#'
