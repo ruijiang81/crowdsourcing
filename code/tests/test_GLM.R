@@ -41,8 +41,8 @@ table(train_set[, "y"])
 ## (Zero Variance)
 zv_var <- apply(train_set, 2, function(x) length(unique(x)) < 2)
 if (sum(zv_var) > 0) {
-  cat("\n Removed", sum(zv_var), "independent variables with zero variance")
-  train_set <- train_set[, !zv_var]
+    cat("\n Removed", sum(zv_var), "independent variables with zero variance")
+    train_set <- train_set[, !zv_var]
 }
 
 

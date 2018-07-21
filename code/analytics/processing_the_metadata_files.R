@@ -17,9 +17,9 @@ cat_80("Metadata Pro Processing")
 ########################
 #' 1. Find file names and paths
 file_names <-
-  list.files(pattern = "[.]csv$", path = k_path_metadata, full.names = FALSE)
+    list.files(pattern = "[.]csv$", path = k_path_metadata, full.names = FALSE)
 file_paths <-
-  list.files(pattern = "[.]csv$", path = k_path_metadata, full.names = TRUE)
+    list.files(pattern = "[.]csv$", path = k_path_metadata, full.names = TRUE)
 #'
 #' 2. Extract metadata metadata from file slugs
 file_slugs <- file_slug_decomposition(file_names)
@@ -33,83 +33,83 @@ cat_40("Aggregating metadata")
 cat("\n-> Reading metadata")
 metadatas <- data.frame()
 for (l in 1:length(file_paths)) {
-  # Get the file data
-  report_data <- read.csv(file_paths[l])
-  # Get the file metadata
-  report_metadata <- file_slugs[rep(l, nrow(report_data)), ]
-  # Append the file data and metadata
-  metadata <- bind_cols(report_metadata, report_data)
-  # Append the files
-  metadatas <- bind_rows(metadatas, metadata)
+    # Get the file data
+    report_data <- read.csv(file_paths[l])
+    # Get the file metadata
+    report_metadata <- file_slugs[rep(l, nrow(report_data)), ]
+    # Append the file data and metadata
+    metadata <- bind_cols(report_metadata, report_data)
+    # Append the files
+    metadatas <- bind_rows(metadatas, metadata)
 }
 #'
 #' 2. Summarise metadata on an instance level
 cat("\n-> Summarising metadata on an instance level")
 results <-
-  metadatas %>%
-  group_by(
-    database_name, model_inducer, cost_function_type,
-    payment_selection_criteria, repetition, batch
-  ) %>%
-  summarise(
-    selected_payment = mean(pay),
-    batch_cost = selected_payment * n(),
-    batch_label_quality = 1 - mean(change),
-    AUC_holdout = mean(AUC_holdout, na.rm = TRUE)
-  ) %>%
-  mutate(train_set_label_quality = cumsum(batch_label_quality) / seq_along(batch_label_quality))
+    metadatas %>%
+    group_by(
+        database_name, model_inducer, cost_function_type,
+        payment_selection_criteria, repetition, batch
+    ) %>%
+    summarise(
+        selected_payment = mean(pay),
+        batch_cost = selected_payment * n(),
+        batch_label_quality = 1 - mean(change),
+        AUC_holdout = mean(AUC_holdout, na.rm = TRUE)
+    ) %>%
+    mutate(train_set_label_quality = cumsum(batch_label_quality) / seq_along(batch_label_quality))
 #'
 #' 3. Summarise metadata on a batch level
 cat("\n-> Summarising metadata on a batch level")
 results <-
-  results %>%
-  group_by(
-    database_name, model_inducer, cost_function_type,
-    payment_selection_criteria, repetition
-  ) %>%
-  mutate(cost_so_far = cumsum(batch_cost))
+    results %>%
+    group_by(
+        database_name, model_inducer, cost_function_type,
+        payment_selection_criteria, repetition
+    ) %>%
+    mutate(cost_so_far = cumsum(batch_cost))
 #'
 #' 4. Tidy the results
 results <-
-  results %>%
-  select(
-    database_name, model_inducer, cost_function_type,
-    payment_selection_criteria, repetition, batch,
-    AUC_holdout,
-    selected_payment, batch_cost, cost_so_far,
-    batch_label_quality, train_set_label_quality
-  )
+    results %>%
+    select(
+        database_name, model_inducer, cost_function_type,
+        payment_selection_criteria, repetition, batch,
+        AUC_holdout,
+        selected_payment, batch_cost, cost_so_far,
+        batch_label_quality, train_set_label_quality
+    )
 #'
 ######################################
 # Interpulate the metadata by dollar #
 ######################################
 cat_40("Interpulating metadata reports")
 results <-
-  results %>%
-  group_by(
-    database_name, model_inducer, cost_function_type,
-    payment_selection_criteria, repetition
-  )
+    results %>%
+    group_by(
+        database_name, model_inducer, cost_function_type,
+        payment_selection_criteria, repetition
+    )
 cat("\n-> AUC_holdout as a function of cost")
 interpolated_results_1 <-
-  interpolate_to_the_nearest_dollar(
-    data = results,
-    x_col = "cost_so_far",
-    y_col = "AUC_holdout",
-    x_out = 40:150
-  )
+    interpolate_to_the_nearest_dollar(
+        data = results,
+        x_col = "cost_so_far",
+        y_col = "AUC_holdout",
+        x_out = 40:150
+    )
 cat("\n-> train_set_label_quality as a function of cost")
 interpolated_results_2 <-
-  interpolate_to_the_nearest_dollar(
-    data = results,
-    x_col = "cost_so_far",
-    y_col = "train_set_label_quality",
-    x_out = 40:150
-  )
+    interpolate_to_the_nearest_dollar(
+        data = results,
+        x_col = "cost_so_far",
+        y_col = "train_set_label_quality",
+        x_out = 40:150
+    )
 cat("\n-> Combining the interpolated results")
 suppressMessages(
-  interpolated_results <-
-    full_join(interpolated_results_1, interpolated_results_2)
+    interpolated_results <-
+        full_join(interpolated_results_1, interpolated_results_2)
 )
 assertive::assert_any_are_not_na(interpolated_results)
 #'

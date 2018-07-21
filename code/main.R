@@ -51,14 +51,14 @@ repeatitions <- 20 #20
 #' Simulation nuances
 param <- expand.grid(
     # What inducer should be used to fit models?
-    model_inducer=c("RF","SVM","GLM","BAG","J48")[1],
+    model_inducer = c("RF","SVM","GLM","BAG","J48")[1],
     # By which rule to decide how much to pay for the next batch?
-    payment_selection_criteria=c("random",            # 1
-                                 "min_pay_per_label", # 2
-                                 "max_pay_per_label", # 3
-                                 "max_quality",       # 4
-                                 "max_ratio",         # 5
-                                 "max_total_ratio")   # 6
+    payment_selection_criteria = c("random",            # 1
+                                   "min_pay_per_label", # 2
+                                   "max_pay_per_label", # 3
+                                   "max_quality",       # 4
+                                   "max_ratio",         # 5
+                                   "max_total_ratio")   # 6
     [c(1,6)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",               # 1
@@ -103,31 +103,31 @@ model_cost_for_changing_cost_function = 75
 cat_80("Start simulation")
 #'
 # Detects the number of cores and prepares for parallel run
-cl <- makeCluster(detectCores(),outfile="")   
+cl <- makeCluster(detectCores(), outfile = "")
 registerDoParallel(cl)
 #'
 # Run multiple simulations
-for(s in 1:nrow(param)){
+for (s in 1:nrow(param)) {
     startSimTime <- Sys.time()
     #'
     # Setup simulation parameters
-    model_inducer              = param[s,"model_inducer"]
-    payment_selection_criteria = param[s,"payment_selection_criteria"]
-    cost_function_type         = param[s,"primary_cost_function"]
-    #'  
+    model_inducer <- param[s, "model_inducer"]
+    payment_selection_criteria <- param[s, "payment_selection_criteria"]
+    cost_function_type <- param[s, "primary_cost_function"]
+    #'
     # Allocate report
-    report   = create_report()
-    ledger   = data.frame()
-    metadata = cbind(create_report(), svm_bug = data.frame())
-    svm_bug  = NA
+    report <- create_report()
+    ledger <- data.frame()
+    metadata <- cbind(create_report(), svm_bug = data.frame())
+    svm_bug <- NA
     #'
     # Start simulation timer
-    start.time = Sys.time()
+    start.time <- Sys.time()
     #'
     # Run simulation
-    for(current_repetition in 1:repeatitions)
+    for (current_repetition in 1:repeatitions)
     {
-        cost_function_type <- param[s,"primary_cost_function"]
+        cost_function_type <- param[s, "primary_cost_function"]
         #' (1) Setup
         repetition_stage_1()
         #' (2) Split the data to 'unlabeled' and 'holdout'
@@ -136,20 +136,23 @@ for(s in 1:nrow(param)){
         repetition_stage_3()
         #' (4) Running the rest of the simulation
         repetition_stage_4()
-    }# repetitions for loop 
+    } # repetitions for loop
     #'
     ## Save report on hard drive
     slug <- file_slug_generate()
     write_csv(report %>% select(-svm_bug),
-              path = file.path(k_path_reports, slug %+% ".csv"))
+        path = file.path(k_path_reports, slug %+% ".csv")
+    )
     write_csv(metadata %>% arrange(repetition, batch),
-              path = file.path(k_path_metadata, slug %+% ".csv"))
+        path = file.path(k_path_metadata, slug %+% ".csv")
+    )
     write_csv(ledger,
-              path = file.path(k_path_ledgers, slug %+% ".csv"))
-}# end multiple simulations
+        path = file.path(k_path_ledgers, slug %+% ".csv")
+    )
+} # end multiple simulations
 #'
 stopCluster(cl)
 stop.time <- Sys.time()
-cat_80("Completed in " %+% round(as.numeric(stop.time-start.time, units = "mins"),0) %+% " [mins]")
+cat_80("Completed in " %+% round(as.numeric(stop.time - start.time, units = "mins"), 0) %+% " [mins]")
 cat("\n")
 #'

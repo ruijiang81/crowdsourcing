@@ -16,25 +16,25 @@ trade_offs <- c("Fix", "Concave", "Asymptotic") # ,"F1","F2","F3")
 par(mfrow = c(1, 3), cex = 1.2, mai = c(1, 0.5, 0.1, 0.1), pty = "s")
 
 for (t in trade_offs) {
-  ## Calculate probabilities
-  probabilities <- labelingCostQualityTradeoff(t, price_per_label_values, fixProbability = 0.85)
-  # probabilities = round(probabilities,4)
-  ## Create blank canvas
-  plot(0, 0,
-    type = "n", col = "red",
-    ylim = c(0.5, 1), xlim = c(0.02, 0.25), axes = F,
-    # main=paste(t,"trade-off\nfunction"),
-    xlab = "Price Per Label", ylab = "Correct Label Probability"
-  )
-  ## Set axies
-  axis(1, at = x_ticks)
-  axis(2, at = seq(0.5, 1, by = 0.1), las = 2)
-  ## Add grid
-  abline(h = seq(0.5, 1, 0.1), lty = 1, col = "cornsilk2")
-  abline(v = x_ticks, lty = 1, col = "cornsilk2")
-  box()
-  ## Plot the trade-off function
-  lines(price_per_label_values, probabilities, col = "red", lwd = 3)
+    ## Calculate probabilities
+    probabilities <- labelingCostQualityTradeoff(t, price_per_label_values, fixProbability = 0.85)
+    # probabilities = round(probabilities,4)
+    ## Create blank canvas
+    plot(0, 0,
+        type = "n", col = "red",
+        ylim = c(0.5, 1), xlim = c(0.02, 0.25), axes = F,
+        # main=paste(t,"trade-off\nfunction"),
+        xlab = "Price Per Label", ylab = "Correct Label Probability"
+    )
+    ## Set axies
+    axis(1, at = x_ticks)
+    axis(2, at = seq(0.5, 1, by = 0.1), las = 2)
+    ## Add grid
+    abline(h = seq(0.5, 1, 0.1), lty = 1, col = "cornsilk2")
+    abline(v = x_ticks, lty = 1, col = "cornsilk2")
+    box()
+    ## Plot the trade-off function
+    lines(price_per_label_values, probabilities, col = "red", lwd = 3)
 }
 
 
