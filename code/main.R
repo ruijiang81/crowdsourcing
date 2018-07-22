@@ -16,7 +16,7 @@ DATABASE_NAME <- c("Spam",                 # 1
                    "Synthetic_Unbalanced", # 6
                    "Tax Audit",            # 7
                    "Adult",                # 8
-                   "Movies Reviews")[1]    # 9      
+                   "Movies Reviews")[2]    # 9      
 get_the_data(DATABASE_NAME)
 #'
 p_holdout    <- 0.3  # percentage of data in external holdout
@@ -59,42 +59,33 @@ param <- expand.grid(
                                    "max_quality",       # 4
                                    "max_ratio",         # 5
                                    "max_total_ratio")   # 6
-    [c(1,6)], 
+    [c(1, 6)], 
     # Quality-Cost tradeoff
     primary_cost_function = c("Fix",               # 1
                               "Concave",           # 2   
                               "Asymptotic",        # 3
-                              "Fix3Labels",        # 4
-                              "Concave3Labels",    # 5
-                              "Asymptotic3Labels") # 6
-    [c(3)],
+                              "Linear")            # 4
+    [c(4)],
     stringsAsFactors = FALSE)
+param$primary_cost_function %<>% tolower()
 #'
 ## Fix value
 fixProbability = 0.85
 #'
 ## Hash-table
-primary_cost_function = tolower(param[1,"primary_cost_function"])
-if(primary_cost_function %in% "fix3labels"){
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.93925,0.93925,0.93925))
-    
-} else if (primary_cost_function %in% "concave3labels") {
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.6526018,0.9978207,0.8493373))
-    
-} else if (primary_cost_function %in% "asymptotic3labels") {
-    price_per_label_values = 3*price_per_label_values
-    fixProbability = data.frame(cost=price_per_label_values,
-                                probability=c(0.5000000,0.9854227,0.9953280))
-    
-}
+if(any(param$primary_cost_function %in% "linear")){
+    indices <- which(param$primary_cost_function %in% "linear")
+    x_in <- range(price_per_label_values)
+    y_in <- c(0.85, 0.95)
+    x_out <- c(0.02,0.14,0.25)
+    y_out <- approx(x_in, y_in, x_out)$y   
+    fixProbability <- data.frame(cost = x_out, probability = y_out)
+    param[indices, "primary_cost_function"] <- "linear" %+% "_" %+% min(y_in) %+% "-" %+% max(y_in)
+} 
 #'
 ## Setup cost function change
 secondary_cost_function_flag          = FALSE
-secondary_cost_function               = c("Fix","Concave","Asymptotic","HashTable")[2]
+secondary_cost_function               = c("Fix","Concave","Asymptotic")[2]
 model_cost_for_changing_cost_function = 75
 #'
 ################################################################################

@@ -54,9 +54,9 @@ repetition_stage_3 <- function() {
                 #' Set the quality level for the given cost-function and payment
                 #' configuration
                 labeling_accuracy <- labelingCostQualityTradeoff(
-                    cost_function_type,
-                    pay_per_label,
-                    fixProbability
+                    method = cost_function_type,
+                    costPerTask = pay_per_label,
+                    fixProbability = fixProbability
                 )
                 #'
                 ########################################################

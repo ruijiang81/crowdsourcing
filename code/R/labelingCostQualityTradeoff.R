@@ -57,7 +57,9 @@ labelingCostQualityTradeoff <- function(method = c("Fix", "Concave", "Asymptotic
         f4 <- function(x) round(0.625 + 1.3 * x, 4)
         p <- f4(C)
     } else { # Hashtable
+        assert_data_frame(fixProbability)
         colnames(fixProbability) <- tolower(colnames(fixProbability))
+        assert_are_set_equal(colnames(fixProbability), c("cost", "probability"))
         p <- fixProbability[fixProbability$cost %in% C, "probability"]
     }
     # stop('Unknown tradeoff method')
