@@ -104,7 +104,7 @@ for (s in 1:nrow(param)) {
     # Setup simulation parameters
     model_inducer <- param[s, "model_inducer"]
     payment_selection_criteria <- param[s, "payment_selection_criteria"]
-    cost_function_type <- param[s, "primary_cost_function"]
+    primary_cost_function <- param[s, "primary_cost_function"]
     #'
     # Allocate report
     report <- create_report()
