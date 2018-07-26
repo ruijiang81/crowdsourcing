@@ -66,6 +66,8 @@ decide_price_per_label <- function(train,
         pay <- sample(payment_options, 1)
     } else if (pay_criteria == "min_pay_per_label") {
         pay <- payment_options[which.min(payment_options)]
+    } else if (pay_criteria == "avg_pay_per_label") {
+        pay <- payment_options[(payment_options - mean(payment_options)) %>% abs() %>% which.min()]
     } else if (pay_criteria == "max_pay_per_label") {
         pay <- payment_options[which.max(payment_options)]
     } else if (substr(pay_criteria, 1, 6) == "always") {

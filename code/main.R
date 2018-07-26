@@ -55,17 +55,18 @@ param <- expand.grid(
     # By which rule to decide how much to pay for the next batch?
     payment_selection_criteria = c("random",            # 1
                                    "min_pay_per_label", # 2
-                                   "max_pay_per_label", # 3
-                                   "max_quality",       # 4
-                                   "max_ratio",         # 5
-                                   "max_total_ratio")   # 6
-    [c(1, 6)], 
+                                   "avg_pay_per_label", # 3
+                                   "max_pay_per_label", # 4
+                                   "max_quality",       # 5
+                                   "max_ratio",         # 6
+                                   "max_total_ratio")   # 7
+    [c(3)], 
     # Quality-Cost tradeoff
-    primary_cost_function = c("Fix",               # 1
-                              "Concave",           # 2   
-                              "Asymptotic",        # 3
-                              "Linear")            # 4
-    [c(4)],
+    primary_cost_function = c("Fix",        # 1
+                              "Concave",    # 2   
+                              "Asymptotic", # 3
+                              "Linear")     # 4
+    [c(2)],
     stringsAsFactors = FALSE)
 param$primary_cost_function %<>% tolower()
 #'
