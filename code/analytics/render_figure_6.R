@@ -26,7 +26,7 @@ cat_80("Render figure 6")
 # Configure x and y axes #
 ##########################
 x_axis <- "cost_so_far"
-y_axis <- c("AUC_holdout", "train_set_label_quality", "observations_so_far")[3]
+y_axis <- c("AUC_holdout", "train_set_label_quality", "observations_so_far")[2]
 #'
 ################
 # Get the data #
@@ -44,17 +44,21 @@ assertive::assert_is_subset(
     colnames(dataset)
 )
 #' Test that all expected information exist in the dataset
-database_name_levles <- c("mushroom", "spam", "pen digits")
-cost_function_type_levles <- c("concave", "asymptotic", "fix")
+database_name_levles <- 
+    dataset %>% .$database_name %>% unique() # c("mushroom", "spam", "pen digits")
+cost_function_type_levles <- 
+    dataset %>% .$cost_function_type %>% unique() # c("concave", "asymptotic", "fix")
 expected_combinations <-
     expand.grid(
         database_name = database_name_levles,
         cost_function_type = cost_function_type_levles
-    )
+    ) %>% 
+    arrange(database_name, cost_function_type)
 dataset_combinations <-
     dataset %>%
     select(database_name, cost_function_type) %>%
-    unique()
+    unique() %>% 
+    arrange(database_name, cost_function_type)
 assertive::assert_are_set_equal(expected_combinations, dataset_combinations)
 #' Test that the selected columns have no NA
 assertive::assert_any_are_not_na(dataset %>% select(x_axis, y_axis))
