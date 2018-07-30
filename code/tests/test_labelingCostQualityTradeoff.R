@@ -11,26 +11,26 @@ costs <- c(0.02, 0.08, 0.14, 0.19, 0.25)
 ################################################################################
 ## Fix Method
 labelingCostQualityTradeoff(
-  method = "Fix",
-  costPerTask = costs,
-  fixProbability = 0.75
+    method = "Fix",
+    costPerTask = costs,
+    fixProbability = 0.75
 )
 ## Concave Method
 labelingCostQualityTradeoff(
-  method = "Concave",
-  costPerTask = costs
+    method = "Concave",
+    costPerTask = costs
 )
 ## Asymptotic Method
 labelingCostQualityTradeoff(
-  method = "Asymptotic",
-  costPerTask = costs
+    method = "Asymptotic",
+    costPerTask = costs
 )
 ## HashTable Method
 labelingCostQualityTradeoff(
-  method = "HashTable",
-  costPerTask = 2 * costs,
-  fixProbability = data.frame(
-    cost = 2 * costs,
-    probability = c(0.6, 0.87, 0.97, 0.94, 0.76)
-  )
+    method = "HashTable",
+    costPerTask = 2 * costs,
+    fixProbability = data.frame(
+        cost = 2 * costs,
+        probability = c(0.6, 0.87, 0.97, 0.94, 0.76)
+    )
 )

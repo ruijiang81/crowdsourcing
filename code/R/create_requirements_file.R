@@ -18,34 +18,34 @@
 #' @author Harel Lustiger
 #'
 create_requirements_file <- function(packages_list, folder_path = getwd()) {
-  ####################
-  # Input validation #
-  ####################
-  stopifnot(
-    !missing(packages_list),
-    is.character(packages_list)
-  )
-  dir.create(folder_path, showWarnings = FALSE, recursive = TRUE)
-  #'
-  ##########
-  # STEP 1 #
-  ##########
-  packages_list_no_slash <- strsplit(packages_list, split = "./")
-  packages_list_no_slash <- lapply(packages_list_no_slash, function(x) x[[length(x)]])
-  packages_list_no_slash <- unlist(packages_list_no_slash)
-  #'
-  ##########
-  # STEP 2 #
-  ##########
-  file_content <- paste0("library", "(", packages_list_no_slash, ")")
-  file_path <- file.path(folder_path, "requirements.R")
-  write.table(file_content, file_path,
-    col.names = FALSE, row.names = FALSE,
-    quote = FALSE
-  )
-  #'
-  ##########
-  # Return #
-  ##########
-  return(invisible())
+    ####################
+    # Input validation #
+    ####################
+    stopifnot(
+        !missing(packages_list),
+        is.character(packages_list)
+    )
+    dir.create(folder_path, showWarnings = FALSE, recursive = TRUE)
+    #'
+    ##########
+    # STEP 1 #
+    ##########
+    packages_list_no_slash <- strsplit(packages_list, split = "./")
+    packages_list_no_slash <- lapply(packages_list_no_slash, function(x) x[[length(x)]])
+    packages_list_no_slash <- unlist(packages_list_no_slash)
+    #'
+    ##########
+    # STEP 2 #
+    ##########
+    file_content <- paste0("library", "(", packages_list_no_slash, ")")
+    file_path <- file.path(folder_path, "requirements.R")
+    write.table(file_content, file_path,
+        col.names = FALSE, row.names = FALSE,
+        quote = FALSE
+    )
+    #'
+    ##########
+    # Return #
+    ##########
+    return(invisible())
 }
