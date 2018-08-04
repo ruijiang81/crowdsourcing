@@ -1,6 +1,6 @@
 #' add_metadata_from_file_name
 #'
-add_metadata_from_file_name <- function(data, file_name){
+add_metadata_from_file_name <- function(data, file_name) {
     ####################
     # Input validation #
     ####################
@@ -19,7 +19,7 @@ add_metadata_from_file_name <- function(data, file_name){
     # Drop existing columns
     suppressWarnings(data <- data %>% select(-one_of(colnames(slug_df))))
     # Join the slug and the data
-    data <- bind_cols(slug_df[rep(1, nrow(data)),], data)
+    data <- bind_cols(slug_df[rep(1, nrow(data)), ], data)
     #'
     ##########
     # Return #
