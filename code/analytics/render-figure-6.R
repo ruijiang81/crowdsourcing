@@ -44,24 +44,20 @@ assertive::assert_is_subset(
     colnames(dataset)
 )
 #' Test that all expected information exist in the dataset
-database_name_levles <-
-    dataset %>%
-    .$database_name %>%
-    unique() # c("mushroom", "spam", "pen digits")
-cost_function_type_levles <-
-    dataset %>%
-    .$cost_function_type %>%
-    unique() # c("concave", "asymptotic", "fix")
+database_name_levles <- 
+    dataset %>% .$database_name %>% unique() # c("mushroom", "spam", "pen digits")
+cost_function_type_levles <- 
+    dataset %>% .$cost_function_type %>% unique() # c("concave", "asymptotic", "fix")
 expected_combinations <-
     expand.grid(
         database_name = database_name_levles,
         cost_function_type = cost_function_type_levles
-    ) %>%
+    ) %>% 
     arrange(database_name, cost_function_type)
 dataset_combinations <-
     dataset %>%
     select(database_name, cost_function_type) %>%
-    unique() %>%
+    unique() %>% 
     arrange(database_name, cost_function_type)
 assertive::assert_are_set_equal(expected_combinations, dataset_combinations)
 #' Test that the selected columns have no NA
@@ -96,8 +92,7 @@ fig6 <- plot_data %>%
     theme_bw() +
     theme(
         aspect.ratio = 1,
-        axis.text.x = element_text(angle = 90, hjust = 1),
-        legend.position = "bottom"
+        axis.text.x = element_text(angle = 90, hjust = 1)
     ) +
     facet_grid(database_name ~ cost_function_type, scales = "free")
 plot(fig6)
