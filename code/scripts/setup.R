@@ -19,6 +19,7 @@ k_path_scripts <<- file.path(k_path_project, "code", "scripts")
 k_path_modules <<- file.path(k_path_project, "code", "modules")
 k_path_tests <<- file.path(k_path_project, "code", "tests")
 k_path_functions <<- file.path(k_path_project, "code", "R")
+k_path_analytics <<- file.path(k_path_project, "code", "analytics")
 ## Results
 k_path_results <<- file.path(k_path_project, "results")
 k_path_reports <<- file.path(k_path_results, "reports")

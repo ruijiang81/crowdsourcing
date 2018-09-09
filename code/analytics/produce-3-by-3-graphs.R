@@ -4,17 +4,14 @@
 ## Initialization
 source(file.path(getwd(), "code", "scripts", "setup.R"))
 cat_80("Metadata Pro Processing")
-
-
+#'
 ################################################################################
-## Get the data
+## Preprocess the data (under ../results/)
 ################################################################################
-reports_folder <- file.path(getwd(), "reports")
-## Calculate AUC(Cost)
-interval_size <- 1
-reports <- interpolate.reports(reports_folder, na.rm = FALSE, interval_size)
-
-
+source(file.path(k_path_analytics, "processing-the-report-files.R"))
+source(file.path(k_path_analytics, "processing-the-metadata-files.R"))
+source(file.path(k_path_analytics, "processing-the-ledger-files.R"))
+#'
 #####################
 # ggplot attributes #
 #####################
