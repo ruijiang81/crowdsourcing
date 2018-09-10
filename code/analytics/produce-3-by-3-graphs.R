@@ -5,7 +5,7 @@ source(file.path(getwd(), "code", "scripts", "setup.R"))
 cat_80("Metadata Pro Processing")
 plot_type <- c("Performance vs. cost",
                "Avg label quality vs. cost",
-               "No. of labels acquired vs. cost")[1]
+               "No. of labels acquired vs. cost")[3]
 #'
 ##############################
 # Get the project's metadata #
@@ -20,12 +20,9 @@ analytics_attributes <- analytics_attributes %>% filter(name == plot_type)
 if(plot_type == "Performance vs. cost"){
     source(file.path(k_path_analytics, "processing-the-report-files.R"))
     data <- read_csv(file.path(k_path_results, "processed", "reports-by-dollar.csv"))
-} else if(plot_type == "Performance vs. cost") {
+} else if(plot_type %in% c("Avg label quality vs. cost", "No. of labels acquired vs. cost")) {
     source(file.path(k_path_analytics, "processing-the-metadata-files.R"))
     data <- read_csv(file.path(k_path_results, "processed", "metadata-by-dollar.csv"))
-} else if(plot_type == "Performance vs. cost") {
-    source(file.path(k_path_analytics, "processing-the-ledger-files.R"))
-    data <- read_csv(file.path(k_path_results, "processed", "ledgers-by-dollar.csv"))
 } else {
     stop("Plot type is unknown")
 }

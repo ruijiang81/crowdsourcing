@@ -23,7 +23,9 @@ assertive::assert_all_are_not_na(file_slugs %>% select(database_name))
 ####################################
 cat_40("Interpulating reports")
 interval_size <- 1
-reports <- interpolate.reports(k_path_reports, na.rm = FALSE, interval_size)
+reports <- interpolate.reports(reports_folder = k_path_reports,
+                               na.rm = FALSE,
+                               interval_size = interval_size)
 #' Shape the table
 reports <- 
     reports %>%
