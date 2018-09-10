@@ -1,4 +1,4 @@
-Policy,Alias ,Color,Linetype,Pch
+payment_selection_criteria,alias ,color,linetype,pch
 max_pay_per_label100,MaxPay,deepskyblue4,solid,0
 max_ratio100,ALP-MR,blue,solid,1
 max_total_ratio100,ALP-MTR,red,solid,3
