@@ -77,8 +77,8 @@ fixProbability = 0.85
 if(any(param$primary_cost_function %in% "linear")){
     indices <- which(param$primary_cost_function %in% "linear")
     x_in <- range(price_per_label_values)
-    y_in <- c(0.85, 0.95)
-    x_out <- c(0.02,0.14,0.25)
+    y_in <- c(0.84, 0.86)
+    x_out <- price_per_label_values
     y_out <- approx(x_in, y_in, x_out)$y   
     fixProbability <- data.frame(cost = x_out, probability = y_out)
     param[indices, "primary_cost_function"] <- "linear" %+% "_" %+% min(y_in) %+% "-" %+% max(y_in)

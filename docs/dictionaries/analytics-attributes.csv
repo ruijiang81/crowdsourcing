@@ -1,0 +1,4 @@
+name,file_path,x,y,xlab,ylab
+Performance vs. cost,"file.path(k_path_results, ""processed"", ""reports-by-dollar.csv"")",cost_so_far,AUC_holdout,Cost,AUC
+Avg label quality vs. cost,"file.path(k_path_results, ""processed"", ""metadata-by-dollar.csv"")",cost_so_far,train_set_label_quality,Cost,Avg label quality 
+No. of labels acquired vs. cost,"file.path(k_path_results, ""processed"", ""metadata-by-dollar.csv"")",cost_so_far,observations_so_far,Cost,No. of labels acquired 
