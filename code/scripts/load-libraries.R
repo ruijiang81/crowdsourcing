@@ -59,10 +59,6 @@ libraries_on_MRAN <- c(
 #'
 libraries_on_CRAN <- c(
     # Defensive R Programming
-    # <https://mllg.github.io/checkmate/reference/index.html>
-    "checkmate",
-    # Check Functions to Ensure Code Integrity
-    # <https://bitbucket.org/richierocks/assertive>
     "assertive",
     # Pretty Printing of R Code
     "styler",

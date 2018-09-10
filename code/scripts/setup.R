@@ -29,20 +29,9 @@ k_path_reports <<- file.path(k_path_results, "reports")
 k_path_ledgers <<- file.path(k_path_results, "ledgers")
 k_path_metadata <<- file.path(k_path_results, "metadata")
 k_path_temporary <<- file.path(k_path_results, "temp", UID)
+k_path_figures <<- file.path(k_path_results, "figures")
 ## Docs
 k_path_dictionaries <<-  file.path(k_path_docs, "dictionaries")
-#'
-#' Create project's folders
-folders <- c(k_path_reports, k_path_ledgers, k_path_metadata, k_path_temporary)
-for (folder in folders) {
-    dir.create(folder, show = FALSE, recursive = TRUE)
-    if (!base::dir.exists(folder)) {
-        stop(
-            "Couldn't create the following dir:\n",
-            folder
-        )
-    }
-}
 #'
 #' Load project's functions
 invisible(
@@ -71,6 +60,18 @@ invisible(
 #' Load project's libraries
 source(file.path(k_path_scripts, "load-libraries.R"))
 #'
+#' Create project's folders
+folders <- ls()[ls() %>% str_detect("^k_path_")]
+for (folder in folders) {
+    dir.create(get(folder), show = FALSE, recursive = TRUE)
+    if (!base::dir.exists(get(folder))) {
+        stop(
+            "Couldn't create the following dir:\n",
+            get(folder)
+        )
+    }
+}
+#'
 #' Performs various substitutions in all .R files
 # style_dir(k_path_project,
 #     exclude_files = c(
@@ -78,3 +79,4 @@ source(file.path(k_path_scripts, "load-libraries.R"))
 #         file.path(k_path_project, "code", "main.R")),
 #     transformers = tidyverse_style(indent_by = 4)
 # )
+#'
