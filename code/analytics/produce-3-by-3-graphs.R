@@ -55,32 +55,45 @@ for(k in seq_along(pairs)){
     # Data quality assurance
     assert_all_are_not_na(ggplot_data)
     #'
+    #################################
+    # Pair policies with attributes #
+    #################################
+    # Policies colors
+    policies_colors <- ggplot_data %>% select(payment_selection_criteria, color) %>% unique() %>% .$color
+    names(policies_colors) <- ggplot_data %>% select(payment_selection_criteria, color) %>% unique() %>% .$payment_selection_criteria
+    # Policies alias
+    policies_alias <- ggplot_data %>% select(payment_selection_criteria, alias) %>% unique() %>% .$alias
+    names(policies_alias) <- ggplot_data %>% select(payment_selection_criteria, alias) %>% unique() %>% .$payment_selection_criteria
+    #'
     ########################
     # Create ggplot object #
-    ########################
+    ######################## 
     fig <- 
         # Base layer
         ggplot(ggplot_data, aes(
             x = cost_so_far,
             y = AUC_holdout,
-            group = payment_selection_criteria,
-            col = color,
-            linetype = linetype,
+            col = payment_selection_criteria,
             shape = I(pch)
         )) + 
         # Line plot layer
         geom_line(size = line_size) +
-        guides(linetype = FALSE, color = FALSE) + 
-        # Theme layers
-        # scale_colour_manual(name = "",
-        #                     values = c(myline1="red", myline2="blue"))
+        scale_colour_manual(values = policies_colors,
+                            labels = policies_alias) + 
+        # Plot labels
+        labs(color = "") +
+        # Theme settings
+        theme_bw() + 
+        theme(
+            legend.background = element_rect(fill = "transparent")
+        )
+        
+    # Adjust the legend
+    reposition_legend(aplot = fig, position = 'bottom right')
+        
+        
+    # Theme layers
+    # scale_colour_manual(name = "",
+    #                     values = c(myline1="red", myline2="blue"))
 }
-
-
-
-
-
-
-
-
 

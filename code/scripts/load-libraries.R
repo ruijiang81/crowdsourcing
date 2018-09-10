@@ -74,7 +74,7 @@ libraries_on_CRAN <- c(
     # Dynamic Report Generation in R
     "knitr", "pander",
     # Visualization tools
-    "ggplot2", "gridExtra", "manipulate"
+    "ggplot2", "gridExtra", "lemon"
 )
 #'
 libraries_on_GitHub <- c(
