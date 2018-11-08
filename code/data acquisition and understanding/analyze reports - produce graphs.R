@@ -4,14 +4,16 @@
 ## Initialization
 cat("\014")
 rm(list = ls())
-source("scripts/load_libraries.R")
+source("R/create_requirements_file.R")
+source("R/reports_utilities.R")
+source("scripts/load-libraries.R")
 sapply(list.files(pattern = "[.]R$", path = "./functions/", full.names = TRUE), source)
 
 
 ################################################################################
 ## Get the data
 ################################################################################
-reports_folder <- file.path(getwd(), "reports")
+reports_folder <- file.path("/home/ruijiang/E/utaustin/project/cost_efficient_labeling/Quick-and-Dirty/results/reports")
 ## Calculate AUC(Cost)
 interval_size <- 1
 reports <- interpolate.reports(reports_folder, na.rm = FALSE, interval_size)
@@ -55,11 +57,10 @@ param <- expand.grid(
         "MTR", # 5 Random, Max Total Ratio, Max Total Ratio 100
         "Main results"
     ) # 6 Random, Max Ratio 100, Max Total Ratio 100
-    [c(4, 5, 6)],
+    [c(6)],
     stringsAsFactors = FALSE
 )
 include_uniform <- TRUE
-
 
 for (l in 1:nrow(param))
 {
@@ -74,7 +75,7 @@ for (l in 1:nrow(param))
     )
     outputs <- outputs[col_names]
 
-
+    print(plot_div)
     plot_param <- unique(outputs[, plot_div])
     for (k in 1:nrow(plot_param))
     {
@@ -100,13 +101,14 @@ for (l in 1:nrow(param))
             output <- output[!substr(output$payment_selection_criteria, 1, 6) %in% "random", ]
         }
         # Change policies names (source: Environment Variables)
+        policies_metadata <- read.csv("/home/ruijiang/E/utaustin/project/cost_efficient_labeling/Quick-and-Dirty/docs/dictionaries/policies-attributes.csv",stringsAsFactors = FALSE)
+        names(policies_metadata) = c("names_original","names_new","color","linetype","pch")
         for (p in 1:nrow(policies_metadata))
         {
             original_name <- policies_metadata[p, "names_original"]
             new_name <- policies_metadata[p, "names_new"]
             output[output$payment_selection_criteria %in% original_name, "payment_selection_criteria"] <- new_name
         } # end changing policies names
-
         # Add plots attributes
         output$linetype <- "solid" # default value
         output$color <- "black" # default value
@@ -122,7 +124,7 @@ for (l in 1:nrow(param))
             output[output$payment_selection_criteria %in% policy_name, "color"] <- policy_color
             output[output$payment_selection_criteria %in% policy_name, "pch"] <- as.numeric(policy_pch)
         } # end setting policies attributes
-
+ 
         # Convert character 2 factor
         output$payment_selection_criteria <- factor(output$payment_selection_criteria, levels = unique(output$payment_selection_criteria))
 
@@ -136,9 +138,9 @@ for (l in 1:nrow(param))
         # Render the plots #
         ####################
         # Create plots directory
-        plot_dir <- file.path(getwd(), "plots")
+        plot_dir <- file.path("/home/ruijiang/E/utaustin/project/cost_efficient_labeling/Quick-and-Dirty/results/reports", "plots")
         dir.create(plot_dir, showWarnings = F)
-
+        print(head(output))
         # Plot AUC as function of number of observations
         fig <- ggplot(output, aes(
             x = cost_intervals,
@@ -211,7 +213,6 @@ for (l in 1:nrow(param))
         } else if (benchmarks == "MTR") {
             plot_name <- paste0(plot_name, "(MTR)")
         }
-
 
         plot_name <- paste0(plot_name, "(", "interval size=", interval_size, ")")
         plot_name <- paste0(plot_name, "(", tandem, " in a row", ")", ".png")

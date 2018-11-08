@@ -1,7 +1,7 @@
 ################################################################################
 # Repetition Stage 3: Purchase initial batches and fit model on them           #
 ################################################################################
-repetition_stage_3 <- function() {
+alt_repetition_stage_3 <- function() {
     ####################
     # Input validation #
     ####################
@@ -32,19 +32,19 @@ repetition_stage_3 <- function() {
         #' num_batches_per_cost_initial_training_set may be set to zero when
         #' using random or other non algorthmic payment selection methods
         for (i in 1:num_price_per_label_values) {
-            for (j in 1:num_batches_per_cost_initial_training_set) {
+#            for (j in 1:num_batches_per_cost_initial_training_set) {
                 #########
                 # Start #
                 #########
                 #' Setup
                 set.seed(current_instance_num * global_seed)
-                pay_per_label <- sample(price_per_label_values, 1)
+                #pay_per_label <- sample(price_per_label_values, 1)
+                pay_per_label <- price_per_label_values[i]
                 #' Create new ledger record holder
                 new_record <- data.frame(
                     repetition = current_repetition,
                     batch = current_batch,
-                    batch_size = k_batch_size,
-                    #batch_size = floor(k_budget_size/pay_per_label),
+                    batch_size = floor(init_budget_size/pay_per_label),
                     payment_selection_criteria = payment_selection_criteria,
                     payment_selected = pay_per_label
                 )
@@ -63,6 +63,7 @@ repetition_stage_3 <- function() {
                 ########################################################
                 #' Change label quality (instance-wise implementation) #
                 ########################################################
+                k_batch_size = floor(init_budget_size/pay_per_label)
                 for (k in 1:k_batch_size) {
                     ## Bind train-set and labeled-set
                     if (current_instance_num == 1) {
@@ -71,8 +72,8 @@ repetition_stage_3 <- function() {
                     else {
                         training_set <- rbind(training_set, unlabeled_data[current_instance_num, ])
                     } # end binding train/labeled sets
-
-
+                    
+                    
                     ## Alternate true label (instance-wise operation)
                     set.seed(current_instance_num * global_seed)
                     random_number <- runif(1)
@@ -94,7 +95,7 @@ repetition_stage_3 <- function() {
                         "svm_bug" = NA
                     )
                     rep_metadata <- merge(rep_metadata, new_entry, all = TRUE)
-
+                    
                     current_instance_num <- current_instance_num + 1 # updating the instance counter
                 } # end for change instance quality
                 #'
@@ -103,10 +104,10 @@ repetition_stage_3 <- function() {
                 #################################
                 ## AUC
                 calculated_AUC <- predict_set(training_set,
-                    holdout_data,
-                    inducer = model_inducer
+                                              holdout_data,
+                                              inducer = model_inducer
                 )
-
+                
                 #' Print out to report
                 rep_metadata[current_instance_num - 1, "AUC_holdout"] <- calculated_AUC
                 new_item <- rep_metadata[current_instance_num - 1, ]
@@ -122,7 +123,7 @@ repetition_stage_3 <- function() {
                 #' Advance counter
                 current_batch <- current_batch + 1
                 #'
-            } # end for j (batch purchase)
+#            } # end for j (batch purchase)
         } # end for i
         cat("\n", "Finished purchasing initial training set")
         cat("\n", "AUC =", calculated_AUC)
@@ -135,12 +136,12 @@ repetition_stage_3 <- function() {
     rep_report <<- rep_report
     rep_metadata <<- rep_metadata
     rep_ledger <<- rep_ledger
-
+    
     cost_so_far <<- cost_so_far
     current_batch <<- current_batch
     current_instance_num <<- current_instance_num
-
+    
     training_set <<- training_set
-
+    
     return(invisible())
 }

@@ -18,23 +18,23 @@ k_snapshot_date <<- "2016-05-26"
 k_path_project <<- getwd()
 k_path_checkpoint <<- file.path(k_path_project, ".checkpoint")
 k_path_libraries <<- .libPaths()[which.min(nchar(.libPaths()))]
-stopifnot(grepl("C:/Program Files(.*)/library", k_path_libraries))
+stopifnot(grepl("/usr/lib/R/library", k_path_libraries))
 #'
 ####################
 # Input validation #
 ####################
-stopifnot(exists("create_requirements_file"))
-#' Check R version
-d1 <- as.numeric(R.Version()$major)
-d2 <- as.numeric(substr(R.Version()$minor, 1, 1))
-d3 <- as.numeric(substr(R.Version()$minor, 3, 3))
-if (d1 != 3 | d2 > 4) {
-    stop(
-        "\nThe project was tasted with R version 3.4.3",
-        "\nYou are using R version ", paste0(R.Version()[6:7], collapse = "."),
-        "\nWe can't guarantee the results are reproducible"
-    )
-}
+#' stopifnot(exists("create_requirements_file"))
+#' #' Check R version
+#' d1 <- as.numeric(R.Version()$major)
+#' d2 <- as.numeric(substr(R.Version()$minor, 1, 1))
+#' d3 <- as.numeric(substr(R.Version()$minor, 3, 3))
+#' if (d1 != 3 | d2 > 4) {
+#'     stop(
+#'         "\nThe project was tasted with R version 3.4.3",
+#'         "\nYou are using R version ", paste0(R.Version()[6:7], collapse = "."),
+#'         "\nWe can't guarantee the results are reproducible"
+#'     )
+#' }
 #'
 ############################
 # Define project libraries #
@@ -149,12 +149,12 @@ for (package in libraries_on_GitHub) {
             ),
             silent = FALSE
             )
-        })
+        # })
         # Advance Progress Bar
         i <- i + 1
         setTxtProgressBar(pb, i)
     })
-}
+})}
 message("")
 #' Step 5: Make sure all packages were installed correctly
 libraries_on_System <- row.names(installed.packages())

@@ -14,13 +14,11 @@
 ##################
 # import.reports #
 ##################
-import.reports <- function(reports_folder = "./reports",
+import.reports <- function(reports_folder = "/reports",
                            # Remove the "random" rule metadata
                            random.rm = FALSE) {
     ## List the (csv) reports in the folder
     reports_list <- list.files(pattern = "[.]csv$", path = reports_folder, full.names = TRUE)
-
-
     ## Phrase the reports names
     reports_metadata <- data.frame(
         DATABASE_NAME = NA,
@@ -31,6 +29,7 @@ import.reports <- function(reports_folder = "./reports",
     )
     for (k in 1:length(reports_list)) {
         #' Find the indices of the metadata in the file name.
+        print(reports_list)
         #' The metadata is encapsulated between [] (i.e. square parentheses)
         index_metadata <- gregexpr("\\((.*?)\\)", reports_list[k], TRUE)
         #' Check that the number of sub string composing the file name is as

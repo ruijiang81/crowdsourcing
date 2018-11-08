@@ -54,7 +54,7 @@ predict_set <- function(train_set,
     train_set <- setVariablesNames(train_set)
     test_set <- setVariablesNames(test_set)
 
-
+    
     ########################
     # Fit & Evaluate model #
     ########################

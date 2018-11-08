@@ -33,7 +33,7 @@
 #' OUTPUT:
 #' @return A scalar – the payment for the next iteration.
 #'
-decide_price_per_label <- function(train,
+alt_decide_price_per_label <- function(train,
                                    # By which rule to decide how much to pay for the next batch?
                                    pay_criteria,
                                    # Available costs values
@@ -95,13 +95,19 @@ decide_price_per_label <- function(train,
             for (j in 1:number_batch_omissions) {
                 # print (j)
                 payment_row_numbers <- which(meta_data$pay == payment_options[i]) # row number with this payments
-
+                max_instances_in_history <- 2 * floor(k_budget_size/payment_options[i])
                 if (length(payment_row_numbers) > max_instances_in_history) {
                     payment_row_numbers <- tail(payment_row_numbers, max_instances_in_history)
                 }
-
+                q = floor(k_budget_size/payment_options[i])
                 set.seed(cur_instance_num * global_seed + i + j * 1000)
-                random_rows_to_remove_with_payment <- sample(payment_row_numbers, k_batch_size)
+                #random_rows_to_remove_with_payment <- sample(payment_row_numbers, k_batch_size)
+                if (q < length(payment_row_numbers)){
+                    random_rows_to_remove_with_payment <- sample(payment_row_numbers, q)}
+                else {
+                    q <- floor(1 / payment_options[i])
+                    random_rows_to_remove_with_payment <- sample(payment_row_numbers, q)
+                }
                 randomly_remaining_instances <- train[-random_rows_to_remove_with_payment, ]
                 summary_partial_model_performance[j, i] <-
                     cross_validation(
@@ -168,9 +174,11 @@ decide_price_per_label <- function(train,
                         delta_performance_improvement[t] <- -1e8
                     }
                 }
-                expected_performance <- delta_performance_improvement + full_model_CV_performance
+                #expected_performance <- delta_performance_improvement + full_model_CV_performance
+                expected_performance <- delta_performance_improvement
                 expected_total_cost <- meta_data$cost_so_far[cur_instance_num - 1] + k_batch_size * payment_options
-                total_ratio_performance <- expected_performance / expected_total_cost
+                #total_ratio_performance <- expected_performance / expected_total_cost
+                total_ratio_performance <- expected_performance
                 logger_append(list(
                     expected_performance = expected_performance,
                     expected_total_cost = expected_total_cost,

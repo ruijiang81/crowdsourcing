@@ -4,6 +4,8 @@
 ## Initialization
 cat("\014")
 rm(list = ls())
+source("R/create_requirements_file.R")
+source("R/reports_utilities.R")
 source("scripts/load_libraries.R")
 invisible(sapply(list.files(pattern = "[.]R$", path = "./functions/", full.names = TRUE), source))
 
@@ -11,7 +13,7 @@ invisible(sapply(list.files(pattern = "[.]R$", path = "./functions/", full.names
 ################
 # Get the data #
 ################
-reports_folder <- file.path(getwd(), "reports")
+reports_folder <- file.path("/home/ruijiang/E/utaustin/project/cost_efficient_labeling/Quick-and-Dirty/results/reports")
 reports <- import.reports(reports_folder,
     # Remove the "random" rule metadata
     random.rm = FALSE
@@ -89,15 +91,14 @@ results_long <- results
 #################
 # Visualisation #
 #################
-# library(ggplot2)
-# ggplot(results, aes(curve_integration, colour = payment_selection_criteria)) +
+#library(ggplot2)
+#ggplot(results, aes(curve_integration, colour = payment_selection_criteria)) +
 #     geom_density() + ggtitle("")
-
 
 ##############################
 # Export results to csv file #
 ##############################
-report_dir <- file.path(getwd(), "results")
+report_dir <- file.path("/home/ruijiang/E/utaustin/project/cost_efficient_labeling/Quick-and-Dirty/results")
 ## Long data frame
 file_name <- paste0(
     "(", "Comparing Curves", ")",
